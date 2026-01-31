@@ -1,0 +1,105 @@
+"use client";
+
+import { useEffect, useState, useRef } from "react";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+import { MapPin } from "lucide-react";
+
+// Fix Leaflet Default Icon in Next.js
+const iconUrl = "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png";
+const iconRetinaUrl = "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png";
+const shadowUrl = "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png";
+
+const DefaultIcon = L.icon({
+    iconUrl: iconUrl,
+    iconRetinaUrl: iconRetinaUrl,
+    shadowUrl: shadowUrl,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+});
+
+// Custom Icon for Selected State
+const SelectedIcon = L.icon({
+    iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
+    shadowUrl: shadowUrl,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+});
+
+L.Marker.prototype.options.icon = DefaultIcon;
+
+// Helper to fit map bounds
+function MapUpdater({ places, selectedPlace }: { places: any[], selectedPlace: any }) {
+    const map = useMap();
+
+    useEffect(() => {
+        if (selectedPlace && selectedPlace.latitude && selectedPlace.longitude) {
+            map.flyTo([selectedPlace.latitude, selectedPlace.longitude], 10, {
+                animate: true,
+                duration: 1.5
+            });
+        }
+    }, [selectedPlace, map]);
+
+    useEffect(() => {
+        // If we have places but no selection, fit bounds to show all
+        if (places.length > 0 && !selectedPlace) {
+            try {
+                const bounds = L.latLngBounds(places.map(p => [p.latitude || 10.8505, p.longitude || 76.2711]));
+                map.fitBounds(bounds, { padding: [50, 50], maxZoom: 10 });
+            } catch (e) { console.log(e) }
+        }
+    }, [places, map]);
+
+    return null;
+}
+
+interface ExploreMapProps {
+    places: any[];
+    selectedPlace: any;
+    onSelect: (place: any) => void;
+}
+
+export default function ExploreMap({ places, selectedPlace, onSelect }: ExploreMapProps) {
+    // Kerala Center
+    const defaultCenter: [number, number] = [10.850516, 76.271083];
+
+    return (
+        <div className="h-full w-full z-0">
+            <MapContainer
+                center={defaultCenter}
+                zoom={7}
+                scrollWheelZoom={true}
+                className="h-full w-full outline-none"
+                zoomControl={false} // Custom position maybe?
+            >
+                <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+                />
+
+                {places.map((place) => {
+                    if (!place.latitude || !place.longitude) return null;
+                    return (
+                        <Marker
+                            key={place._id}
+                            position={[place.latitude, place.longitude]}
+                            icon={selectedPlace?._id === place._id ? SelectedIcon : DefaultIcon}
+                            eventHandlers={{
+                                click: () => onSelect(place),
+                            }}
+                        >
+                        </Marker>
+                    )
+                })}
+
+                <MapUpdater places={places} selectedPlace={selectedPlace} />
+            </MapContainer>
+        </div>
+    );
+}

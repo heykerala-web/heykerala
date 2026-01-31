@@ -1,0 +1,14 @@
+import express from "express";
+
+console.log("Script started");
+
+const app = express();
+const PORT = 5000;
+
+app.get("/", (req, res) => {
+  res.json({ message: "Server is working!" });
+});
+
+app.listen(PORT, () => {
+  console.log(`Test server running on port ${PORT}`);
+});
