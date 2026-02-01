@@ -12,6 +12,8 @@ export interface IEvent extends Document {
     images: string[];
     latitude?: number;
     longitude?: number;
+    ratingAvg?: number;
+    ratingCount?: number;
     status: 'pending' | 'approved' | 'rejected';
     createdBy?: string;
     createdAt: Date;
@@ -29,6 +31,8 @@ const EventSchema: Schema = new Schema({
     images: [{ type: String }],
     latitude: { type: Number },
     longitude: { type: Number },
+    ratingAvg: { type: Number, default: 0 },
+    ratingCount: { type: Number, default: 0 },
     status: {
         type: String,
         enum: ['pending', 'approved', 'rejected'],

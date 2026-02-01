@@ -15,8 +15,14 @@ export default function AdminEventsPage() {
 
     const fetchEvents = async () => {
         try {
-            const data = await eventService.getAll({ category: "all" });
-            setEvents(data);
+            const response = await eventService.getAll({ category: "all" });
+            if (response.success && Array.isArray(response.data)) {
+                setEvents(response.data);
+            } else if (Array.isArray(response)) {
+                setEvents(response);
+            } else {
+                setEvents([]);
+            }
         } catch (error) {
             console.error(error);
         } finally {

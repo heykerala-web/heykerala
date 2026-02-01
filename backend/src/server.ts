@@ -75,6 +75,9 @@ app.use("/api/upload", uploadRoutes); // Use Upload Routes
 import reviewRoutes from "./routes/reviewRoutes";
 app.use("/api/reviews", reviewRoutes);
 
+import placePhotoRoutes from "./routes/placePhotoRoutes";
+app.use("/api/place-photos", placePhotoRoutes);
+
 // Global Error Handler
 app.use((err: any, req: Request, res: Response, next: any) => {
   console.error("🔥 Server Error:", err.stack);

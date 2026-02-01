@@ -7,10 +7,18 @@ export interface IUser extends Document {
   avatar?: string | null;
   bio?: string;
   savedPlaces: mongoose.Types.ObjectId[];
+  savedStays: mongoose.Types.ObjectId[];
+  savedEvents: mongoose.Types.ObjectId[];
   provider: string;
   googleId?: string;
   facebookId?: string;
   role: "Admin" | "Tourist" | "Contributor";
+  phone?: string;
+  location?: string;
+  travelBadge?: string;
+  contributionCount?: number;
+  savedCount?: number;
+  bookingCount?: number;
 }
 
 const userSchema: Schema<IUser> = new mongoose.Schema(
@@ -37,11 +45,20 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
     bio: { type: String, default: "" },
 
     savedPlaces: [{ type: mongoose.Schema.Types.ObjectId, ref: "Place" }],
+    savedStays: [{ type: mongoose.Schema.Types.ObjectId, ref: "Stay" }],
+    savedEvents: [{ type: mongoose.Schema.Types.ObjectId, ref: "Event" }],
 
     provider: { type: String, default: "local" },
 
     googleId: { type: String },
     facebookId: { type: String },
+
+    phone: { type: String, default: "" },
+    location: { type: String, default: "" },
+    travelBadge: { type: String, default: "Explorer 🌍" },
+    contributionCount: { type: Number, default: 0 },
+    savedCount: { type: Number, default: 0 },
+    bookingCount: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

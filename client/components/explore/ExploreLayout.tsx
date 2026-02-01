@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { placeService } from "@/services/placeService";
+import { FilterInput, FilterSelect } from "@/components/shared/FloatingFilter";
 
 // Dynamically import Map to avoid SSR issues with Leaflet
 const ExploreMap = dynamic(() => import("./ExploreMap"), {
@@ -60,30 +61,33 @@ export default function ExploreLayout() {
     }, [filters]);
 
     return (
-        <div className="flex h-full bg-white relative">
-            {/* Left Panel: List & Filters (Hidden on mobile if map view is active) */}
-            <div className={`${view === "map" ? "hidden md:flex" : "flex"} w-full md:w-[450px] lg:w-[500px] flex-col border-r h-full z-10 bg-white shadow-xl`}>
+        <div className="flex h-full bg-background relative overflow-hidden">
+            {/* Left Panel: List & Filters */}
+            <div className={`${view === "map" ? "hidden md:flex" : "flex"} w-full md:w-[450px] lg:w-[480px] flex-col h-full z-10 bg-white/80 backdrop-blur-xl border-r border-white/20 shadow-[20px_0_40px_-10px_rgba(0,0,0,0.05)]`}>
+
+
 
                 {/* Header: Search & Tabs */}
-                <div className="p-4 border-b space-y-4 bg-white z-20">
-                    <div className="flex gap-2">
-                        <div className="relative flex-1">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                            <Input
-                                placeholder="Search places..."
-                                className="pl-10 h-12 rounded-xl bg-gray-50 border-gray-200"
+                <div className="p-6 border-b border-white/20 space-y-4">
+                    <div className="flex flex-col gap-4">
+                        <div className="w-full">
+                            <FilterInput
+                                icon={<Search className="h-5 w-5" />}
+                                placeholder="Search destinations..."
                                 value={filters.search}
                                 onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+                                className="h-14 bg-muted/50 border-transparent focus:bg-white focus:border-emerald-500/20"
                             />
                         </div>
                         {/* District Filter Dropdown */}
-                        <div className="relative w-1/3 min-w-[120px]">
-                            <select
-                                className="w-full h-12 px-4 rounded-xl bg-gray-50 border border-gray-200 appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-black/5"
+                        <div className="w-full">
+                            <FilterSelect
+                                icon={<Filter className="h-5 w-5" />}
                                 value={filters.district}
                                 onChange={(e) => setFilters(prev => ({ ...prev, district: e.target.value }))}
+                                className="h-14 bg-muted/50 border-transparent focus:bg-white focus:border-emerald-500/20"
                             >
-                                <option value="all">All Kerala</option>
+                                <option value="all">All of Kerala</option>
                                 <option value="Idukki">Idukki</option>
                                 <option value="Alappuzha">Alappuzha</option>
                                 <option value="Wayanad">Wayanad</option>
@@ -98,17 +102,17 @@ export default function ExploreLayout() {
                                 <option value="Kollam">Kollam</option>
                                 <option value="Pathanamthitta">Pathanamthitta</option>
                                 <option value="Kasaragod">Kasaragod</option>
-                            </select>
+                            </FilterSelect>
                         </div>
                     </div>
 
                     <Tabs value={filters.type} onValueChange={(val) => setFilters(prev => ({ ...prev, type: val }))} className="w-full">
-                        <TabsList className="w-full flex justify-start overflow-x-auto scrollbar-hide h-12 bg-transparent gap-2 p-0">
+                        <TabsList className="w-full flex justify-start overflow-x-auto scrollbar-hide h-auto bg-transparent gap-3 p-0">
                             {["ThingsToDo", "Locations", "Restaurants", "Stays"].map((tab) => (
                                 <TabsTrigger
                                     key={tab}
                                     value={tab}
-                                    className="rounded-full border border-gray-200 px-6 py-2.5 data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:border-black transition-all whitespace-nowrap"
+                                    className="rounded-full border border-muted px-6 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary transition-all whitespace-nowrap text-xs font-semibold uppercase tracking-wider"
                                 >
                                     {tab === "ThingsToDo" ? "Things to do" : tab}
                                 </TabsTrigger>

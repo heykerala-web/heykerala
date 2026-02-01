@@ -18,8 +18,9 @@ interface ReviewType {
     _id: string;
     comment: string;
     rating: number;
+    targetType: string;
+    target: { _id: string; name: string; type: string };
     user: { _id: string; name: string; email: string };
-    place: { _id: string; name: string };
     createdAt: string;
 }
 
@@ -55,18 +56,27 @@ export default function ReviewsPage() {
         }
     };
 
-    if (loading) return <div>Loading reviews...</div>;
+    if (loading) return (
+        <div className="flex items-center justify-center min-h-[400px]">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+    );
 
     return (
         <div className="space-y-6">
-            <h1 className="text-3xl font-bold">Manage Reviews</h1>
+            <div className="flex justify-between items-center">
+                <h1 className="text-3xl font-bold">Manage Reviews</h1>
+                <div className="bg-primary/10 text-primary px-4 py-2 rounded-lg font-bold text-sm">
+                    {reviews.length} Reviews
+                </div>
+            </div>
 
             <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
                 <Table>
                     <TableHeader className="bg-gray-50">
                         <TableRow>
                             <TableHead>User</TableHead>
-                            <TableHead>Place</TableHead>
+                            <TableHead>Reviewed Item</TableHead>
                             <TableHead>Rating</TableHead>
                             <TableHead>Comment</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
@@ -91,19 +101,26 @@ export default function ReviewsPage() {
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <div className="flex items-center gap-1 text-gray-600">
-                                            <MapPin className="w-3 h-3" />
-                                            {review.place?.name || "Unknown"}
+                                        <div className="flex flex-col gap-1">
+                                            <div className="flex items-center gap-1 text-gray-900 font-medium">
+                                                <MapPin className="w-3 h-3" />
+                                                {review.target?.name || "Unknown"}
+                                            </div>
+                                            <span className="text-[10px] font-bold uppercase tracking-widest text-primary bg-primary/5 px-1.5 py-0.5 rounded w-fit">
+                                                {review.targetType}
+                                            </span>
                                         </div>
                                     </TableCell>
                                     <TableCell>
                                         <div className="flex items-center text-yellow-500">
                                             <Star className="w-3 h-3 fill-current mr-1" />
-                                            {review.rating}
+                                            <span className="font-bold text-gray-900">{review.rating}</span>
                                         </div>
                                     </TableCell>
-                                    <TableCell className="max-w-md truncate" title={review.comment}>
-                                        {review.comment}
+                                    <TableCell className="max-w-md">
+                                        <p className="line-clamp-2 text-sm text-gray-600" title={review.comment}>
+                                            {review.comment}
+                                        </p>
                                     </TableCell>
                                     <TableCell className="text-right">
                                         <Button

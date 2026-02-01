@@ -20,7 +20,15 @@ export default function EditStayPage() {
     useEffect(() => {
         if (id) {
             stayService.getById(id as string)
-                .then(setStay)
+                .then((res) => {
+                    if (res && res.success) {
+                        setStay(res.data);
+                    } else if (res) {
+                        // Fallback if the service returns data directly (though service usually returns parsed json)
+                        // Based on stayService.getById, it returns res.json() which matches the backend response
+                        setStay(res.data || res);
+                    }
+                })
                 .catch(() => toast({ title: "Failed to load stay", variant: "destructive" }))
                 .finally(() => setFetching(false));
         }

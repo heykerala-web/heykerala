@@ -18,6 +18,10 @@ const nextConfig = {
         source: "/api/:path*",
         destination: "http://localhost:5000/api/:path*", // Backend URL
       },
+      {
+        source: "/uploads/:path*",
+        destination: "http://localhost:5000/uploads/:path*", // Serve uploaded images
+      },
     ];
   },
 };

@@ -16,7 +16,8 @@ const sampleEvents = [
         time: "10:00 AM",
         images: ["/onam-festival-pookalam-kathakali.png"],
         latitude: 8.5115,
-        longitude: 76.9538
+        longitude: 76.9538,
+        status: 'approved'
     },
     {
         title: "Theyyam Performance",
@@ -29,7 +30,8 @@ const sampleEvents = [
         time: "7:00 PM",
         images: ["/theyyam-performance-ritual-art.png"],
         latitude: 11.9890,
-        longitude: 75.4057
+        longitude: 75.4057,
+        status: 'approved'
     },
     {
         title: "Boat Race Championship",
@@ -42,7 +44,8 @@ const sampleEvents = [
         time: "2:00 PM",
         images: ["/snake-boat-race-kerala.png"],
         latitude: 9.5015,
-        longitude: 76.3538
+        longitude: 76.3538,
+        status: 'approved'
     },
     {
         title: "Spice Festival",
@@ -55,7 +58,8 @@ const sampleEvents = [
         time: "09:00 AM",
         images: ["/kerala-spice-market-festival.png"],
         latitude: 9.6083,
-        longitude: 77.1706
+        longitude: 77.1706,
+        status: 'approved'
     }
 ];
 

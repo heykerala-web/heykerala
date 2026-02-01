@@ -11,6 +11,7 @@ export interface IStay extends Document {
     price: number;
     amenities: string[];
     ratingAvg: number;
+    ratingCount: number;
     status: 'pending' | 'approved' | 'rejected';
     createdBy?: string;
     createdAt: Date;
@@ -31,6 +32,7 @@ const StaySchema: Schema = new Schema({
     price: { type: Number, required: true },
     amenities: [{ type: String }],
     ratingAvg: { type: Number, default: 0 },
+    ratingCount: { type: Number, default: 0 },
     status: {
         type: String,
         enum: ['pending', 'approved', 'rejected'],

@@ -15,8 +15,8 @@ export default function Sidebar() {
   const navigation = [
     { href: "/", icon: <MessageSquare size={18} />, label: "Home" },
     { href: "/explore", icon: <Compass size={18} />, label: "Explore" },
-    { href: "/saved", icon: <Heart size={18} />, label: "Saved" },
-    { href: "/trips", icon: <Map size={18} />, label: "Trips" },
+    { href: "/profile?tab=saved", icon: <Heart size={18} />, label: "Saved" },
+    { href: "/profile?tab=bookings", icon: <Map size={18} />, label: "Trips" },
     { href: "/updates", icon: <Bell size={18} />, label: "Updates" },
     { href: "/inspiration", icon: <Sparkles size={18} />, label: "Inspiration" },
   ];
@@ -26,8 +26,10 @@ export default function Sidebar() {
       {/* Top Section */}
       <div>
         {/* Logo */}
-        <div className="p-4">
-          <h1 className="text-lg font-bold">Logo</h1>
+        <div className="p-6">
+          <h1 className="font-outfit font-bold text-2xl tracking-tight text-foreground">
+            Hey<span className="text-primary">Kerala</span>
+          </h1>
         </div>
 
         <nav className="px-2">
@@ -43,17 +45,20 @@ export default function Sidebar() {
           </div>
 
           {/* New Chat Button */}
-          <button className="w-full mt-4 py-2 rounded-lg bg-gray-100 text-sm font-medium hover:bg-gray-200 transition">
-            New chat
+          <button className="w-full mt-6 py-2.5 px-4 rounded-xl bg-primary/5 text-primary text-sm font-bold hover:bg-primary hover:text-white transition-all duration-300 border border-primary/10 font-outfit uppercase tracking-wider">
+            New session
           </button>
         </nav>
       </div>
 
       {/* Bottom User Section */}
-      <div className="p-4 border-t flex items-center gap-3">
-        <div className="h-8 w-8 rounded-full bg-gray-300" />
+      <div className="p-6 border-t border-border flex items-center gap-3">
+        <div className="h-10 w-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center overflow-hidden">
+          <span className="text-primary font-bold">BK</span>
+        </div>
         <div className="text-sm">
-          <p className="font-semibold">Traveler</p>
+          <p className="font-outfit font-bold text-foreground">Traveler</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Premium Member</p>
         </div>
       </div>
     </aside>
@@ -71,8 +76,8 @@ function SidebarItem({
 }) {
   return (
     <div
-      className={`flex items-center gap-3 px-3 py-2 rounded-md cursor-pointer text-sm
-        ${active ? "bg-gray-100 font-semibold" : "hover:bg-gray-50"}
+      className={`flex items-center gap-3 px-4 py-2.5 rounded-xl cursor-pointer text-sm transition-all duration-300 font-inter font-medium
+        ${active ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]" : "text-muted-foreground hover:bg-muted hover:text-foreground"}
       `}
     >
       {icon}

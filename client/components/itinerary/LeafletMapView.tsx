@@ -31,13 +31,8 @@ const Polyline = dynamic(
   { ssr: false }
 );
 
-// Fix for default marker icons in Next.js
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
-  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-});
+// Types and Props (Leaflet config moved to useEffect)
+
 
 interface Activity {
   time: string;
@@ -60,7 +55,7 @@ interface LeafletMapViewProps {
 export default function LeafletMapView({ days }: LeafletMapViewProps) {
   // Collect all activities
   const allActivities = days.flatMap((day) => day.activities);
-  
+
   // Get center from first activity
   const center: [number, number] = allActivities[0]
     ? [allActivities[0].lat, allActivities[0].lng]
@@ -75,6 +70,16 @@ export default function LeafletMapView({ days }: LeafletMapViewProps) {
 
   useEffect(() => {
     setIsClient(true);
+
+    // Fix for default marker icons in Next.js (client-side only)
+    if (typeof window !== "undefined") {
+      delete (L.Icon.Default.prototype as any)._getIconUrl;
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
+        iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
+        shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
+      });
+    }
   }, []);
 
   if (!isClient) {

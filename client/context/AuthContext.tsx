@@ -11,7 +11,18 @@ interface User {
     role: "Admin" | "Tourist" | "Contributor";
     avatar?: string;
     bio?: string;
+    phone?: string;
+    location?: string;
+    travelBadge?: string;
     savedPlaces?: any[];
+    savedStays?: any[];
+    savedEvents?: any[];
+    stats?: {
+        bookings: number;
+        contributions: number;
+        saved: number;
+    };
+    createdAt?: string;
 }
 
 interface AuthContextType {

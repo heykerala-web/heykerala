@@ -275,18 +275,18 @@ export default function WhereToGoPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 pb-20 lg:pb-8">
+    <main className="min-h-screen bg-background pb-20 lg:pb-8">
       {/* Hero Header */}
-      <div className="relative bg-gradient-to-r from-green-700 via-teal-600 to-emerald-600 text-white py-20">
-        <div className="absolute inset-0 bg-black/20" />
-        <div className="relative container mx-auto px-4 text-center">
-          <h1 className="font-poppins text-5xl md:text-7xl font-bold mb-6">Where to go</h1>
-          <p className="text-xl md:text-2xl mb-8 opacity-90 max-w-3xl mx-auto">
-            Discover the diverse experiences that make Kerala truly Gods Own Country
+      <div className="relative bg-primary text-white py-24 md:py-32 overflow-hidden">
+        <div className="absolute inset-0 opacity-10 bg-[url('/kerala-pattern.png')] bg-repeat" />
+        <div className="relative container mx-auto px-6 max-w-7xl text-center z-10">
+          <h1 className="font-outfit text-5xl md:text-8xl font-bold mb-8 tracking-tighter">Where to go</h1>
+          <p className="text-xl md:text-2xl mb-12 opacity-80 max-w-3xl mx-auto font-inter font-light leading-relaxed">
+            Discover the diverse experiences that make Kerala truly God&apos;s Own Country
           </p>
           <div className="flex justify-center">
-            <div className="bg-white/10 backdrop-blur-sm rounded-full px-6 py-2">
-              <span className="text-lg font-medium">✨ 500+ Amazing Destinations</span>
+            <div className="bg-white/5 backdrop-blur-md rounded-full px-8 py-3 border border-white/10 shadow-2xl">
+              <span className="text-sm font-bold uppercase tracking-[0.3em]">✨ 500+ Amazing Destinations</span>
             </div>
           </div>
         </div>
@@ -302,13 +302,13 @@ export default function WhereToGoPage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-3 px-8 py-6 whitespace-nowrap border-b-4 transition-all duration-300 ${activeTab === tab.id
-                    ? "border-yellow-500 text-green-700 bg-yellow-50"
-                    : "border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                  className={`flex items-center gap-3 px-10 py-8 whitespace-nowrap border-b-4 transition-all duration-500 ${activeTab === tab.id
+                    ? "border-accent text-primary bg-primary/5"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50"
                     }`}
                 >
-                  <Icon className="h-6 w-6" />
-                  <span className="font-semibold">{tab.label}</span>
+                  <Icon className={`h-6 w-6 ${activeTab === tab.id ? "text-accent" : "text-muted-foreground"}`} />
+                  <span className="font-outfit font-bold uppercase tracking-widest text-xs">{tab.label}</span>
                 </button>
               )
             })}
@@ -317,9 +317,9 @@ export default function WhereToGoPage() {
       </div>
 
       {/* Content Grid */}
-      <div className="container mx-auto px-4 py-12">
+      <div className="container mx-auto px-6 py-16 max-w-7xl">
         <div
-          className={`grid gap-8 ${activeTab === "attractions"
+          className={`grid gap-10 ${activeTab === "attractions"
             ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-4"
             : activeTab === "regions"
               ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-4"
@@ -330,7 +330,7 @@ export default function WhereToGoPage() {
             <Link
               key={index}
               href={item.href}
-              className="group relative overflow-hidden rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 bg-white"
+              className="group relative overflow-hidden rounded-[2.5rem] shadow-sm border border-border hover:shadow-2xl transition-all duration-700 transform hover:-translate-y-2 bg-card"
             >
               <div className="aspect-[4/3] relative overflow-hidden">
                 <img
@@ -341,45 +341,48 @@ export default function WhereToGoPage() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
                 {/* Count Badge */}
-                <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1">
-                  <span className="text-sm font-semibold text-gray-800">{item.count}</span>
+                <div className="absolute top-6 left-6 bg-white/95 backdrop-blur-md rounded-full px-4 py-1.5 shadow-sm border border-black/5">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-primary">{item.count}</span>
                 </div>
 
                 {/* Arrow indicator */}
-                <div className="absolute top-4 right-4 w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center group-hover:bg-white/30 transition-all duration-300 group-hover:scale-110">
+                <div className="absolute top-6 right-6 w-12 h-12 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all duration-500 group-hover:scale-110 border border-white/20 group-hover:border-transparent">
                   <ArrowRight className="h-5 w-5 text-white" />
                 </div>
 
                 {/* Content overlay */}
-                <div className="absolute bottom-0 left-0 right-0 p-6">
-                  <h3 className="text-white font-poppins text-2xl font-bold mb-2 group-hover:text-yellow-300 transition-colors">
+                <div className="absolute bottom-0 left-0 right-0 p-8">
+                  <h3 className="text-white font-outfit text-3xl font-bold mb-2 group-hover:text-accent transition-colors leading-tight">
                     {item.title}
                   </h3>
-                  <p className="text-white/90 text-sm leading-relaxed">{item.description}</p>
+                  <p className="text-white/80 text-sm leading-relaxed font-inter font-light">{item.description}</p>
                 </div>
               </div>
 
               {/* Hover effect overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-green-700/0 to-green-700/0 group-hover:from-green-700/10 group-hover:to-transparent transition-all duration-500" />
+              <div className="absolute inset-0 bg-gradient-to-t from-primary/0 to-primary/0 group-hover:from-primary/10 group-hover:to-transparent transition-all duration-500" />
             </Link>
           ))}
         </div>
       </div>
 
       {/* Bottom CTA */}
-      <div className="container mx-auto px-4 pb-8">
-        <div className="bg-gradient-to-r from-green-700 to-teal-600 rounded-3xl p-8 md:p-12 text-white text-center">
-          <h2 className="font-poppins text-3xl md:text-4xl font-bold mb-4">Need Help Planning?</h2>
-          <p className="text-lg md:text-xl opacity-90 mb-8 max-w-2xl mx-auto">
-            Our AI assistant can create personalized recommendations based on your interests
-          </p>
-          <Link
-            href="/ai-guide"
-            className="inline-flex items-center gap-2 bg-white text-green-700 px-8 py-4 rounded-full font-semibold hover:bg-gray-100 transition-colors text-lg"
-          >
-            🤖 Get AI Recommendations
-            <ArrowRight className="h-5 w-5" />
-          </Link>
+      <div className="container mx-auto px-6 pb-20 max-w-7xl">
+        <div className="relative bg-primary rounded-[3rem] p-12 md:p-20 text-white text-center overflow-hidden shadow-2xl">
+          <div className="absolute inset-0 opacity-10 bg-[url('/kerala-pattern.png')] bg-repeat" />
+          <div className="relative z-10">
+            <h2 className="font-outfit text-4xl md:text-5xl font-bold mb-6 tracking-tight">Need Help Planning?</h2>
+            <p className="text-xl opacity-80 mb-12 max-w-2xl mx-auto font-inter leading-relaxed">
+              Our AI assistant can create personalized recommendations based on your unique interests and travel style.
+            </p>
+            <Link
+              href="/ai-guide"
+              className="inline-flex items-center gap-3 bg-accent hover:bg-accent/90 text-white px-10 py-5 rounded-2xl font-bold uppercase tracking-[0.2em] text-xs transition-all duration-300 shadow-xl shadow-accent/20 active:scale-95"
+            >
+              🤖 Get AI Recommendations
+              <ArrowRight className="h-5 w-5" />
+            </Link>
+          </div>
         </div>
       </div>
     </main>

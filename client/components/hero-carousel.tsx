@@ -40,44 +40,43 @@ export function HeroCarousel() {
   const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length)
 
   return (
-    <section className="relative h-[70vh] md:h-[80vh] overflow-hidden">
+    <section className="relative h-[85vh] md:h-[95vh] overflow-hidden">
       {heroSlides.map((slide, index) => (
         <div
           key={index}
-          className={`absolute inset-0 transition-opacity duration-1000 ${
-            index === currentSlide ? "opacity-100" : "opacity-0"
-          }`}
+          className={`absolute inset-0 transition-opacity duration-1000 ${index === currentSlide ? "opacity-100" : "opacity-0"
+            }`}
         >
           <img src={slide.image || "/placeholder.svg"} alt={slide.title} className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
+          <div className="absolute inset-0 bg-black/40" />
         </div>
       ))}
 
       {/* Content */}
       <div className="relative z-10 h-full flex items-center">
-        <div className="container mx-auto px-4">
-          <div className="max-w-2xl text-white">
-            <h1 className="font-poppins text-5xl md:text-7xl font-bold mb-4">
-              <span className="golden">Hey</span> Kerala
+        <div className="container mx-auto px-6 md:px-12">
+          <div className="max-w-3xl text-white">
+            <h1 className="text-hero font-outfit mb-6 animate-in slide-in-from-bottom-4 duration-700 text-white">
+              Hey Kerala
             </h1>
-            <h2 className="text-2xl md:text-4xl font-semibold mb-4">{heroSlides[currentSlide].title}</h2>
-            <p className="text-lg md:text-xl mb-8 opacity-90">{heroSlides[currentSlide].subtitle}</p>
-            <div className="flex flex-col sm:flex-row gap-4">
+            <h2 className="text-h1 mb-4 font-outfit font-bold animate-in slide-in-from-bottom-4 delay-100 duration-700 text-white">{heroSlides[currentSlide].title}</h2>
+            <p className="text-body-lg mb-10 opacity-90 max-w-xl animate-in slide-in-from-bottom-4 delay-200 duration-700 leading-relaxed font-inter">{heroSlides[currentSlide].subtitle}</p>
+            <div className="flex flex-col sm:flex-row gap-6">
               <Link href="/where-to-go">
                 <Button
                   size="lg"
-                  className="bg-kerala-green hover:bg-kerala-green/90 text-white px-8 py-3 rounded-full"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground px-10 h-14 rounded-full text-lg shadow-xl shadow-primary/20 transition-all duration-300 hover:-translate-y-1 font-outfit font-bold"
                 >
-                  Where to go
+                  Explore Destinations
                 </Button>
               </Link>
               <Link href="/plan-trip">
                 <Button
                   size="lg"
                   variant="outline"
-                  className="border-white text-white hover:bg-white hover:text-gray-900 px-8 py-3 rounded-full bg-transparent"
+                  className="border-white/40 text-white hover:bg-white hover:text-black px-10 h-14 rounded-full bg-white/10 backdrop-blur-md text-lg"
                 >
-                  Plan My Trip
+                  Plan Your Trip
                 </Button>
               </Link>
             </div>

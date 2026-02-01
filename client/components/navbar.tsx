@@ -3,7 +3,6 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import Sidebar from "./sidebar";
 import {
   Menu,
   Search,
@@ -70,10 +69,20 @@ const navLinks = [
 
 
 import { AddListingButton } from "./AddListingButton";
+import { useEffect } from "react";
 
 export function Navbar() {
   const pathname = usePathname();
   const { user, loading, logout } = useAuth();
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -99,41 +108,38 @@ export function Navbar() {
   return (
     <>
       {/* Desktop Navbar */}
-      <header className="sticky top-0 z-30 w-full border-b bg-white/95 backdrop-blur shadow-sm">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+      <header
+        className={`sticky top-0 z-50 w-full transition-all duration-500 border-b ${isScrolled
+          ? "bg-white/80 backdrop-blur-xl border-white/20 shadow-sm py-0"
+          : "bg-white/60 backdrop-blur-md border-transparent py-2"
+          }`}
+      >
+        <div className="container mx-auto px-6 h-20 flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 bg-emerald-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-sm">🌴</span>
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="h-10 w-10 bg-primary rounded-xl flex items-center justify-center transition-transform group-hover:scale-105">
+              <span className="text-white text-xl">🌴</span>
             </div>
-            <span className="font-bold text-xl">
-              <span className="text-emerald-600">Hey</span> Kerala
+            <span className="font-outfit font-bold text-2xl tracking-tight text-foreground">
+              Hey<span className="text-primary">Kerala</span>
             </span>
           </Link>
 
-          {/* Search Bar - Desktop */}
-          <div className="hidden md:flex flex-1 max-w-md mx-8 relative z-50">
-            <div className="relative w-full flex items-center gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Search..."
-                  className="pl-10 rounded-full border-gray-200 focus:border-emerald-600 focus:ring-emerald-600"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                />
-              </div>
-              <Button
-                onClick={() => handleSearch(searchQuery)}
-                className="rounded-full bg-emerald-600 hover:bg-emerald-700 text-white px-6"
-              >
-                Search
-              </Button>
+          {/* Search Bar - Desktop (Minimalist) */}
+          <div className="hidden md:flex flex-1 max-w-lg mx-12 relative z-50">
+            <div className="relative w-full group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+              <Input
+                placeholder="Search destinations..."
+                className="w-full h-11 pl-11 pr-4 rounded-xl border-transparent bg-muted/50 focus:bg-white focus:border-primary/20 focus:ring-0 transition-all text-base"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={handleKeyDown}
+              />
             </div>
-            {/* Live Suggestions - Positioned below the input/button row */}
+            {/* Live Suggestions */}
             {searchQuery.length >= 2 && (
-              <div className="absolute top-full left-0 right-0 pt-2">
+              <div className="absolute top-full left-0 right-0 pt-2 shadow-2xl">
                 <SearchSuggestions
                   query={searchQuery}
                   onSelect={() => setSearchQuery("")}
@@ -143,25 +149,25 @@ export function Navbar() {
           </div>
 
           {/* Desktop Links */}
-          <nav className="hidden lg:flex items-center gap-6">
-            <Link href="/" className={`font-medium ${pathname === "/" ? "text-emerald-600" : "text-gray-700 hover:text-emerald-600"}`}>
-              Home
+          <nav className="hidden lg:flex items-center gap-8">
+            <Link href="/" className={`text-sm font-medium tracking-wide border-b-2 transition-all pb-1 ${pathname === "/" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground hover:border-foreground/20"}`}>
+              HOME
             </Link>
 
-            <div className="flex items-center gap-1">
-              <Link href="/where-to-go" className={`font-medium ${pathname.startsWith("/where-to-go") ? "text-emerald-600" : "text-gray-700 hover:text-emerald-600"}`}>
-                Where to go
+            <div className="flex items-center gap-1 group">
+              <Link href="/where-to-go" className={`text-sm font-medium tracking-wide border-b-2 transition-all pb-1 ${pathname.startsWith("/where-to-go") ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground hover:border-foreground/20"}`}>
+                EXPLORE
               </Link>
               <DropdownMenu>
-                <DropdownMenuTrigger className="outline-none p-1">
-                  <ChevronDown className="h-4 w-4 text-gray-500 hover:text-emerald-600 transition-colors" />
+                <DropdownMenuTrigger className="outline-none">
+                  <ChevronDown className="h-3 w-3 text-muted-foreground group-hover:text-foreground transition-colors" />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-64 p-3" align="start">
+                <DropdownMenuContent className="w-64 p-3 rounded-2xl border-white/40 shadow-2xl backdrop-blur-xl bg-white/80" align="start">
                   {exploreCategories.map((c) => (
                     <DropdownMenuItem key={c.name} asChild>
-                      <Link href={c.href} className="flex items-center gap-3 p-2 rounded-md hover:bg-gray-50">
-                        <span className="text-lg">{c.icon}</span>
-                        {c.name}
+                      <Link href={c.href} className="flex items-center gap-3 p-3 rounded-xl hover:bg-primary/5 hover:text-primary transition-colors cursor-pointer">
+                        <span className="text-xl">{c.icon}</span>
+                        <span className="font-medium text-sm">{c.name}</span>
                       </Link>
                     </DropdownMenuItem>
                   ))}
@@ -172,32 +178,37 @@ export function Navbar() {
             {navLinks.map((link) => {
               const active = pathname === link.href;
               return (
-                <Link key={link.href} href={link.href} className={`font-medium ${active ? "text-emerald-600" : "text-gray-700 hover:text-emerald-600"}`}>
-                  {link.label}
+                <Link key={link.href} href={link.href} className={`text-sm font-medium tracking-wide border-b-2 transition-all pb-1 ${active ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground hover:border-foreground/20"}`}>
+                  {link.label.toUpperCase()}
                 </Link>
               );
             })}
           </nav>
 
           {/* Right Side Icons */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <AddListingButton />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="sm" variant="ghost" className="flex items-center gap-2">
-                  {(!loading && user?.avatar) ? (
-                    <img
-                      src={getAvatarUrl(user.avatar)}
-                      alt={user.name}
-                      className="h-6 w-6 rounded-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/default-avatar.png';
-                      }}
-                    />
-                  ) : (
-                    <User className="h-4 w-4" />
-                  )}
-                  {!loading && user ? user.name : "Account"}
+                <Button size="sm" variant="ghost" className="hidden md:flex items-center gap-2.5 px-4 h-10 rounded-full hover:bg-muted/50 transition-all">
+                  <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden border border-primary/10">
+                    {(!loading && user?.avatar) ? (
+                      <img
+                        src={getAvatarUrl(user.avatar)}
+                        alt={user.name || "User"}
+                        className="h-full w-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/default-avatar.png';
+                        }}
+                      />
+                    ) : (
+                      <User className="h-4 w-4 text-primary" />
+                    )}
+                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-foreground">
+                    {!loading && user ? user.name : "Account"}
+                  </span>
+                  <ChevronDown className="h-3 w-3 text-muted-foreground" />
                 </Button>
               </DropdownMenuTrigger>
 
@@ -207,8 +218,13 @@ export function Navbar() {
                     <DropdownMenuItem asChild>
                       <Link href="/profile">My Profile</Link>
                     </DropdownMenuItem>
+                    {user.role === "Admin" && (
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin" className="text-emerald-600 font-bold">Admin Panel</Link>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem asChild>
-                      <Link href="/dashboard">Dashboard</Link>
+                      <Link href="/profile?tab=overview">Dashboard</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link href="/emergency">Emergency</Link>
@@ -233,7 +249,7 @@ export function Navbar() {
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                      <Link href="/dashboard">Dashboard</Link>
+                      <Link href="/profile?tab=overview">Dashboard</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link href="/emergency">Emergency</Link>
@@ -324,8 +340,8 @@ export function Navbar() {
       </header>
 
       {/* Mobile bottom navigation */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-40">
-        <div className="grid grid-cols-5 text-center text-xs">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 shadow-[0_-5px_20px_rgba(0,0,0,0.03)] z-40 pb-safe">
+        <div className="grid grid-cols-5 text-center text-[10px] font-bold">
           {[
             { href: "/", icon: "🏠", label: "Home" },
             { href: "/explore", icon: "🔍", label: "Explore" },
@@ -333,45 +349,20 @@ export function Navbar() {
             { href: "/profile", icon: "👤", label: "Profile" },
             { href: "/emergency", icon: "🚨", label: "Emergency" },
           ].map((item) => {
-            const active = usePathname() === item.href;
+            const active = pathname === item.href;
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex flex-col py-2 ${active ? "text-emerald-600" : "text-gray-500"}`}
+                className={`flex flex-col items-center justify-center py-3 transition-all duration-300 ${active ? "text-emerald-600" : "text-gray-400 hover:text-gray-900"}`}
               >
-                <span className="text-lg">{item.icon}</span>
-                {item.label}
+                <span className={`text-xl mb-1 transition-transform ${active ? "scale-110" : ""}`}>{item.icon}</span>
+                <span className="tracking-wide uppercase">{item.label}</span>
               </Link>
             );
           })}
         </div>
       </nav>
     </>
-  );
-}
-
-/* --------------------- App Layout Wrapper --------------------- */
-
-type Props = {
-  children: React.ReactNode;
-};
-
-export default function AppLayout({ children }: Props) {
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="flex">
-        {/* Sidebar (desktop) */}
-        <Sidebar />
-
-        {/* Main content area (navbar + page) */}
-        <div className="flex-1 min-h-screen flex flex-col">
-          <Navbar />
-          <main className="flex-1 container mx-auto px-4 py-6">
-            {children}
-          </main>
-        </div>
-      </div>
-    </div>
   );
 }

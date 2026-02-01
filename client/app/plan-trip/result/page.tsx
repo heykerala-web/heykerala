@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import ItineraryHeader from "@/components/itinerary/ItineraryHeader";
 import DayAccordion from "@/components/itinerary/DayAccordion";
-import LeafletMapView from "@/components/itinerary/LeafletMapView";
+
+const LeafletMapView = dynamic(() => import("@/components/itinerary/LeafletMapView"), { ssr: false });
 import BudgetBreakdown from "@/components/itinerary/BudgetBreakdown";
 import HotelsGrid from "@/components/itinerary/HotelsGrid";
 import ActionButtons from "@/components/itinerary/ActionButtons";
@@ -63,7 +65,7 @@ export default function ItineraryResultPage() {
 
   useEffect(() => {
     const dataParam = searchParams.get("data");
-    
+
     if (!dataParam) {
       setError("No itinerary data found. Please generate a new itinerary.");
       setLoading(false);

@@ -14,9 +14,10 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Upload, X, ArrowLeft } from "lucide-react";
+import { Loader2, Upload, X, ArrowLeft, ArrowRight } from "lucide-react";
 import toast from "react-hot-toast";
 import Link from "next/link";
+import { TagInput } from "@/components/ui/tag-input";
 
 const KERALA_DISTRICTS = [
     "Thiruvananthapuram", "Kollam", "Pathanamthitta", "Alappuzha", "Kottayam",
@@ -28,6 +29,7 @@ const STAY_TYPES = ['hotel', 'resort', 'homestay', 'restaurant', 'cafe'];
 
 export default function ContributeStayPage() {
     const router = useRouter();
+    const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
 
@@ -69,7 +71,7 @@ export default function ContributeStayPage() {
 
             const urls = await Promise.all(uploadPromises);
             setFormData((prev) => ({ ...prev, images: [...prev.images, ...urls] }));
-            toast.success("Images uploaded successfully");
+            toast.success("Visions captured successfully");
         } catch (error) {
             console.error("Upload failed", error);
             toast.error("Failed to upload images");
@@ -85,13 +87,12 @@ export default function ContributeStayPage() {
         }));
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = async () => {
         setLoading(true);
 
         try {
             if (!formData.name || !formData.type || !formData.district || !formData.price) {
-                toast.error("Please fill in required fields");
+                toast.error("The sanctuary details are incomplete.");
                 setLoading(false);
                 return;
             }
@@ -105,7 +106,7 @@ export default function ContributeStayPage() {
             };
 
             await api.post("/stays/user/submission", payload);
-            toast.success("Stay submitted for review!");
+            toast.success("Your sanctuary has been sent for review.");
             router.push("/dashboard");
         } catch (error: any) {
             console.error(error);
@@ -115,142 +116,226 @@ export default function ContributeStayPage() {
         }
     };
 
+    const nextStep = () => setStep(s => Math.min(s + 1, 4));
+    const prevStep = () => setStep(s => Math.max(s - 1, 1));
+
     return (
-        <div className="container mx-auto py-10 px-4 max-w-3xl">
-            <div className="mb-6">
-                <Button variant="ghost" asChild className="mb-4 pl-0 hover:pl-2 transition-all">
-                    <Link href="/dashboard" className="flex items-center text-muted-foreground hover:text-foreground">
-                        <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
-                    </Link>
-                </Button>
-                <h1 className="text-3xl font-bold tracking-tight">Contribute a Stay</h1>
-                <p className="text-muted-foreground mt-2">
-                    Add a Hotel, Resort, Homestay, or Restaurant.
-                </p>
+        <div className="min-h-screen bg-white selection:bg-teal-100 pb-20">
+            {/* 🔹 STEPS PROGRESS BAR */}
+            <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-gray-100">
+                <div
+                    className="h-full bg-teal-600 transition-all duration-1000 ease-out"
+                    style={{ width: `${(step / 4) * 100}%` }}
+                />
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-8 bg-card p-8 rounded-xl border shadow-sm">
-
-                {/* Basic Info */}
-                <div className="space-y-4">
-                    <h2 className="text-xl font-semibold border-b pb-2">Basic Information</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <Label htmlFor="name">Property Name *</Label>
-                            <Input id="name" name="name" value={formData.name} onChange={handleChange} required placeholder="e.g. Green Valley Resort" />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="type">Type *</Label>
-                            <Select name="type" value={formData.type} onValueChange={(val) => handleSelectChange("type", val)}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select Type" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {STAY_TYPES.map((t) => (
-                                        <SelectItem key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <Label htmlFor="district">District *</Label>
-                            <Select name="district" value={formData.district} onValueChange={(val) => handleSelectChange("district", val)}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select District" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {KERALA_DISTRICTS.map((d) => (
-                                        <SelectItem key={d} value={d}>{d}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="price">Approx. Price (₹) *</Label>
-                            <Input id="price" name="price" type="number" value={formData.price} onChange={handleChange} required placeholder="e.g. 2500" />
-                        </div>
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="description">Description *</Label>
-                        <Textarea id="description" name="description" value={formData.description} onChange={handleChange} required rows={4} placeholder="Describe the ambiance, facilities, etc." />
-                    </div>
-                </div>
-
-                {/* Location */}
-                <div className="space-y-4">
-                    <h2 className="text-xl font-semibold border-b pb-2">Location Coordinates</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <Label htmlFor="latitude">Latitude</Label>
-                            <Input id="latitude" name="latitude" type="number" step="any" value={formData.latitude} onChange={handleChange} placeholder="e.g. 10.0889" />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="longitude">Longitude</Label>
-                            <Input id="longitude" name="longitude" type="number" step="any" value={formData.longitude} onChange={handleChange} placeholder="e.g. 77.0595" />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Amenities */}
-                <div className="space-y-4">
-                    <h2 className="text-xl font-semibold border-b pb-2">Amenities</h2>
-                    <div className="space-y-2">
-                        <Label htmlFor="amenities">Amenities (Comma Separated)</Label>
-                        <Input id="amenities" name="amenities" value={formData.amenities} onChange={handleChange} placeholder="WiFi, Pool, AC, Parking" />
-                    </div>
-                </div>
-
-                {/* Images */}
-                <div className="space-y-4">
-                    <h2 className="text-xl font-semibold border-b pb-2">Photos</h2>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {formData.images.map((url, index) => (
-                            <div key={index} className="relative group aspect-square rounded-lg overflow-hidden border bg-muted">
-                                <img
-                                    src={url.startsWith('/') ? `${process.env.NEXT_PUBLIC_API_URL}${url}` : url}
-                                    alt={`Upload ${index}`}
-                                    className="object-cover w-full h-full"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => removeImage(index)}
-                                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                                >
-                                    <X className="w-4 h-4" />
-                                </button>
-                            </div>
-                        ))}
-
-                        <label className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg aspect-square cursor-pointer hover:bg-muted/50 transition-colors">
-                            {uploading ? (
-                                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-                            ) : (
-                                <Upload className="w-6 h-6 text-muted-foreground" />
-                            )}
-                            <span className="text-xs text-muted-foreground mt-2">Upload</span>
-                            <input
-                                type="file"
-                                multiple
-                                accept="image/*"
-                                className="hidden"
-                                onChange={handleImageUpload}
-                                disabled={uploading}
-                            />
-                        </label>
-                    </div>
-                </div>
-
-                <div className="pt-4">
-                    <Button type="submit" disabled={loading} className="w-full md:w-auto md:min-w-[200px] text-lg">
-                        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Submit Stay
+            <div className="container mx-auto py-24 px-6 max-w-4xl">
+                <div className="mb-16">
+                    <Button variant="ghost" asChild className="mb-12 -ml-4 pl-4 hover:pl-6 transition-all text-gray-400 font-bold uppercase tracking-widest text-[10px]">
+                        <Link href="/dashboard" className="flex items-center">
+                            <ArrowLeft className="mr-2 h-3 w-3" /> Dashboard
+                        </Link>
                     </Button>
+
+                    <div className="flex items-baseline gap-4 mb-2">
+                        <span className="text-teal-600 font-black text-6xl opacity-20">0{step}</span>
+                        <h1 className="text-5xl md:text-7xl font-black text-gray-900 tracking-tighter leading-none">
+                            {step === 1 && <><span className="text-teal-600">Define</span> the Sanctuary</>}
+                            {step === 2 && <><span className="text-teal-600">The</span> Ambiance</>}
+                            {step === 3 && <><span className="text-teal-600">Luxury</span> Details</>}
+                            {step === 4 && <><span className="text-teal-600">Visual</span> Identity</>}
+                        </h1>
+                    </div>
                 </div>
-            </form>
+
+                <div className="bg-white/40 backdrop-blur-xl border border-gray-100 p-8 md:p-16 rounded-[4rem] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.05)] animate-fade-in-up">
+
+                    {/* STEP 1: BASIC INFO */}
+                    {step === 1 && (
+                        <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                                <div className="space-y-3">
+                                    <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Property Name</Label>
+                                    <Input
+                                        name="name"
+                                        value={formData.name}
+                                        onChange={handleChange}
+                                        placeholder="e.g. Cloud 9 Boutique Hotel"
+                                        className="h-20 text-2xl font-bold border-none bg-gray-50 rounded-3xl focus:bg-white focus:ring-8 focus:ring-teal-500/5 transition-all"
+                                    />
+                                </div>
+                                <div className="space-y-3">
+                                    <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Sanctuary Type</Label>
+                                    <Select value={formData.type} onValueChange={(val) => handleSelectChange("type", val)}>
+                                        <SelectTrigger className="h-20 text-xl font-bold border-none bg-gray-50 rounded-3xl focus:ring-8 focus:ring-teal-500/5 px-6">
+                                            <SelectValue placeholder="Select Type" />
+                                        </SelectTrigger>
+                                        <SelectContent className="rounded-3xl border-gray-100 p-2">
+                                            {STAY_TYPES.map((t) => (
+                                                <SelectItem key={t} value={t} className="rounded-xl h-12 font-bold focus:bg-teal-50">{t.charAt(0).toUpperCase() + t.slice(1)}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                                <div className="space-y-3">
+                                    <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Kerala District</Label>
+                                    <Select value={formData.district} onValueChange={(val) => handleSelectChange("district", val)}>
+                                        <SelectTrigger className="h-20 text-xl font-bold border-none bg-gray-50 rounded-3xl focus:ring-8 focus:ring-teal-500/5 px-6">
+                                            <SelectValue placeholder="Select District" />
+                                        </SelectTrigger>
+                                        <SelectContent className="rounded-3xl border-gray-100 p-2">
+                                            {KERALA_DISTRICTS.map((d) => (
+                                                <SelectItem key={d} value={d} className="rounded-xl h-12 font-bold focus:bg-teal-50">{d}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-3">
+                                    <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Starting Price (₹)</Label>
+                                    <Input
+                                        name="price"
+                                        type="number"
+                                        value={formData.price}
+                                        onChange={handleChange}
+                                        placeholder="e.g. 15000"
+                                        className="h-20 text-2xl font-black border-none bg-gray-50 rounded-3xl focus:bg-white focus:ring-8 focus:ring-teal-500/5 transition-all text-teal-600"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* STEP 2: AMBIANCE */}
+                    {step === 2 && (
+                        <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                            <div className="space-y-3">
+                                <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">The Narrative</Label>
+                                <Textarea
+                                    name="description"
+                                    value={formData.description}
+                                    onChange={handleChange}
+                                    rows={8}
+                                    placeholder="Describe the experience, the morning views, the service..."
+                                    className="text-xl font-medium border-none bg-gray-50 rounded-[2.5rem] p-10 focus:bg-white focus:ring-8 focus:ring-teal-500/5 transition-all resize-none leading-relaxed"
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {/* STEP 3: AMENITIES & LOCATION */}
+                    {step === 3 && (
+                        <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                            <div className="space-y-3">
+                                <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Curated Amenities</Label>
+                                <TagInput
+                                    tags={formData.amenities ? formData.amenities.split(',').filter(Boolean) : []}
+                                    setTags={(newTags) => setFormData({ ...formData, amenities: newTags.join(',') })}
+                                    placeholder="Infinity Pool, Private Butler, Forest View"
+                                    label="Type amenity and press Enter"
+                                    className="bg-gray-50 focus-within:bg-white"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                                <div className="space-y-3">
+                                    <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Latitude</Label>
+                                    <Input
+                                        name="latitude"
+                                        type="number"
+                                        step="any"
+                                        value={formData.latitude}
+                                        onChange={handleChange}
+                                        placeholder="10.0889"
+                                        className="h-20 text-2xl font-black border-none bg-gray-50 rounded-3xl focus:bg-white focus:ring-8 focus:ring-teal-500/5 transition-all"
+                                    />
+                                </div>
+                                <div className="space-y-3">
+                                    <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Longitude</Label>
+                                    <Input
+                                        name="longitude"
+                                        type="number"
+                                        step="any"
+                                        value={formData.longitude}
+                                        onChange={handleChange}
+                                        placeholder="77.0595"
+                                        className="h-20 text-2xl font-black border-none bg-gray-50 rounded-3xl focus:bg-white focus:ring-8 focus:ring-teal-500/5 transition-all"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* STEP 4: VISUAL IDENTITY */}
+                    {step === 4 && (
+                        <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                                {formData.images.map((url, index) => (
+                                    <div key={index} className="relative group aspect-[4/5] rounded-[2rem] overflow-hidden border border-gray-100 shadow-xl">
+                                        <img
+                                            src={url.startsWith('/') ? `${process.env.NEXT_PUBLIC_API_URL}${url}` : url}
+                                            alt={`Sanctuary ${index}`}
+                                            className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => removeImage(index)}
+                                            className="absolute top-4 right-4 bg-red-500 text-white rounded-full p-2 opacity-0 group-hover:opacity-100 transition-all hover:scale-110 active:scale-95 shadow-lg"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                ))}
+
+                                <label className="flex flex-col items-center justify-center border-4 border-dashed border-gray-100 rounded-[2rem] aspect-[4/5] cursor-pointer hover:bg-teal-50/50 hover:border-teal-200 transition-all group">
+                                    {uploading ? (
+                                        <Loader2 className="w-10 h-10 animate-spin text-teal-600" />
+                                    ) : (
+                                        <Upload className="w-10 h-10 text-gray-200 group-hover:text-teal-600 transition-colors" />
+                                    )}
+                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-6 group-hover:text-teal-900">Add Perspective</span>
+                                    <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
+                                </label>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 🔹 NAVIGATION BUTTONS */}
+                    <div className="mt-20 pt-16 border-t border-gray-50 flex items-center justify-between">
+                        {step > 1 ? (
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                onClick={prevStep}
+                                className="h-16 px-10 rounded-2xl font-black uppercase tracking-widest text-xs text-gray-400 hover:text-teal-600"
+                            >
+                                <ArrowLeft className="mr-2 h-4 w-4" /> Previous
+                            </Button>
+                        ) : <div />}
+
+                        {step < 4 ? (
+                            <Button
+                                type="button"
+                                onClick={nextStep}
+                                className="h-16 px-12 bg-gray-900 group hover:bg-teal-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-2xl shadow-gray-200 transition-all active:scale-95"
+                            >
+                                Next Step <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                            </Button>
+                        ) : (
+                            <Button
+                                type="button"
+                                onClick={handleSubmit}
+                                disabled={loading}
+                                className="h-16 px-12 bg-teal-600 hover:bg-teal-700 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-2xl shadow-teal-500/20 transition-all active:scale-95 min-w-[200px]"
+                            >
+                                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Submit Repository"}
+                            </Button>
+                        )}
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }

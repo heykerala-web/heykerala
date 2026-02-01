@@ -54,7 +54,7 @@ export default function ActionButtons({ itineraryId, itineraryData }: ActionButt
 
       // Download PDF
       const pdfResponse = await fetch(`/api/itineraries/${idToUse}/pdf`);
-      
+
       if (pdfResponse.ok) {
         const blob = await pdfResponse.blob();
         const url = window.URL.createObjectURL(blob);
@@ -77,10 +77,13 @@ export default function ActionButtons({ itineraryId, itineraryData }: ActionButt
   };
 
   const handleShareWhatsApp = () => {
-    const message = `Here is my Kerala Trip Plan 🌴\n\n${itineraryData.title}\n\nDuration: ${itineraryData.duration} days\nTravelers: ${itineraryData.travelers}\nBudget: ₹${itineraryData.budgetEstimate.min.toLocaleString()} - ₹${itineraryData.budgetEstimate.max.toLocaleString()}\n\nView full itinerary: ${window.location.href}`;
-    
+    const currentUrl = typeof window !== "undefined" ? window.location.href : "";
+    const message = `Here is my Kerala Trip Plan 🌴\n\n${itineraryData.title}\n\nDuration: ${itineraryData.duration} days\nTravelers: ${itineraryData.travelers}\nBudget: ₹${itineraryData.budgetEstimate.min.toLocaleString()} - ₹${itineraryData.budgetEstimate.max.toLocaleString()}\n\nView full itinerary: ${currentUrl}`;
+
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, "_blank");
+    if (typeof window !== "undefined") {
+      window.open(whatsappUrl, "_blank");
+    }
   };
 
   return (

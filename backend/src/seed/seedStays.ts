@@ -33,7 +33,8 @@ export const seedStays = async () => {
                 images: ['https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'],
                 price: 3200,
                 amenities: ['wifi', 'ac', 'gym'],
-                ratingAvg: 4.5
+                ratingAvg: 4.5,
+                status: 'approved'
             },
             {
                 name: 'Wayanad Jungle Homestay',
@@ -69,7 +70,8 @@ export const seedStays = async () => {
                 images: ['https://images.unsplash.com/photo-1540541338287-41700207dee6?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'],
                 price: 5500,
                 amenities: ['pool', 'beach access', 'bar'],
-                ratingAvg: 4.6
+                ratingAvg: 4.6,
+                status: 'approved'
             },
             {
                 name: 'Kumarakom Lake Resort',
@@ -81,7 +83,8 @@ export const seedStays = async () => {
                 images: ['https://images.unsplash.com/photo-1584132967334-10e028bd69f7?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'],
                 price: 12000,
                 amenities: ['pool', 'spa', 'boating'],
-                ratingAvg: 5.0
+                ratingAvg: 5.0,
+                status: 'approved'
             },
             {
                 name: 'The Malabar House',
@@ -105,7 +108,8 @@ export const seedStays = async () => {
                 images: ['https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'],
                 price: 4000,
                 amenities: ['campfire', 'trekking'],
-                ratingAvg: 4.4
+                ratingAvg: 4.4,
+                status: 'approved'
             },
             {
                 name: 'Paragon Restaurant',

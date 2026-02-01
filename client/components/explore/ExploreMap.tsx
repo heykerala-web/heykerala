@@ -6,32 +6,8 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { MapPin } from "lucide-react";
 
-// Fix Leaflet Default Icon in Next.js
-const iconUrl = "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png";
-const iconRetinaUrl = "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png";
-const shadowUrl = "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png";
+// Types and Icons (Icons moved inside component)
 
-const DefaultIcon = L.icon({
-    iconUrl: iconUrl,
-    iconRetinaUrl: iconRetinaUrl,
-    shadowUrl: shadowUrl,
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41]
-});
-
-// Custom Icon for Selected State
-const SelectedIcon = L.icon({
-    iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
-    shadowUrl: shadowUrl,
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41]
-});
-
-L.Marker.prototype.options.icon = DefaultIcon;
 
 // Helper to fit map bounds
 function MapUpdater({ places, selectedPlace }: { places: any[], selectedPlace: any }) {
@@ -69,6 +45,36 @@ export default function ExploreMap({ places, selectedPlace, onSelect }: ExploreM
     // Kerala Center
     const defaultCenter: [number, number] = [10.850516, 76.271083];
 
+    // Icons only on client
+    const [icons, setIcons] = useState<any>(null);
+
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const shadowUrl = "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png";
+            setIcons({
+                default: L.icon({
+                    iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
+                    iconRetinaUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png",
+                    shadowUrl,
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                }),
+                selected: L.icon({
+                    iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
+                    shadowUrl,
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                })
+            });
+        }
+    }, []);
+
+    if (!icons) return null;
+
     return (
         <div className="h-full w-full z-0">
             <MapContainer
@@ -89,7 +95,7 @@ export default function ExploreMap({ places, selectedPlace, onSelect }: ExploreM
                         <Marker
                             key={place._id}
                             position={[place.latitude, place.longitude]}
-                            icon={selectedPlace?._id === place._id ? SelectedIcon : DefaultIcon}
+                            icon={selectedPlace?._id === place._id ? icons.selected : icons.default}
                             eventHandlers={{
                                 click: () => onSelect(place),
                             }}

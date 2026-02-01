@@ -29,10 +29,10 @@ export function UpcomingEvents() {
   return (
     <section aria-labelledby="upcoming-events-heading">
       <div className="text-center mb-8">
-        <h2 id="upcoming-events-heading" className="text-3xl md:text-4xl font-bold text-gray-900">
+        <h2 id="upcoming-events-heading" className="text-3xl md:text-4xl font-outfit font-bold text-foreground">
           Upcoming Events & Festivals
         </h2>
-        <p className="mt-2 text-gray-600">Join the vibrant celebrations happening across Kerala</p>
+        <p className="mt-2 text-muted-foreground">Join the vibrant celebrations happening across Kerala</p>
       </div>
 
       {loading ? (

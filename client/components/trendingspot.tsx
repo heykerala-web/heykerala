@@ -56,18 +56,12 @@ export default function KeralaTourism() {
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
           {/* Header */}
-          <div className="text-center mb-12 md:mb-16 space-y-4">
-            <div className="inline-block">
-              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-semibold">
-                <MapPin className="w-4 h-4" />
-                Popular Destinations
-              </span>
-            </div>
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground tracking-tight">
-              Trending Spots
+          <div className="mb-12 md:mb-16">
+            <h2 className="text-h1 mb-4">
+              Trending Destinations
             </h2>
-            <p className="text-muted-foreground text-base md:text-lg max-w-2xl mx-auto">
-              Explore the must-visit destinations across God's Own Country
+            <p className="text-muted-foreground text-body-lg max-w-2xl">
+              Explore the most loved places across God's Own Country this season.
             </p>
           </div>
 
@@ -112,8 +106,8 @@ export default function KeralaTourism() {
                       key={i}
                       onClick={() => setActiveIndex(i)}
                       className={`h-2 rounded-full transition-all duration-300 ${i === activeIndex
-                          ? "w-8 bg-primary"
-                          : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                        ? "w-8 bg-primary"
+                        : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50"
                         }`}
                       aria-label={`Go to slide ${i + 1}`}
                     />
@@ -133,13 +127,14 @@ export default function KeralaTourism() {
           </div>
 
           {/* Explore More Button */}
-          <div className="flex justify-center mt-12 md:mt-16">
+          <div className="flex justify-start mt-12 md:mt-16">
             <Link href="/places">
               <Button
                 size="lg"
-                className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-8 h-14 rounded-full shadow-lg"
+                variant="outline"
+                className="border-primary text-primary hover:bg-primary hover:text-white px-8 h-12 rounded-full"
               >
-                Explore More
+                View All Destinations
               </Button>
             </Link>
           </div>
@@ -153,46 +148,45 @@ function TrendingCard({ spot, index }: { spot: any; index: number }) {
   return (
     <Link
       href={`/places/${spot._id}`}
-      className="group relative h-[500px] rounded-[2rem] overflow-hidden bg-card shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)] transition-all duration-500 block"
+      className="group relative h-[500px] rounded-3xl overflow-hidden bg-white shadow-sm hover:shadow-xl transition-all duration-500 block"
       style={{
         animationDelay: `${index * 100}ms`,
       }}
     >
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0">
         <img
           src={spot.image || spot.images?.[0] || "/placeholder.svg"}
           alt={spot.name}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
         />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity" />
       </div>
 
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-
       <div className="absolute inset-0 p-8 flex flex-col justify-end">
-        <div className="transform transition-all duration-500 group-hover:translate-y-[-8px]">
-          <div className="inline-block px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm text-white text-sm mb-3">
-            {spot.category}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-white text-xs font-medium uppercase tracking-wider border border-white/20">
+              {spot.category}
+            </span>
           </div>
-          <h3 className="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">
+          <h3 className="text-3xl font-semibold text-white tracking-tight leading-tight">
             {spot.name}
           </h3>
-          <div className="flex items-center gap-2 text-white/90 text-base md:text-lg">
-            <MapPin className="w-5 h-5" />
+          <div className="flex items-center gap-2 text-white/70 text-sm">
+            <MapPin className="w-4 h-4" />
             <span>{spot.district || spot.location}</span>
           </div>
         </div>
 
-        <div className="mt-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+        <div className="mt-8 transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
           <Button
             variant="secondary"
-            className="bg-white/20 backdrop-blur-sm text-white border border-white/30 hover:bg-white hover:text-foreground"
+            className="w-full bg-white text-black hover:bg-gray-100 rounded-xl h-12 font-medium"
           >
-            Explore Destination
+            Discover Experience
           </Button>
         </div>
       </div>
-
-      <div className="absolute top-6 right-6 w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
     </Link>
   );
 }

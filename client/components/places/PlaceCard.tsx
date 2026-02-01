@@ -12,41 +12,41 @@ const PlaceCard: React.FC<PlaceCardProps> = ({ place, viewMode = 'grid' }) => {
     if (viewMode === 'list') {
         return (
             <Link
-                href={`/places/${place._id}`} // Use _id as per MongoDB, assuming backend returns _id. Or slug if preferred. Using _id for now based on service type.
-                className="group bg-white rounded-3xl shadow-lg p-6 flex flex-col md:flex-row gap-6 hover:shadow-xl transition-all duration-300"
+                href={`/places/${place._id}`}
+                className="group bg-card rounded-[2rem] border border-border p-6 flex flex-col md:flex-row gap-8 hover:shadow-2xl transition-all duration-500 hover:-translate-y-1 overflow-hidden"
             >
-                <div className="relative w-full md:w-48 h-48 flex-shrink-0 overflow-hidden rounded-2xl">
+                <div className="relative w-full md:w-56 h-48 flex-shrink-0 overflow-hidden rounded-[1.5rem] shadow-inner">
                     <img
-                        src={place.image || "/placeholder.svg"}
+                        src={place.images?.[0] || place.image || "/placeholder.svg"}
                         alt={place.name}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
                 </div>
                 <div className="flex-1 flex flex-col">
                     <div className="flex items-start justify-between mb-3">
                         <div>
-                            <h3 className="font-poppins font-semibold text-xl md:text-2xl mb-1 group-hover:text-emerald-700 transition-colors">
+                            <h3 className="font-outfit font-bold text-2xl md:text-3xl mb-1 text-foreground group-hover:text-primary transition-colors">
                                 {place.name}
                             </h3>
-                            <div className="flex items-center text-gray-600 mb-2">
-                                <MapPin className="h-4 w-4 mr-1 text-emerald-600" />
+                            <div className="flex items-center text-muted-foreground font-medium text-sm">
+                                <MapPin className="h-4 w-4 mr-1.5 text-primary" />
                                 {place.location}
                             </div>
                         </div>
-                        <div className="flex items-center gap-1 bg-gray-50 rounded-full px-3 py-1 shadow-sm border border-gray-100">
-                            <Star className="h-4 w-4 text-emerald-500 fill-emerald-500" />
-                            <span className="font-semibold text-gray-700">{place.ratingAvg || 0}</span>
+                        <div className="flex items-center gap-1.5 bg-muted/80 backdrop-blur-md rounded-full px-4 py-2 border border-border shadow-sm">
+                            <Star className="h-4 w-4 text-accent fill-accent" />
+                            <span className="font-bold text-foreground text-base">{place.ratingAvg || 0}</span>
                         </div>
                     </div>
-                    <p className="text-gray-600 mb-4 line-clamp-2 md:line-clamp-3 text-sm leading-relaxed">
+                    <p className="text-muted-foreground mb-6 line-clamp-2 md:line-clamp-3 text-sm leading-relaxed font-inter font-light">
                         {place.description}
                     </p>
                     <div className="mt-auto flex items-center justify-between">
-                        <span className="px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-medium rounded-full border border-emerald-100">
+                        <span className="px-4 py-1.5 bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest rounded-full border border-primary/20">
                             {place.category}
                         </span>
-                        <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-full px-6">
-                            View Details
+                        <Button size="sm" className="bg-primary hover:bg-primary/95 text-primary-foreground rounded-xl px-8 h-10 font-bold uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20 active:scale-95 transition-all">
+                            Explore
                         </Button>
                     </div>
                 </div>
@@ -58,41 +58,41 @@ const PlaceCard: React.FC<PlaceCardProps> = ({ place, viewMode = 'grid' }) => {
     return (
         <Link
             href={`/places/${place._id}`}
-            className="group bg-white rounded-3xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 h-full flex flex-col"
+            className="group bg-card rounded-[2rem] border border-border overflow-hidden hover:shadow-2xl transition-all duration-700 transform hover:-translate-y-2 h-full flex flex-col shadow-sm"
         >
             <div className="relative overflow-hidden h-48 sm:h-56">
                 <img
-                    src={place.image || "/placeholder.svg"}
+                    src={place.images?.[0] || place.image || "/placeholder.svg"}
                     alt={place.name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
-                <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-md rounded-full px-2 py-1 flex items-center gap-1 shadow-sm">
-                    <Star className="h-3.5 w-3.5 text-emerald-500 fill-emerald-500" />
-                    <span className="text-xs font-bold text-gray-800">{place.ratingAvg || 0}</span>
+                <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-md rounded-full px-3 py-1 flex items-center gap-1 shadow-sm border border-black/5">
+                    <Star className="h-4 w-4 text-accent fill-accent" />
+                    <span className="text-sm font-bold text-foreground">{place.ratingAvg || 0}</span>
                 </div>
-                <div className="absolute top-3 left-3">
-                    <span className="px-2.5 py-1 bg-emerald-600/90 backdrop-blur-md text-white text-[10px] uppercase tracking-wider font-bold rounded-full">
+                <div className="absolute top-4 left-4">
+                    <span className="px-3 py-1 bg-primary/95 backdrop-blur-md text-white text-[10px] uppercase tracking-[0.2em] font-bold rounded-full border border-white/20">
                         {place.category}
                     </span>
                 </div>
-                <div className="absolute bottom-3 left-3 right-3 text-white">
-                    <h3 className="font-poppins font-bold text-lg leading-tight mb-0.5 text-shadow-sm">
+                <div className="absolute bottom-4 left-6 right-6 text-white overflow-hidden">
+                    <h3 className="font-outfit font-bold text-2xl leading-tight mb-1 drop-shadow-md group-hover:text-accent transition-colors">
                         {place.name}
                     </h3>
-                    <div className="flex items-center text-white/90 text-xs font-medium">
-                        <MapPin className="h-3 w-3 mr-1" />
+                    <div className="flex items-center text-white/90 text-xs font-bold uppercase tracking-widest">
+                        <MapPin className="h-3.5 w-3.5 mr-1.5 text-accent" />
                         {place.location}
                     </div>
                 </div>
             </div>
-            <div className="p-5 flex-1 flex flex-col">
-                <p className="text-gray-600 text-sm line-clamp-3 mb-4 leading-relaxed">
+            <div className="p-8 flex-1 flex flex-col">
+                <p className="text-muted-foreground text-sm line-clamp-3 mb-6 leading-relaxed font-inter font-light">
                     {place.description}
                 </p>
                 <div className="mt-auto">
-                    <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl h-10 font-medium tracking-wide">
-                        Explore
+                    <Button className="w-full bg-primary hover:bg-primary/95 text-primary-foreground rounded-2xl h-12 font-bold uppercase tracking-widest text-[10px] shadow-xl shadow-primary/20 active:scale-95 transition-all">
+                        Explore Now
                     </Button>
                 </div>
             </div>

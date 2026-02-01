@@ -21,7 +21,8 @@ const placeSchema = new mongoose.Schema(
     tags: [{ type: String }],
     nearby: [nearbyAttractionSchema],
     ratingAvg: { type: Number, default: 0, min: 0, max: 5 },
-    totalReviews: { type: Number, default: 0 },
+    ratingCount: { type: Number, default: 0 },
+    totalReviews: { type: Number, default: 0 }, // Keeping for backward compatibility
     rating: { type: Number, default: 0, min: 0, max: 5 }, // Keeping for backward compatibility
     highlights: [{ type: String }],
     bestTimeToVisit: { type: String },

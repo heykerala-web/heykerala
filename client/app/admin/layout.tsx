@@ -13,10 +13,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     useEffect(() => {
         if (!loading) {
+            console.log("Admin Layout Check:", { user, role: user?.role });
             if (!user) {
                 router.push("/login?redirect=/admin");
             } else if (user.role !== "Admin") {
-                router.push("/dashboard"); // Redirect non-admins
+                console.warn("Access Denied: User is not Admin", user.role);
+                router.push("/dashboard");
             } else {
                 setAuthorized(true);
             }

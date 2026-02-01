@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/services/api";
 import { Button } from "@/components/ui/button";
@@ -51,6 +51,23 @@ export default function PlaceForm({ initialData, isEdit = false }: PlaceFormProp
         tags: initialData?.tags?.join(", ") || "",
         images: (initialData?.images || []) as string[],
     });
+
+    useEffect(() => {
+        if (initialData) {
+            setFormData({
+                name: initialData.name || "",
+                slug: initialData.slug || "",
+                district: initialData.district || "",
+                category: initialData.category || "",
+                description: initialData.description || "",
+                location: initialData.location || "",
+                latitude: initialData.latitude || "",
+                longitude: initialData.longitude || "",
+                tags: initialData.tags?.join(", ") || "",
+                images: (initialData.images || []) as string[],
+            });
+        }
+    }, [initialData]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -109,7 +126,7 @@ export default function PlaceForm({ initialData, isEdit = false }: PlaceFormProp
             // Prepare payload
             const payload = {
                 ...formData,
-                tags: formData.tags.split(",").map(t => t.trim()).filter(t => t.length > 0),
+                tags: formData.tags.split(",").map((t: string) => t.trim()).filter((t: string) => t.length > 0),
                 latitude: parseFloat(formData.latitude) || 0,
                 longitude: parseFloat(formData.longitude) || 0,
             };
@@ -205,7 +222,7 @@ export default function PlaceForm({ initialData, isEdit = false }: PlaceFormProp
                         <div key={index} className="relative group aspect-square rounded-lg overflow-hidden border bg-gray-100">
                             {/* Use img for simplicity or Image if configured */}
                             <img
-                                src={url.startsWith('/') ? `${process.env.NEXT_PUBLIC_API_URL}${url}` : url}
+                                src={url}
                                 alt={`Upload ${index}`}
                                 className="object-cover w-full h-full"
                             />

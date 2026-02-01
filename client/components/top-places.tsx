@@ -43,10 +43,10 @@ export function TopPlaces() {
   return (
     <section aria-labelledby="top-places-heading">
       <div className="text-center mb-8">
-        <h2 id="top-places-heading" className="text-3xl md:text-4xl font-bold text-gray-900">
+        <h2 id="top-places-heading" className="text-3xl md:text-4xl font-outfit font-bold text-foreground">
           Top Places in Kerala
         </h2>
-        <p className="mt-2 text-gray-600">Discover the most loved destinations across God&apos;s Own Country</p>
+        <p className="mt-2 text-muted-foreground">Discover the most loved destinations across God&apos;s Own Country</p>
       </div>
 
       <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">

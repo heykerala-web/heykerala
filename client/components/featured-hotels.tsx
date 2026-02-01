@@ -43,10 +43,10 @@ export function FeaturedHotels() {
   return (
     <section aria-labelledby="featured-hotels-heading">
       <div className="text-center mb-8">
-        <h2 id="featured-hotels-heading" className="text-3xl md:text-4xl font-bold text-gray-900">
+        <h2 id="featured-hotels-heading" className="text-3xl md:text-4xl font-outfit font-bold text-foreground">
           Featured Hotels & Resorts
         </h2>
-        <p className="mt-2 text-gray-600">Stay in comfort and luxury at Kerala&apos;s finest accommodations</p>
+        <p className="mt-2 text-muted-foreground">Stay in comfort and luxury at Kerala&apos;s finest accommodations</p>
       </div>
 
       <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">

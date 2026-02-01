@@ -1,5 +1,5 @@
 import api from "./api";
-import { Review, CreateReviewData } from "../types/review";
+import { Review, CreateReviewData, UpdateReviewData } from "../types/review";
 
 export const reviewService = {
     createReview: async (data: CreateReviewData) => {
@@ -14,10 +14,12 @@ export const reviewService = {
         }
     },
 
-    getReviewsByPlace: async (placeId: string) => {
+    getReviews: async (targetId: string, page = 1, limit = 5) => {
         try {
-            const response = await api.get(`/reviews/place/${placeId}`);
-            return { success: true, data: response.data.data };
+            const response = await api.get(`/reviews/${targetId}`, {
+                params: { page, limit }
+            });
+            return { success: true, ...response.data };
         } catch (error: any) {
             return {
                 success: false,
@@ -25,4 +27,45 @@ export const reviewService = {
             };
         }
     },
+
+    updateReview: async (id: string, data: UpdateReviewData) => {
+        try {
+            const response = await api.put(`/reviews/${id}`, data);
+            return { success: true, data: response.data };
+        } catch (error: any) {
+            return {
+                success: false,
+                message: error.response?.data?.message || "Failed to update review",
+            };
+        }
+    },
+
+    deleteReview: async (id: string) => {
+        try {
+            const response = await api.delete(`/reviews/${id}`);
+            return { success: true, data: response.data };
+        } catch (error: any) {
+            return {
+                success: false,
+                message: error.response?.data?.message || "Failed to delete review",
+            };
+        }
+    },
+
+    getRatingBreakdown: async (targetId: string) => {
+        try {
+            const response = await api.get(`/reviews/breakdown/${targetId}`);
+            return { success: true, data: response.data.data };
+        } catch (error: any) {
+            return {
+                success: false,
+                message: error.response?.data?.message || "Failed to fetch rating breakdown",
+            };
+        }
+    },
+
+    // Kept for backward compatibility if needed, but redirects to getReviews
+    getReviewsByPlace: async (placeId: string) => {
+        return reviewService.getReviews(placeId);
+    }
 };

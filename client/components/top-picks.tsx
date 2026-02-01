@@ -33,14 +33,14 @@ export function TopPicks() {
 
   return (
     <section>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-end justify-between mb-12">
         <div>
-          <h2 className="font-poppins text-3xl md:text-4xl font-bold mb-2">Top Picks for You</h2>
-          <p className="text-gray-600">Handpicked destinations loved by travelers</p>
+          <h2 className="text-h2 mb-4">Curated Selections</h2>
+          <p className="text-body-lg text-muted-foreground">Handpicked destinations for an unforgettable journey.</p>
         </div>
         <Link href="/places">
-          <Button variant="outline" className="hidden md:flex bg-transparent">
-            View All
+          <Button variant="link" className="hidden md:flex text-primary font-bold uppercase tracking-widest text-xs p-0 h-auto">
+            View All Selections <div className="ml-3 h-0.5 w-8 bg-primary rounded-full transition-all group-hover:w-12" />
           </Button>
         </Link>
       </div>
@@ -50,59 +50,62 @@ export function TopPicks() {
           <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {topPicks.map((place) => (
-            <div
+            <Link
               key={place._id}
-              className="group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+              href={`/places/${place._id}`}
+              className="group bg-white rounded-[2.5rem] overflow-hidden hover:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] transition-all duration-700 transform hover:-translate-y-2 flex flex-col h-full border border-white/40"
             >
-              <div className="relative">
+              <div className="relative aspect-[4/5] overflow-hidden shrink-0">
                 <img
                   src={place.image || place.images?.[0] || "/placeholder.svg"}
                   alt={place.name}
-                  className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
                 />
-                <button
-                  onClick={() => toggleFavorite(place._id)}
-                  className="absolute top-3 right-3 p-2 rounded-full bg-white/90 backdrop-blur-sm hover:bg-white transition-colors"
-                >
-                  <Heart
-                    className={`h-4 w-4 ${favorites.includes(place._id) ? "text-red-500 fill-red-500" : "text-gray-600"}`}
-                  />
-                </button>
-                <div className="absolute top-3 left-3">
-                  <span className="px-2 py-1 bg-emerald-600 text-white text-xs font-medium rounded-full">
+
+                <div className="absolute top-6 left-6">
+                  <span className="px-3 py-1 bg-white/10 backdrop-blur-xl text-white text-[10px] font-bold uppercase tracking-widest rounded-full border border-white/20 shadow-2xl">
                     {place.category}
                   </span>
                 </div>
+
+                <button
+                  onClick={(e) => { e.preventDefault(); toggleFavorite(place._id); }}
+                  className="absolute top-6 right-6 p-4 rounded-full bg-white/10 backdrop-blur-xl text-white border border-white/20 hover:bg-white hover:text-destructive transition-all duration-300 z-10"
+                >
+                  <Heart
+                    className={`h-5 w-5 ${favorites.includes(place._id) ? "text-destructive fill-current" : ""}`}
+                  />
+                </button>
+
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
               </div>
 
-              <div className="p-4">
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-poppins font-semibold text-lg line-clamp-1">{place.name}</h3>
-                  <div className="flex items-center gap-1 text-sm">
-                    <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-                    <span className="font-medium">{place.ratingAvg || place.rating || 0}</span>
+              <div className="p-8 flex-1 flex flex-col">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-accent/10 rounded-full">
+                    <Star className="h-3.5 w-3.5 fill-accent text-accent" />
+                    <span className="text-xs font-bold text-accent">{place.ratingAvg || place.rating || 0}</span>
+                  </div>
+                  <div className="text-xs text-muted-foreground font-medium flex items-center gap-1">
+                    <MapPin className="h-3 w-3 text-primary" />
+                    {place.district}
                   </div>
                 </div>
 
-                <div className="flex items-center text-gray-600 text-sm mb-2">
-                  <MapPin className="h-4 w-4 mr-1" />
-                  {place.district || place.location}
+                <h3 className="text-xl font-bold text-foreground mb-4 line-clamp-1 group-hover:text-primary transition-colors">{place.name}</h3>
+
+                <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed mb-6 italic">
+                  "{place.description}"
+                </p>
+
+                <div className="mt-auto flex items-center justify-between pt-6 border-t border-muted/50">
+                  <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{place.totalReviews || 0} REVIEWS</div>
+                  <div className="text-primary font-bold">{place.entryFee === "0" || !place.entryFee ? "Complimentary" : `₹${place.entryFee}`}</div>
                 </div>
-
-                <p className="text-gray-600 text-sm mb-3 line-clamp-2">{place.description}</p>
-
-                <div className="flex items-center justify-between">
-                  <div className="text-sm text-gray-500">{place.totalReviews || 0} reviews</div>
-                  <div className="font-semibold text-emerald-600">{place.entryFee || "Free"}</div>
-                </div>
-
-                <Link href={`/places/${place._id}`}>
-                  <Button className="w-full mt-3 bg-emerald-600 hover:bg-emerald-700">View Details</Button>
-                </Link>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}

@@ -33,30 +33,34 @@ const emergencyServices = [
 
 export function EmergencyLinks() {
   return (
-    <section>
-      <div className="text-center mb-8">
-        <h2 className="font-poppins text-2xl md:text-3xl font-bold mb-2">Emergency Contacts</h2>
-        <p className="text-gray-600">Important numbers for your safety and convenience</p>
+    <section className="bg-muted/30 rounded-[2.5rem] py-16 px-8 md:px-12 border border-white/20">
+      <div className="text-center mb-16">
+        <h2 className="text-h2 mb-4">Safety & Support</h2>
+        <p className="text-muted-foreground text-sm uppercase tracking-[0.2em] font-bold">Reliable assistance whenever you need it</p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
         {emergencyServices.map((service) => (
           <a
             key={service.name}
             href={`tel:${service.number}`}
-            className="group bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 text-center"
+            className="group bg-white rounded-3xl p-8 shadow-sm hover:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.05)] transition-all duration-500 flex flex-col items-center border border-white/40"
           >
             <div
-              className={`w-12 h-12 ${service.color} rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform`}
+              className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mb-6 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300 shadow-inner"
             >
-              <service.icon className="h-6 w-6 text-white" />
+              <service.icon className="h-7 w-7 transition-transform group-hover:scale-110" />
             </div>
 
-            <h3 className="font-poppins font-semibold text-lg mb-1">{service.name}</h3>
+            <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-4">{service.name}</h3>
 
-            <div className="text-2xl font-bold text-gray-900 mb-1">{service.number}</div>
+            <div className="text-3xl font-extrabold text-foreground mb-4 tabular-nums">
+              {service.number}
+            </div>
 
-            <p className="text-gray-600 text-sm">{service.description}</p>
+            <p className="text-muted-foreground text-xs font-medium leading-relaxed max-w-[140px] opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+              {service.description}
+            </p>
           </a>
         ))}
       </div>

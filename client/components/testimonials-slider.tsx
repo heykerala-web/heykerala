@@ -52,41 +52,50 @@ export function TestimonialsSlider() {
   }
 
   return (
-    <section className="bg-gradient-to-br from-kerala-green/5 to-sea-blue/5 rounded-3xl p-8 md:p-12">
-      <div className="text-center mb-12">
-        <h2 className="font-poppins text-3xl md:text-4xl font-bold mb-4">What Travelers Say</h2>
-        <p className="text-gray-600 text-lg">Real experiences from real travelers</p>
+    <section className="bg-muted/30 rounded-[2.5rem] py-20 px-8 md:px-12 border border-white/20 shadow-inner">
+      <div className="text-center mb-16">
+        <h2 className="text-h2 mb-4 text-foreground">Traveler Insights</h2>
+        <p className="text-muted-foreground text-lg uppercase tracking-widest font-bold">Words from our community</p>
       </div>
 
-      <div className="relative max-w-4xl mx-auto">
+      <div className="relative max-w-5xl mx-auto group/slider">
         <div className="overflow-hidden">
           <div
-            className="flex transition-transform duration-500 ease-in-out"
+            className="flex transition-transform duration-1000 ease-[cubic-bezier(0.23,_1,_0.32,_1)]"
             style={{ transform: `translateX(-${currentIndex * 100}%)` }}
           >
             {testimonials.map((testimonial) => (
-              <div key={testimonial.id} className="w-full flex-shrink-0 px-4">
-                <div className="bg-white rounded-2xl p-8 shadow-lg text-center">
+              <div key={testimonial.id} className="w-full flex-shrink-0 px-4 md:px-12">
+                <div className="relative bg-white/50 backdrop-blur-xl rounded-[2.5rem] p-10 md:p-16 shadow-lg border border-white/40 text-center">
+                  {/* Quote Icon */}
+                  <div className="absolute top-10 left-10 text-primary/10 select-none">
+                    <svg width="80" height="80" viewBox="0 0 80 80" fill="currentColor">
+                      <path d="M20 30h10v10H20v10h10v10H20c-5.5 0-10-4.5-10-10V40c0-5.5 4.5-10 10-10zm20 0h10v10H40v10h10v10H40c-5.5 0-10-4.5-10-10V40c0-5.5 4.5-10 10-10z" />
+                    </svg>
+                  </div>
+
                   <img
                     src={testimonial.avatar || "/placeholder.svg"}
                     alt={testimonial.name}
-                    className="w-16 h-16 rounded-full mx-auto mb-4 object-cover"
+                    className="w-24 h-24 rounded-full mx-auto mb-8 object-cover border-4 border-white shadow-xl"
                   />
 
-                  <div className="flex justify-center mb-4">
+                  <div className="flex justify-center mb-6 gap-1">
                     {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="h-5 w-5 text-yellow-400 fill-yellow-400" />
+                      <Star key={i} className="h-5 w-5 text-accent fill-accent" />
                     ))}
                   </div>
 
-                  <blockquote className="text-gray-700 text-lg mb-6 italic">
+                  <blockquote className="text-foreground text-2xl md:text-3xl font-medium mb-10 leading-snug tracking-tight">
                     &ldquo;{testimonial.text}&rdquo;
                   </blockquote>
 
-                  <div className="border-t pt-4">
-                    <h4 className="font-poppins font-semibold text-lg">{testimonial.name}</h4>
-                    <p className="text-gray-600 text-sm">{testimonial.location}</p>
-                    <p className="text-kerala-green text-sm font-medium mt-1">{testimonial.trip}</p>
+                  <div className="pt-8 border-t border-muted/50 max-w-xs mx-auto">
+                    <h4 className="text-xl font-bold text-foreground mb-1">{testimonial.name}</h4>
+                    <p className="text-muted-foreground text-sm font-medium">{testimonial.location}</p>
+                    <div className="mt-3 inline-block px-3 py-1 bg-primary/10 rounded-full">
+                      <span className="text-primary text-[10px] font-bold uppercase tracking-widest">{testimonial.trip}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -97,26 +106,25 @@ export function TestimonialsSlider() {
         {/* Navigation */}
         <button
           onClick={prevTestimonial}
-          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 p-3 rounded-full bg-white shadow-lg hover:shadow-xl transition-shadow"
+          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-6 p-5 rounded-full bg-white shadow-xl hover:bg-primary hover:text-white transition-all duration-300 opacity-0 group-hover/slider:opacity-100 hidden md:block"
         >
-          <ChevronLeft className="h-5 w-5 text-gray-600" />
+          <ChevronLeft className="h-6 w-6" />
         </button>
         <button
           onClick={nextTestimonial}
-          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 p-3 rounded-full bg-white shadow-lg hover:shadow-xl transition-shadow"
+          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-6 p-5 rounded-full bg-white shadow-xl hover:bg-primary hover:text-white transition-all duration-300 opacity-0 group-hover/slider:opacity-100 hidden md:block"
         >
-          <ChevronRight className="h-5 w-5 text-gray-600" />
+          <ChevronRight className="h-6 w-6" />
         </button>
 
         {/* Indicators */}
-        <div className="flex justify-center mt-8 gap-2">
+        <div className="flex justify-center mt-12 gap-3">
           {testimonials.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentIndex(index)}
-              className={`w-3 h-3 rounded-full transition-colors ${
-                index === currentIndex ? "bg-kerala-green" : "bg-gray-300"
-              }`}
+              className={`w-2 h-2 rounded-full transition-all duration-500 ${index === currentIndex ? "bg-primary w-8" : "bg-muted-foreground/20"
+                }`}
             />
           ))}
         </div>

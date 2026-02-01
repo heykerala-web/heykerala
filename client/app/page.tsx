@@ -7,21 +7,22 @@ import { TestimonialsSlider } from "@/components/testimonials-slider"
 import { EmergencyLinks } from "@/components/emergency-links"
 import { CallToAction } from "@/components/call-to-action"
 import TrendingSpots from "@/components/trendingspot"
-
-
+import { TopPlaces } from "@/components/top-places"
+import { FeaturedHotels } from "@/components/featured-hotels"
+import { UpcomingEvents } from "@/components/upcoming-events"
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-
+    <div className="min-h-screen bg-background">
       <HeroCarousel />
 
-      <div className="bg-cover bg-center bg-no-repeat container
-        mx-auto px-4 md:px-6 lg:px-10 max-w-7xl space-y-16 md:space-y-20 pb-20 lg:pb-8"
-      >
+      <div className="container mx-auto px-6 lg:px-12 max-w-[1400px] space-y-24 md:space-y-32 pb-32">
         <SearchSection />
         <TrendingSpots />
         <CategoryGrid />
+        <TopPlaces />
+        <FeaturedHotels />
+        <UpcomingEvents />
         <TopPicks />
         <TestimonialsSlider />
         <EmergencyLinks />

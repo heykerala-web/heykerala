@@ -4,6 +4,7 @@ import Place from "../models/Place";
 import Review from "../models/Review";
 import Stay from "../models/Stay";
 import Event from "../models/Event";
+import { getModelByType, updateTargetRating } from "../utils/reviewUtils";
 
 // Get Admin Stats
 export const getStats = async (req: Request, res: Response) => {
@@ -176,11 +177,24 @@ export const deletePlace = async (req: Request, res: Response) => {
 
 export const getAllReviews = async (req: Request, res: Response) => {
     try {
-        const reviews = await Review.find()
-            .populate("user", "name email")
-            .populate("place", "name")
-            .sort({ createdAt: -1 });
-        res.json({ success: true, reviews });
+        const reviews = await Review.find().populate("user", "name email").sort({ createdAt: -1 });
+
+        // Manually populate target data for universal reviews
+        const populatedReviews = await Promise.all(reviews.map(async (review) => {
+            const TargetModel = getModelByType(review.targetType);
+            const targetData = TargetModel ? await TargetModel.findById(review.targetId).select("name title") : null;
+
+            return {
+                ...review.toObject(),
+                target: targetData ? {
+                    _id: targetData._id,
+                    name: (targetData as any).name || (targetData as any).title,
+                    type: review.targetType
+                } : null
+            };
+        }));
+
+        res.json({ success: true, reviews: populatedReviews });
     } catch (error: any) {
         res.status(500).json({ message: error.message });
     }
@@ -188,7 +202,17 @@ export const getAllReviews = async (req: Request, res: Response) => {
 
 export const deleteReview = async (req: Request, res: Response) => {
     try {
+        const review = await Review.findById(req.params.id);
+        if (!review) {
+            return res.status(404).json({ message: "Review not found" });
+        }
+
+        const { targetId, targetType } = review;
         await Review.findByIdAndDelete(req.params.id);
+
+        // Recalculate rating for the target
+        await updateTargetRating(targetId.toString(), targetType);
+
         res.json({ success: true, message: "Review deleted" });
     } catch (error: any) {
         res.status(500).json({ message: error.message });

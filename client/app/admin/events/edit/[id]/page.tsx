@@ -41,13 +41,24 @@ export default function EditEventPage() {
 
         const fetchEvent = async () => {
             try {
-                const data = await eventService.getById(id as string);
+                const response = await eventService.getById(id as string);
+                // Unwrap response if it has .data property (backend returns {success: true, data: ...})
+                const data = response.data || response;
 
                 // Format dates for input[type="date"]
                 const formatDate = (dateStr: string) => {
                     if (!dateStr) return "";
                     return new Date(dateStr).toISOString().split('T')[0];
                 };
+
+                // Helper to fix image URLs from backend
+                const getImageUrl = (url: string) => {
+                    if (!url) return "";
+                    if (url.startsWith("http")) return url;
+                    // If it starts with /uploads, relying on Next.js proxy is safest for dev,
+                    // but we remove any double /api prefix if present in env
+                    return url;
+                }
 
                 setFormData({
                     title: data.title,

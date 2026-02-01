@@ -5,14 +5,25 @@ export interface Review {
         name: string;
         avatar?: string;
     };
-    place: string;
+    targetId: string;
+    targetType: "place" | "stay" | "event";
     rating: number;
+    title?: string;
     comment: string;
     createdAt: string;
+    updatedAt: string;
 }
 
 export interface CreateReviewData {
-    placeId: string;
+    targetId: string;
+    targetType: "place" | "stay" | "event";
     rating: number;
+    title?: string;
     comment: string;
+}
+
+export interface UpdateReviewData {
+    rating?: number;
+    title?: string;
+    comment?: string;
 }

@@ -14,6 +14,8 @@ export interface Event {
     images: string[];
     latitude?: number;
     longitude?: number;
+    ratingAvg: number;
+    ratingCount: number;
     createdAt: string;
 }
 

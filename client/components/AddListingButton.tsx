@@ -13,9 +13,9 @@ export function AddListingButton() {
 
     return (
         <Link href="/add-listing">
-            <Button variant="outline" className="hidden lg:flex items-center gap-2 border-emerald-600 text-emerald-600 hover:bg-emerald-50">
+            <Button size="sm" variant="outline" className="hidden lg:flex items-center gap-2 border-primary/20 text-primary hover:bg-primary/5 rounded-full font-bold px-5">
                 <PlusCircle className="h-4 w-4" />
-                <span>List Property</span>
+                <span className="text-[10px] uppercase tracking-widest">List Property</span>
             </Button>
         </Link>
     );

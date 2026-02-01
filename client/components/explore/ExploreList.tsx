@@ -22,9 +22,9 @@ export function ExploreList({ places, loading, onSelect, selectedId }: ExploreLi
 
     if (loading) {
         return (
-            <div className="grid grid-cols-1 gap-4">
-                {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="h-40 bg-gray-100 animate-pulse rounded-xl" />
+            <div className="grid grid-cols-1 gap-6">
+                {[1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="h-44 bg-muted animate-pulse rounded-3xl" />
                 ))}
             </div>
         );
@@ -39,49 +39,46 @@ export function ExploreList({ places, loading, onSelect, selectedId }: ExploreLi
     }
 
     return (
-        <div className="grid grid-cols-1 gap-6">
+        <div className="grid grid-cols-1 gap-4 py-4">
             {places.map((place) => (
                 <div
                     key={place._id}
                     ref={(el) => {
-                        // Correctly assign to mutable ref object
                         if (el) itemRefs.current[place._id] = el;
                     }}
                     onClick={() => onSelect(place)}
-                    className={`group flex items-start gap-4 p-3 rounded-2xl transition-all cursor-pointer border ${selectedId === place._id ? 'border-emerald-500 bg-emerald-50/50 ring-1 ring-emerald-500 shadow-md transform scale-[1.02]' : 'border-transparent hover:bg-gray-50 hover:border-gray-200'}`}
+                    className={`group flex items-center gap-5 p-4 rounded-3xl transition-all cursor-pointer border ${selectedId === place._id ? 'border-primary bg-primary/5 shadow-xl ring-1 ring-primary/20 scale-[1.02]' : 'border-transparent hover:bg-white hover:shadow-lg hover:border-white/20'}`}
                 >
-                    <div className="w-32 h-32 flex-shrink-0 rounded-xl overflow-hidden bg-gray-200 relative">
+                    <div className="w-32 h-32 flex-shrink-0 rounded-2xl overflow-hidden bg-muted relative shadow-sm">
                         <img
                             src={place.images?.[0] || place.image || "/placeholder.svg"}
                             alt={place.name}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                         />
-                        {selectedId === place._id && (
-                            <div className="absolute inset-0 bg-emerald-500/10" />
-                        )}
+                        <div className="absolute top-2 left-2 px-2 py-0.5 bg-black/40 backdrop-blur-md rounded-full">
+                            <span className="text-[10px] text-white font-bold uppercase tracking-wider">{place.category}</span>
+                        </div>
                     </div>
 
-                    <div className="flex-1 min-w-0 py-1">
-                        <div className="flex justify-between items-start">
-                            <h3 className={`font-bold text-lg truncate pr-2 ${selectedId === place._id ? 'text-emerald-900' : 'text-gray-900'}`}>{place.name}</h3>
+                    <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-start mb-1">
+                            <h3 className={`font-bold text-lg truncate pr-2 ${selectedId === place._id ? 'text-primary' : 'text-foreground group-hover:text-primary transition-colors'}`}>{place.name}</h3>
                             {place.ratingAvg > 0 && (
-                                <div className="flex items-center gap-1 text-sm font-medium">
-                                    <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-                                    {place.ratingAvg}
+                                <div className="flex items-center gap-1.5 px-2 py-1 bg-accent/10 rounded-full shrink-0">
+                                    <Star className="h-3.5 w-3.5 fill-accent text-accent" />
+                                    <span className="text-xs font-bold text-accent">{place.ratingAvg}</span>
                                 </div>
                             )}
                         </div>
 
-                        <p className="text-sm text-gray-500 mt-1 capitalize">{place.category}</p>
-
-                        <div className="flex items-center gap-1 text-sm text-gray-500 mt-2">
-                            <MapPin className="h-3.5 w-3.5 text-emerald-600" />
-                            <span className="truncate">{place.district}</span>
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground font-medium mb-3">
+                            <MapPin className="h-3 w-3 text-primary" />
+                            <span>{place.district}</span>
                         </div>
 
-                        <div className="flex flex-wrap gap-2 mt-3">
+                        <div className="flex flex-wrap gap-1.5">
                             {place.tags?.slice(0, 2).map((tag: string) => (
-                                <span key={tag} className="text-xs px-2 py-1 bg-white border border-gray-100 rounded-md text-gray-600">
+                                <span key={tag} className="text-[10px] px-2.5 py-1 bg-muted rounded-full text-muted-foreground font-semibold uppercase tracking-wider">
                                     {tag}
                                 </span>
                             ))}

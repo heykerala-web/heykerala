@@ -15,8 +15,14 @@ export default function AdminStaysPage() {
     const fetchStays = async () => {
         setLoading(true);
         try {
-            const data = await stayService.getAll();
-            setStays(data);
+            const response = await stayService.getAll();
+            if (response.success && Array.isArray(response.data)) {
+                setStays(response.data);
+            } else if (Array.isArray(response)) {
+                setStays(response);
+            } else {
+                setStays([]);
+            }
         } catch (error) {
             console.error(error);
             toast({ title: "Failed to load stays", variant: "destructive" });
