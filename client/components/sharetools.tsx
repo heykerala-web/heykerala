@@ -3,7 +3,12 @@
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
-export default function ShareTools({ containerId, itinerary }) {
+interface ShareToolsProps {
+  containerId: string;
+  itinerary: any;
+}
+
+export default function ShareTools({ containerId, itinerary }: ShareToolsProps) {
   const exportPDF = async () => {
     const el = document.getElementById(containerId);
     if (!el) return;

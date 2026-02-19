@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Grid, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getTourismImage } from "@/lib/images";
 
 interface PlaceGalleryProps {
     images: string[];
@@ -16,9 +17,23 @@ export default function PlaceGallery({ images, name }: PlaceGalleryProps) {
     // Use up to 5 images for the grid
     const displayImages = images.slice(0, 5);
 
-    // Fill with placeholders if less than 5 images
+    // Fill with AI generated images if less than 5 images
+    // We use a deterministic seed based on the index to ensure unique but stable images
     while (displayImages.length < 5) {
-        displayImages.push("/placeholder.svg");
+        const seedOffset = displayImages.length + 1;
+        // We pass a seedOverride constructed from a simple hash or just a number if we want
+        // But getTourismImage's seedOverride takes a number.
+        // Let's just pass a large number modification to the default hash, or use a pseudo-random stable number.
+        // The getTourismImage uses the name to generate a base hash if no seed is provided.
+        // If we want *different* images for the same place, we MUST provide a seed.
+        // We can generate a base seed from the name, then add the index.
+
+        // Let's simple pass a number based on the name length + index
+        // Actually, let's use the helper we just wrote by importing the hash function? No, it's not exported.
+        // We can just pass a random-looking but stable number.
+        // Let's use name.charCodeAt(0) + index * 1000
+        const baseSeed = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        displayImages.push(getTourismImage(name, "tourism", 800, 600, baseSeed + displayImages.length * 123));
     }
 
     const openLightbox = (index: number) => {

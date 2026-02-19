@@ -1,0 +1,14 @@
+﻿Starting AI Verification (Target: http://127.0.0.1:5000/api)...
+
+=== Testing Recommendations API ===
+Fetching http://127.0.0.1:5000/api/ai/recommendations?weather=Sunny
+Received 5 recommendations
+Ô£à Recommendations API Passed
+
+=== Testing AI Chat API ===
+Posting to http://127.0.0.1:5000/api/ai/chat
+Chat Reply: I'm currently receiving too many messages and my energy is low. Please give me a minute to recharge!...
+Ô£à AI Chat API Passed
+
+=== Testing AI Trip Planner ===
+Posting to http://127.0.0.1:5000/api/itinerary/ai

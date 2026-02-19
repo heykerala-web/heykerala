@@ -10,15 +10,18 @@ import TrendingSpots from "@/components/trendingspot"
 import { TopPlaces } from "@/components/top-places"
 import { FeaturedHotels } from "@/components/featured-hotels"
 import { UpcomingEvents } from "@/components/upcoming-events"
+import { RecommendedForYou } from "@/components/ai/RecommendedForYou"
+import { Container } from "@/components/ui/container"
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-background">
       <HeroCarousel />
 
-      <div className="container mx-auto px-6 lg:px-12 max-w-[1400px] space-y-24 md:space-y-32 pb-32">
+      <Container size="xl" className="space-y-24 md:space-y-32 pb-32">
         <SearchSection />
         <TrendingSpots />
+        <RecommendedForYou />
         <CategoryGrid />
         <TopPlaces />
         <FeaturedHotels />
@@ -27,7 +30,7 @@ export default function HomePage() {
         <TestimonialsSlider />
         <EmergencyLinks />
         <CallToAction />
-      </div>
+      </Container>
     </div>
   )
 }

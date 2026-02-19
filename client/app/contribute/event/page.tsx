@@ -28,7 +28,6 @@ const KERALA_DISTRICTS = [
 
 export default function ContributeEventPage() {
     const router = useRouter();
-    const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
 
@@ -72,7 +71,7 @@ export default function ContributeEventPage() {
 
             const urls = await Promise.all(uploadPromises);
             setFormData((prev) => ({ ...prev, images: [...prev.images, ...urls] }));
-            toast.success("Visions captured successfully");
+            toast.success("Images uploaded successfully");
         } catch (error) {
             console.error("Upload failed", error);
             toast.error("Failed to upload images");
@@ -88,10 +87,17 @@ export default function ContributeEventPage() {
         }));
     };
 
-    const handleSubmit = async () => {
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
         setLoading(true);
 
         try {
+            if (!formData.title || !formData.category || !formData.district || !formData.startDate) {
+                toast.error("Please fill in all required fields.");
+                setLoading(false);
+                return;
+            }
+
             const payload = {
                 ...formData,
                 latitude: formData.latitude ? parseFloat(formData.latitude) : undefined,
@@ -99,8 +105,8 @@ export default function ContributeEventPage() {
             };
 
             await eventService.submit(payload);
-            toast.success("Living history captured. Awaiting review.");
-            router.push("/dashboard");
+            toast.success("Submission sent for review.");
+            router.push("/add-listing");
         } catch (error: any) {
             console.error(error);
             toast.error(error.response?.data?.message || "Submission failed");
@@ -109,246 +115,201 @@ export default function ContributeEventPage() {
         }
     };
 
-    const nextStep = () => setStep(s => Math.min(s + 1, 4));
-    const prevStep = () => setStep(s => Math.max(s - 1, 1));
-
     return (
-        <div className="min-h-screen bg-white selection:bg-rose-100 pb-20">
-            {/* 🔹 STEPS PROGRESS BAR */}
-            <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-gray-100">
-                <div
-                    className="h-full bg-rose-600 transition-all duration-1000 ease-out"
-                    style={{ width: `${(step / 4) * 100}%` }}
-                />
+        <div className="min-h-screen bg-gray-50/50 pb-20">
+            <div className="bg-white border-b sticky top-0 z-30">
+                <div className="container mx-auto px-6 h-20 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <Button variant="ghost" size="icon" asChild className="rounded-xl">
+                            <Link href="/add-listing">
+                                <ArrowLeft className="h-5 w-5" />
+                            </Link>
+                        </Button>
+                        <h1 className="text-xl font-bold text-gray-900">Add New Event</h1>
+                    </div>
+                    <Button
+                        onClick={handleSubmit}
+                        disabled={loading}
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl px-8 font-bold text-xs uppercase tracking-widest h-11"
+                    >
+                        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Submit Listing
+                    </Button>
+                </div>
             </div>
 
-            <div className="container mx-auto py-24 px-6 max-w-4xl">
-                <div className="mb-16">
-                    <Button variant="ghost" asChild className="mb-12 -ml-4 pl-4 hover:pl-6 transition-all text-gray-400 font-bold uppercase tracking-widest text-[10px]">
-                        <Link href="/dashboard" className="flex items-center">
-                            <ArrowLeft className="mr-2 h-3 w-3" /> Dashboard
-                        </Link>
-                    </Button>
-
-                    <div className="flex items-baseline gap-4 mb-2">
-                        <span className="text-rose-600 font-black text-6xl opacity-20">0{step}</span>
-                        <h1 className="text-5xl md:text-7xl font-black text-gray-900 tracking-tighter leading-none">
-                            {step === 1 && <><span className="text-rose-600">The</span> Occasion</>}
-                            {step === 2 && <><span className="text-rose-600">Timing</span> & Depth</>}
-                            {step === 3 && <><span className="text-rose-600">The</span> Stage</>}
-                            {step === 4 && <><span className="text-rose-600">Vibrant</span> Glimpse</>}
-                        </h1>
-                    </div>
-                </div>
-
-                <div className="bg-white/40 backdrop-blur-xl border border-gray-100 p-8 md:p-16 rounded-[4rem] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.05)] animate-fade-in-up">
-
-                    {/* STEP 1: BASIC INFO */}
-                    {step === 1 && (
-                        <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                            <div className="space-y-3">
-                                <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Event Title</Label>
-                                <Input
-                                    name="title"
-                                    value={formData.title}
-                                    onChange={handleChange}
-                                    placeholder="e.g. Grand Carnatic Soiree"
-                                    className="h-20 text-3xl font-bold border-none bg-gray-50 rounded-3xl focus:bg-white focus:ring-8 focus:ring-rose-500/5 transition-all text-gray-900"
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                                <div className="space-y-3">
-                                    <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Occasion Type</Label>
-                                    <Select value={formData.category} onValueChange={(val) => handleSelectChange("category", val)}>
-                                        <SelectTrigger className="h-20 text-xl font-bold border-none bg-gray-50 rounded-3xl focus:ring-8 focus:ring-rose-500/5 px-6">
-                                            <SelectValue placeholder="Select Category" />
-                                        </SelectTrigger>
-                                        <SelectContent className="rounded-3xl border-gray-100 p-2">
-                                            {EVENT_CATEGORIES.map((c) => (
-                                                <SelectItem key={c} value={c} className="rounded-xl h-12 font-bold focus:bg-rose-50">{c}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+            <div className="container mx-auto py-12 px-6 max-w-5xl">
+                <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="lg:col-span-2 space-y-8">
+                        {/* Event Details */}
+                        <Card className="p-8 rounded-[2rem] border-none shadow-sm bg-white">
+                            <h2 className="text-lg font-bold mb-8 flex items-center gap-3">
+                                <div className="w-1.5 h-6 bg-emerald-500 rounded-full" />
+                                Event Details
+                            </h2>
+                            <div className="space-y-6">
+                                <div className="space-y-2">
+                                    <Label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Event Title</Label>
+                                    <Input
+                                        name="title"
+                                        value={formData.title}
+                                        onChange={handleChange}
+                                        placeholder="e.g. Cochin Carnival"
+                                        className="h-14 rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-emerald-500/20 font-medium"
+                                    />
                                 </div>
-                                <div className="space-y-3">
-                                    <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Kerala District</Label>
+
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <Label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Category</Label>
+                                        <Select value={formData.category} onValueChange={(val) => handleSelectChange("category", val)}>
+                                            <SelectTrigger className="h-14 rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-emerald-500/20">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent className="rounded-2xl border-gray-100">
+                                                {EVENT_CATEGORIES.map((c) => (
+                                                    <SelectItem key={c} value={c} className="font-medium">{c}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Venue Name</Label>
+                                        <Input
+                                            name="venue"
+                                            value={formData.venue}
+                                            onChange={handleChange}
+                                            placeholder="e.g. Fort Kochi Beach"
+                                            className="h-14 rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-emerald-500/20 font-medium"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-3 gap-6">
+                                    <div className="space-y-2">
+                                        <Label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Start Date</Label>
+                                        <Input
+                                            name="startDate"
+                                            type="date"
+                                            value={formData.startDate}
+                                            onChange={handleChange}
+                                            className="h-14 rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-emerald-500/20 font-medium"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">End Date</Label>
+                                        <Input
+                                            name="endDate"
+                                            type="date"
+                                            value={formData.endDate}
+                                            onChange={handleChange}
+                                            className="h-14 rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-emerald-500/20 font-medium"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Specific Time</Label>
+                                        <Input
+                                            name="time"
+                                            value={formData.time}
+                                            onChange={handleChange}
+                                            placeholder="e.g. 10:00 AM - 8:00 PM"
+                                            className="h-14 rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-emerald-500/20 font-medium"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Description</Label>
+                                    <Textarea
+                                        name="description"
+                                        value={formData.description}
+                                        onChange={handleChange}
+                                        rows={8}
+                                        placeholder="Describe the celebration and its significance..."
+                                        className="rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-emerald-500/20 p-6 leading-relaxed font-medium"
+                                    />
+                                </div>
+                            </div>
+                        </Card>
+                    </div>
+
+                    <div className="space-y-8">
+                        {/* Location */}
+                        <Card className="p-8 rounded-[2rem] border-none shadow-sm bg-white">
+                            <h2 className="text-lg font-bold mb-8 flex items-center gap-3">
+                                <div className="w-1.5 h-6 bg-emerald-500 rounded-full" />
+                                Geolocation
+                            </h2>
+                            <div className="space-y-6">
+                                <div className="space-y-2">
+                                    <Label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">District</Label>
                                     <Select value={formData.district} onValueChange={(val) => handleSelectChange("district", val)}>
-                                        <SelectTrigger className="h-20 text-xl font-bold border-none bg-gray-50 rounded-3xl focus:ring-8 focus:ring-rose-500/5 px-6">
+                                        <SelectTrigger className="h-14 rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-emerald-500/20">
                                             <SelectValue placeholder="Select District" />
                                         </SelectTrigger>
-                                        <SelectContent className="rounded-3xl border-gray-100 p-2">
+                                        <SelectContent className="rounded-2xl border-gray-100">
                                             {KERALA_DISTRICTS.map((d) => (
-                                                <SelectItem key={d} value={d} className="rounded-xl h-12 font-bold focus:bg-rose-50">{d}</SelectItem>
+                                                <SelectItem key={d} value={d} className="font-medium">{d}</SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
                                 </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* STEP 2: TIMING & DESCRIPTION */}
-                    {step === 2 && (
-                        <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                                <div className="space-y-3">
-                                    <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Start Date</Label>
-                                    <Input
-                                        type="date"
-                                        name="startDate"
-                                        value={formData.startDate}
-                                        onChange={handleChange}
-                                        className="h-20 text-xl font-bold border-none bg-gray-50 rounded-3xl focus:bg-white focus:ring-8 focus:ring-rose-500/5 transition-all"
-                                    />
-                                </div>
-                                <div className="space-y-3">
-                                    <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">End Date</Label>
-                                    <Input
-                                        type="date"
-                                        name="endDate"
-                                        value={formData.endDate}
-                                        onChange={handleChange}
-                                        className="h-20 text-xl font-bold border-none bg-gray-50 rounded-3xl focus:bg-white focus:ring-8 focus:ring-rose-500/5 transition-all"
-                                    />
-                                </div>
-                                <div className="space-y-3">
-                                    <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Display Time</Label>
-                                    <Input
-                                        name="time"
-                                        value={formData.time}
-                                        onChange={handleChange}
-                                        placeholder="e.g. 6:00 PM onwards"
-                                        className="h-20 text-xl font-bold border-none bg-gray-50 rounded-3xl focus:bg-white focus:ring-8 focus:ring-rose-500/5 transition-all"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="space-y-3">
-                                <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">The Essence</Label>
-                                <Textarea
-                                    name="description"
-                                    value={formData.description}
-                                    onChange={handleChange}
-                                    rows={6}
-                                    placeholder="Paint a picture of the celebration..."
-                                    className="text-xl font-medium border-none bg-gray-50 rounded-[2.5rem] p-10 focus:bg-white focus:ring-8 focus:ring-rose-500/5 transition-all resize-none leading-relaxed"
-                                />
-                            </div>
-                        </div>
-                    )}
-
-                    {/* STEP 3: VENUE & COORDINATES */}
-                    {step === 3 && (
-                        <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                            <div className="space-y-3">
-                                <Label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">The Stage (Venue)</Label>
-                                <Input
-                                    name="venue"
-                                    value={formData.venue}
-                                    onChange={handleChange}
-                                    placeholder="e.g. Marine Drive Grounds"
-                                    className="h-20 text-2xl font-bold border-none bg-gray-50 rounded-3xl focus:bg-white focus:ring-8 focus:ring-rose-500/5 transition-all"
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 text-gray-400">
-                                <div className="space-y-3">
-                                    <Label className="text-[10px] font-black uppercase tracking-widest ml-1">Latitude</Label>
-                                    <Input
-                                        name="latitude"
-                                        type="number"
-                                        step="any"
-                                        value={formData.latitude}
-                                        onChange={handleChange}
-                                        placeholder="10.0889"
-                                        className="h-20 text-2xl font-black border-none bg-gray-50 rounded-3xl focus:bg-white focus:ring-8 focus:ring-rose-500/5 transition-all"
-                                    />
-                                </div>
-                                <div className="space-y-3">
-                                    <Label className="text-[10px] font-black uppercase tracking-widest ml-1">Longitude</Label>
-                                    <Input
-                                        name="longitude"
-                                        type="number"
-                                        step="any"
-                                        value={formData.longitude}
-                                        onChange={handleChange}
-                                        placeholder="77.0595"
-                                        className="h-20 text-2xl font-black border-none bg-gray-50 rounded-3xl focus:bg-white focus:ring-8 focus:ring-rose-500/5 transition-all"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* STEP 4: VISUALS */}
-                    {step === 4 && (
-                        <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                                {formData.images.map((url, index) => (
-                                    <div key={index} className="relative group aspect-[4/5] rounded-[2rem] overflow-hidden border border-gray-100 shadow-xl">
-                                        <img
-                                            src={url.startsWith('/') ? `${process.env.NEXT_PUBLIC_API_URL}${url}` : url}
-                                            alt={`Moment ${index}`}
-                                            className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110"
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Latitude</Label>
+                                        <Input
+                                            name="latitude"
+                                            value={formData.latitude}
+                                            onChange={handleChange}
+                                            placeholder="10.0"
+                                            className="h-14 rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-emerald-500/20 font-medium"
                                         />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Longitude</Label>
+                                        <Input
+                                            name="longitude"
+                                            value={formData.longitude}
+                                            onChange={handleChange}
+                                            placeholder="76.0"
+                                            className="h-14 rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-emerald-500/20 font-medium"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </Card>
+
+                        {/* Visuals */}
+                        <Card className="p-8 rounded-[2rem] border-none shadow-sm bg-white">
+                            <h2 className="text-lg font-bold mb-8 flex items-center gap-3">
+                                <div className="w-1.5 h-6 bg-emerald-500 rounded-full" />
+                                Moments
+                            </h2>
+                            <div className="grid grid-cols-2 gap-4">
+                                {formData.images.map((url, index) => (
+                                    <div key={index} className="relative aspect-square rounded-2xl overflow-hidden group shadow-sm">
+                                        <img src={url} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                                         <button
                                             type="button"
                                             onClick={() => removeImage(index)}
-                                            className="absolute top-4 right-4 bg-red-500 text-white rounded-full p-2 opacity-0 group-hover:opacity-100 transition-all hover:scale-110 active:scale-95 shadow-lg"
+                                            className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
                                         >
-                                            <X className="w-4 h-4" />
+                                            <X className="w-3 h-3" />
                                         </button>
                                     </div>
                                 ))}
-
-                                <label className="flex flex-col items-center justify-center border-4 border-dashed border-gray-100 rounded-[2rem] aspect-[4/5] cursor-pointer hover:bg-rose-50/50 hover:border-rose-200 transition-all group">
-                                    {uploading ? (
-                                        <Loader2 className="w-10 h-10 animate-spin text-rose-600" />
-                                    ) : (
-                                        <Upload className="w-10 h-10 text-gray-200 group-hover:text-rose-600 transition-colors" />
-                                    )}
-                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-6 group-hover:text-rose-900">Add Atmosphere</span>
-                                    <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
+                                <label className="aspect-square rounded-2xl border-2 border-dashed border-gray-100 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors">
+                                    {uploading ? <Loader2 className="w-5 h-5 animate-spin text-emerald-600" /> : <Upload className="w-5 h-5 text-gray-300" />}
+                                    <span className="text-[10px] uppercase font-black tracking-widest text-gray-400 mt-2">Upload</span>
+                                    <input type="file" multiple hidden onChange={handleImageUpload} />
                                 </label>
                             </div>
-                        </div>
-                    )}
-
-                    {/* 🔹 NAVIGATION BUTTONS */}
-                    <div className="mt-20 pt-16 border-t border-gray-50 flex items-center justify-between">
-                        {step > 1 ? (
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                onClick={prevStep}
-                                className="h-16 px-10 rounded-2xl font-black uppercase tracking-widest text-xs text-gray-400 hover:text-rose-600"
-                            >
-                                <ArrowLeft className="mr-2 h-4 w-4" /> Previous
-                            </Button>
-                        ) : <div />}
-
-                        {step < 4 ? (
-                            <Button
-                                type="button"
-                                onClick={nextStep}
-                                className="h-16 px-12 bg-gray-900 group hover:bg-rose-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-2xl shadow-gray-200 transition-all active:scale-95"
-                            >
-                                Next Step <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                            </Button>
-                        ) : (
-                            <Button
-                                type="button"
-                                onClick={handleSubmit}
-                                disabled={loading}
-                                className="h-16 px-12 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-2xl shadow-rose-500/20 transition-all active:scale-95 min-w-[200px]"
-                            >
-                                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Capture History"}
-                            </Button>
-                        )}
+                        </Card>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
     );
 }
+
+import { Card } from "@/components/ui/card";

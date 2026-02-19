@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button";
 export function AddListingButton() {
     const { user } = useAuth();
 
-    // Only show if logged in (or maybe show and redirect to login)
-    if (!user) return null;
+    // Only show if Admin or Contributor
+    if (!user || (user.role !== "Admin" && user.role !== "Contributor")) return null;
 
     return (
         <Link href="/add-listing">

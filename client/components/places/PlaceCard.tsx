@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { MapPin, Star } from 'lucide-react';
 import { Place } from '@/services/placeService';
 import { Button } from '@/components/ui/button';
+import { getTourismImage } from '@/lib/images';
 
 interface PlaceCardProps {
     place: Place;
@@ -17,7 +18,7 @@ const PlaceCard: React.FC<PlaceCardProps> = ({ place, viewMode = 'grid' }) => {
             >
                 <div className="relative w-full md:w-56 h-48 flex-shrink-0 overflow-hidden rounded-[1.5rem] shadow-inner">
                     <img
-                        src={place.images?.[0] || place.image || "/placeholder.svg"}
+                        src={getTourismImage(place.name, place.category)}
                         alt={place.name}
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
@@ -62,7 +63,7 @@ const PlaceCard: React.FC<PlaceCardProps> = ({ place, viewMode = 'grid' }) => {
         >
             <div className="relative overflow-hidden h-48 sm:h-56">
                 <img
-                    src={place.images?.[0] || place.image || "/placeholder.svg"}
+                    src={getTourismImage(place.name, place.category)}
                     alt={place.name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 />

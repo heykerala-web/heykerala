@@ -35,6 +35,22 @@ export const getStats = async (req: Request, res: Response) => {
     }
 };
 
+// Activity Logs
+import ActivityLog from "../models/ActivityLog";
+
+export const getActivityLogs = async (req: Request, res: Response) => {
+    try {
+        const logs = await ActivityLog.find()
+            .populate("user", "name email role")
+            .sort({ createdAt: -1 })
+            .limit(50);
+
+        res.json({ success: true, logs });
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 // --- USER MANAGEMENT ---
 
 export const getAllUsers = async (req: Request, res: Response) => {

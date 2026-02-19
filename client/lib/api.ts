@@ -133,6 +133,14 @@ export const profileAPI = {
   },
 };
 
+export const contactAPI = {
+  submit: (data: { name: string; email: string; message: string }) =>
+    apiCall("/contact", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+};
+
 // ...existing code...
 export const tokenManager = {
   set(token: string) {

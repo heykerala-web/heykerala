@@ -13,7 +13,7 @@ const staysData = [
         description: "Luxury hotel overlooking the backwaters of Kochi. Features multiple dining options, a large pool, and event spaces.",
         district: "Kochi",
         pricePerNight: 12000,
-        images: ["https://cf.bstatic.com/xdata/images/hotel/max1024x768/166699264.jpg?k=3af89c7295988220800727038006451000632126260840c8382711019183416c&o=&hp=1"],
+        images: ["https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80"],
         amenities: ["Wifi", "Pool", "Parking", "AC", "Restaurant"],
         ratingAvg: 4.8,
         rooms: [
@@ -27,7 +27,7 @@ const staysData = [
         description: "A jungle getaway in the heart of Wayanad rainforests. Treehouses and cottages available.",
         district: "Wayanad",
         pricePerNight: 15000,
-        images: ["https://cf.bstatic.com/xdata/images/hotel/max1024x768/37397623.jpg?k=b48301556947231454c602058309605342203741544026362534571616142171&o=&hp=1"],
+        images: ["https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80"],
         amenities: ["Wifi", "Pool", "Spa", "Trekking"],
         ratingAvg: 4.7,
         rooms: [
@@ -52,7 +52,7 @@ const staysData = [
         description: "Surrounded by tea gardens, offering a misty and cool vacation experience.",
         district: "Munnar",
         pricePerNight: 8000,
-        images: ["https://pix10.agoda.net/hotelImages/116/1162839/1162839_16060815410043254199.jpg?ca=6&ce=1&s=1024x768"],
+        images: ["https://images.unsplash.com/photo-1590510328503-903069695d38?auto=format&fit=crop&w=1200&q=80"],
         amenities: ["Wifi", "Breakfast", "View"],
         ratingAvg: 4.5,
         rooms: [

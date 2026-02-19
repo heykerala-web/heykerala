@@ -4,7 +4,11 @@ import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Phone, MapPin, Hospital, Shield, Clock, AlertTriangle } from "lucide-react"
-import LeafletMap from "@/app/components/Map/LeafletMap"
+import dynamic from "next/dynamic";
+const LeafletMap = dynamic(() => import("@/app/components/Map/LeafletMap"), {
+  ssr: false,
+  loading: () => <div className="h-[500px] w-full bg-muted animate-pulse rounded-3xl" />
+});
 
 export default function EmergencyPage() {
   const [selectedDistrict, setSelectedDistrict] = useState("thiruvananthapuram")
@@ -172,11 +176,10 @@ export default function EmergencyPage() {
                 <button
                   key={district.id}
                   onClick={() => setSelectedDistrict(district.id)}
-                  className={`p-3 rounded-xl text-sm font-medium transition-all ${
-                    selectedDistrict === district.id
+                  className={`p-3 rounded-xl text-sm font-medium transition-all ${selectedDistrict === district.id
                       ? "bg-kerala-green text-white shadow-lg"
                       : "bg-white text-gray-700 hover:bg-gray-50 shadow"
-                  }`}
+                    }`}
                 >
                   <div className="font-bold">{district.code}</div>
                   <div className="text-xs">{district.name}</div>

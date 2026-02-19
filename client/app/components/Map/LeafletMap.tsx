@@ -5,30 +5,9 @@ import dynamic from "next/dynamic";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-// Dynamically import MapContainer to avoid SSR issues
-const MapContainer = dynamic(
-  () => import("react-leaflet").then((mod) => mod.MapContainer),
-  { ssr: false }
-);
-
-const TileLayer = dynamic(
-  () => import("react-leaflet").then((mod) => mod.TileLayer),
-  { ssr: false }
-);
-
-const Marker = dynamic(
-  () => import("react-leaflet").then((mod) => mod.Marker),
-  { ssr: false }
-);
-
-const Popup = dynamic(
-  () => import("react-leaflet").then((mod) => mod.Popup),
-  { ssr: false }
-);
+import { MapContainer, TileLayer, Marker, Popup, LayersControl } from "react-leaflet";
 
 // Types and Props (Leaflet config moved to useEffect)
-
-
 interface MarkerData {
   lat: number;
   lng: number;
@@ -42,6 +21,7 @@ interface LeafletMapProps {
   markers?: MarkerData[];
   height?: string;
   className?: string;
+  scrollWheelZoom?: boolean;
 }
 
 export default function LeafletMap({
@@ -50,6 +30,7 @@ export default function LeafletMap({
   markers = [],
   height = "400px",
   className = "",
+  scrollWheelZoom = false,
 }: LeafletMapProps) {
   const [isClient, setIsClient] = useState(false);
 
@@ -58,11 +39,15 @@ export default function LeafletMap({
 
     // Fix for default marker icons in Next.js (client-side only)
     if (typeof window !== "undefined") {
-      delete (L.Icon.Default.prototype as any)._getIconUrl;
+      // @ts-ignore
+      delete L.Icon.Default.prototype._getIconUrl;
+
+      const shadowUrl = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png";
+
       L.Icon.Default.mergeOptions({
         iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
         iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
-        shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
+        shadowUrl,
       });
     }
   }, []);
@@ -70,10 +55,10 @@ export default function LeafletMap({
   if (!isClient) {
     return (
       <div
-        className={`w-full bg-gray-200 rounded-3xl flex items-center justify-center ${className}`}
+        className={`w-full bg-gray-200 rounded-3xl flex items-center justify-center animate-pulse ${className}`}
         style={{ height }}
       >
-        <p className="text-gray-500">Loading map...</p>
+        <p className="text-gray-400">Loading map...</p>
       </div>
     );
   }
@@ -87,12 +72,23 @@ export default function LeafletMap({
         center={center}
         zoom={zoom}
         style={{ height: "100%", width: "100%" }}
-        scrollWheelZoom={true}
+        scrollWheelZoom={scrollWheelZoom}
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+        <LayersControl position="topright">
+          <LayersControl.BaseLayer checked name="Street Map">
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+          </LayersControl.BaseLayer>
+
+          <LayersControl.BaseLayer name="Satellite (Esri)">
+            <TileLayer
+              attribution='&copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+            />
+          </LayersControl.BaseLayer>
+        </LayersControl>
 
         {markers.map((marker, index) => (
           <Marker key={index} position={[marker.lat, marker.lng]}>

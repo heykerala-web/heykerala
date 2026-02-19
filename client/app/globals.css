@@ -20,6 +20,7 @@
     font-family: "Outfit", sans-serif;
   }
 
+  /* Kerala Brand Colors */
   .kerala-green {
     @apply text-[#047857];
   }
@@ -52,59 +53,95 @@
     @apply bg-[#ffd700];
   }
 
+  /* Premium Glassmorphism */
   .glassmorphism {
-    @apply bg-white/20 backdrop-blur-md border border-white/30;
+    @apply bg-white/10 backdrop-blur-md border border-white/20 shadow-xl;
+  }
+
+  .glass-card {
+    @apply bg-white/70 backdrop-blur-lg border border-white/40 shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-1;
+  }
+
+  .glass-nav {
+    @apply bg-white/80 backdrop-blur-xl border-b border-white/20 shadow-sm supports-[backdrop-filter]:bg-white/60;
+  }
+
+  .text-gradient-gold {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-yellow-600 via-yellow-500 to-yellow-600;
   }
 }
 
 @layer base {
   :root {
     --font-sans: 'Inter', system-ui, sans-serif;
-    --background: 40 40% 98%;
-    /* Warm Off-white / Sand (#FAF9F6-ish) */
-    --foreground: 0 0% 10%;
-    /* Near Black (#1A1A1A) */
+
+    /* Premium Earthy Palette - Light */
+    --background: 40 33% 98%;
+    /* #FAF9F6 (Off-White/Sand) */
+    --foreground: 161 60% 15%;
+    /* #0F3D2E (Deep Jungle Green) - High Contrast Text */
+
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 10%;
+    --card-foreground: 161 60% 15%;
+
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10%;
-    --primary: 161 60% 15%;
-    /* Deep Emerald (#0F3D2E) */
+    --popover-foreground: 161 60% 15%;
+
+    --primary: 163 85% 25%;
+    /* #0A7859 (Emerald) - Enriched Green */
     --primary-foreground: 40 40% 98%;
-    --secondary: 161 20% 90%;
+
+    --secondary: 40 20% 94%;
+    /* #F2F1ED (Warm Grey/Beige) */
     --secondary-foreground: 161 60% 15%;
-    --muted: 40 10% 94%;
-    --muted-foreground: 0 0% 45%;
-    --accent: 13 60% 62%;
-    /* Muted Sunset Orange (#E07A5F) */
+
+    --muted: 40 20% 94%;
+    --muted-foreground: 161 20% 40%;
+    /* Muted Green-Grey */
+
+    --accent: 18 80% 55%;
+    /* #E66636 (Burnt Terracotta) - Warm detailed accent */
     --accent-foreground: 40 40% 98%;
+
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 161 60% 15%;
-    --radius: 0.75rem;
+
+    --border: 40 10% 90%;
+    --input: 40 10% 90%;
+    --ring: 163 85% 25%;
+
+    --radius: 1rem;
+    /* Slightly rounder for premium feel */
   }
 
   .dark {
-    --background: 161 60% 5%;
-    /* Very dark emerald */
+    /* Premium Earthy Palette - Dark */
+    --background: 163 60% 8%;
+    /* #082119 (Very Dark Green) */
     --foreground: 40 20% 95%;
-    --card: 161 60% 7%;
+
+    --card: 163 60% 10%;
     --card-foreground: 40 20% 95%;
-    --popover: 161 60% 7%;
+
+    --popover: 163 60% 10%;
     --popover-foreground: 40 20% 95%;
-    --primary: 161 60% 25%;
-    --primary-foreground: 40 20% 98%;
-    --secondary: 161 30% 15%;
-    --secondary-foreground: 40 20% 98%;
-    --muted: 161 30% 12%;
-    --muted-foreground: 161 10% 60%;
-    --accent: 13 50% 55%;
-    --accent-foreground: 0 0% 98%;
-    --border: 161 30% 15%;
-    --input: 161 30% 15%;
-    --ring: 161 60% 25%;
+
+    --primary: 163 60% 45%;
+    /* #2E8B6F (Muted Emerald) */
+    --primary-foreground: 163 60% 5%;
+
+    --secondary: 163 30% 15%;
+    --secondary-foreground: 40 20% 95%;
+
+    --muted: 163 30% 15%;
+    --muted-foreground: 163 10% 65%;
+
+    --accent: 18 70% 60%;
+    --accent-foreground: 40 40% 98%;
+
+    --border: 163 30% 20%;
+    --input: 163 30% 20%;
+    --ring: 163 60% 45%;
   }
 }
 
@@ -113,9 +150,17 @@
     @apply border-border;
   }
 
+  html {
+    scroll-behavior: smooth;
+    height: 100%;
+  }
+
   body {
     @apply bg-background text-foreground font-inter antialiased;
     line-height: 1.6;
+    height: 100%;
+    overflow-x: hidden;
+    /* Prevent horizontal scroll */
   }
 
   h1,

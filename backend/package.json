@@ -9,7 +9,9 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "seed:places": "ts-node src/seed/placesSeed.ts"
+    "seed:places": "ts-node src/seed/placesSeed.ts",
+    "seed": "ts-node src/seed/universal-seed.ts",
+    "seed:auto": "ts-node src/seed/automated-seed.ts"
   },
   "keywords": [],
   "author": "",

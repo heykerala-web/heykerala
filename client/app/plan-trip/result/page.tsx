@@ -75,6 +75,17 @@ export default function ItineraryResultPage() {
     try {
       const decoded = decodeURIComponent(dataParam);
       const parsed = JSON.parse(decoded);
+
+      if (parsed.error) {
+        setError(parsed.error);
+        return;
+      }
+
+      if (!parsed.days || !Array.isArray(parsed.days)) {
+        setError("Invalid itinerary data received.");
+        return;
+      }
+
       setItinerary(parsed);
     } catch (err) {
       console.error("Error parsing itinerary data:", err);

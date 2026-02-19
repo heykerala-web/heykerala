@@ -12,7 +12,8 @@ import {
     getPendingSubmissions,
     approveSubmission,
     rejectSubmission,
-    deleteSubmission
+    deleteSubmission,
+    getActivityLogs
 } from "../controllers/adminController";
 import { createPlace, updatePlace } from "../controllers/placeController"; // Reuse standard place logic
 import multer from "multer";
@@ -43,6 +44,7 @@ router.use(authorize("Admin"));
 
 // Dashboard
 router.get("/stats", getStats);
+router.get("/activity", getActivityLogs);
 
 // Users
 router.get("/users", getAllUsers);

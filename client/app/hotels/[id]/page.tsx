@@ -21,7 +21,11 @@ import {
   UtensilsCrossed,
   Check,
 } from "lucide-react"
-import LeafletMap from "@/app/components/Map/LeafletMap"
+import dynamic from "next/dynamic";
+const LeafletMap = dynamic(() => import("@/app/components/Map/LeafletMap"), {
+  ssr: false,
+  loading: () => <div className="h-[400px] w-full bg-muted animate-pulse rounded-3xl" />
+});
 import toast from "react-hot-toast"
 
 export default function HotelDetailsPage() {
@@ -79,9 +83,8 @@ export default function HotelDetailsPage() {
         {images.map((img, idx) => (
           <div
             key={idx}
-            className={`absolute inset-0 transition-opacity duration-500 ${
-              idx === currentImageIndex ? "opacity-100" : "opacity-0"
-            }`}
+            className={`absolute inset-0 transition-opacity duration-500 ${idx === currentImageIndex ? "opacity-100" : "opacity-0"
+              }`}
           >
             <img
               src={img || "/placeholder.svg"}
@@ -110,9 +113,8 @@ export default function HotelDetailsPage() {
             <button
               key={idx}
               onClick={() => setCurrentImageIndex(idx)}
-              className={`w-3 h-3 rounded-full transition-colors ${
-                idx === currentImageIndex ? "bg-white" : "bg-white/50"
-              }`}
+              className={`w-3 h-3 rounded-full transition-colors ${idx === currentImageIndex ? "bg-white" : "bg-white/50"
+                }`}
             />
           ))}
         </div>

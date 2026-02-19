@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { Navbar } from "@/components/navbar";
+import { ScrollToTop } from "@/components/ui/scroll-to-top";
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
@@ -13,6 +14,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         <>
             {!hideNavbar && <Navbar />}
             {children}
+            {!hideNavbar && <ScrollToTop />}
         </>
     );
 }

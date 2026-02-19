@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 interface User {
     id: string;
+    _id?: string;
     name: string;
     email: string;
     role: "Admin" | "Tourist" | "Contributor";
@@ -14,7 +15,10 @@ interface User {
     phone?: string;
     location?: string;
     travelBadge?: string;
+    persona?: string;
+    travelInterests?: string[];
     savedPlaces?: any[];
+    // ...
     savedStays?: any[];
     savedEvents?: any[];
     stats?: {
@@ -98,13 +102,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const login = (data: any) => {
         tokenManager.set(data.token);
         setUser(data.user);
-        router.push("/dashboard");
+        if (data.user.role === "Admin") {
+            router.push("/admin");
+        } else {
+            router.push("/dashboard");
+        }
     };
 
     const register = (data: any) => {
         tokenManager.set(data.token);
         setUser(data.user);
-        router.push("/dashboard");
+        if (data.user.role === "Admin") {
+            router.push("/admin");
+        } else {
+            router.push("/dashboard");
+        }
     };
 
     const logout = () => {

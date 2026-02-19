@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, MapPin, Star, Grid, List, Map, X, Calendar, IndianRupee, Loader2 } from "lucide-react"
 import dynamic from "next/dynamic"
+import { PlaceCard } from "@/components/place-card"
 
 const LeafletMap = dynamic(() => import("@/app/components/Map/LeafletMap"), { ssr: false })
 
@@ -83,7 +84,6 @@ const SearchContent = () => {
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Hero Banner */}
       <div className="bg-primary text-white py-20 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10 bg-[url('/kerala-pattern.png')] bg-repeat" />
         <div className="relative container mx-auto px-6 max-w-7xl z-10">
           <h1 className="font-outfit text-4xl md:text-6xl font-bold mb-4 tracking-tight">Search Kerala</h1>
           <p className="text-lg md:text-xl opacity-80 max-w-2xl font-inter font-light">
@@ -215,45 +215,16 @@ const SearchContent = () => {
         ) : viewMode === "grid" ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {places.map((item) => (
-              <Link
+              <PlaceCard
                 key={item._id}
-                href={`/places/${item._id}`}
-                className="group bg-card rounded-[2rem] border border-border overflow-hidden hover:shadow-2xl transition-all duration-700 transform hover:-translate-y-2 flex flex-col shadow-sm"
-              >
-                <div className="relative overflow-hidden aspect-[16/10]">
-                  <img
-                    src={item.images?.[0] || item.image || "/placeholder.svg"}
-                    alt={item.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                  />
-                  <div className="absolute top-4 left-4">
-                    <span className="px-3 py-1 bg-primary/95 backdrop-blur-md text-white text-[10px] uppercase tracking-[0.2em] font-bold rounded-full border border-white/20">
-                      {item.category}
-                    </span>
-                  </div>
-                  {item.ratingAvg > 0 && (
-                    <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-md rounded-full px-3 py-1 flex items-center gap-1 shadow-sm border border-black/5">
-                      <Star className="h-4 w-4 text-accent fill-accent" />
-                      <span className="text-sm font-bold text-foreground">{item.ratingAvg}</span>
-                    </div>
-                  )}
-                </div>
-                <div className="p-8 flex-1 flex flex-col">
-                  <h3 className="font-outfit font-bold text-2xl mb-2 line-clamp-1 group-hover:text-primary transition-colors">{item.name}</h3>
-                  <div className="flex items-center text-muted-foreground text-sm font-bold uppercase tracking-widest mb-4">
-                    <MapPin className="h-4 w-4 mr-1.5 text-primary" />
-                    {item.location}
-                  </div>
-                  {item.description && (
-                    <p className="text-muted-foreground text-sm line-clamp-2 mb-6 font-inter font-light leading-relaxed">{item.description}</p>
-                  )}
-                  <div className="mt-auto">
-                    <Button className="w-full bg-primary hover:bg-primary/95 text-primary-foreground rounded-2xl h-12 font-bold uppercase tracking-widest text-[10px] shadow-xl shadow-primary/20 active:scale-95 transition-all">
-                      View Details
-                    </Button>
-                  </div>
-                </div>
-              </Link>
+                id={item._id}
+                name={item.name}
+                location={item.location || item.district}
+                image={item.images?.[0] || item.image}
+                rating={item.ratingAvg}
+                description={item.description}
+                category={item.category}
+              />
             ))}
           </div>
         ) : (
@@ -262,43 +233,46 @@ const SearchContent = () => {
               <Link
                 key={item._id}
                 href={`/places/${item._id}`}
-                className="group bg-card rounded-[2rem] border border-border p-6 flex flex-col md:flex-row gap-8 hover:shadow-2xl transition-all duration-700 hover:-translate-y-1 overflow-hidden shadow-sm"
+                className="group bg-white rounded-3xl border border-slate-100 p-4 active:scale-[0.99] flex flex-col md:flex-row gap-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden"
               >
-                <div className="relative w-full md:w-64 h-48 flex-shrink-0 overflow-hidden rounded-[1.5rem] shadow-inner">
+                <div className="relative w-full md:w-72 h-52 flex-shrink-0 overflow-hidden rounded-2xl">
                   <img
                     src={item.images?.[0] || item.image || "/placeholder.svg"}
                     alt={item.name}
+                    loading="lazy"
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
+                  <div className="absolute top-3 left-3">
+                    <span className="px-3 py-1 bg-white/30 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-widest rounded-full border border-white/20 shadow-lg">
+                      {item.category}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex-1 flex flex-col">
-                  <div className="flex items-start justify-between mb-3">
+                <div className="flex-1 flex flex-col justify-center py-2">
+                  <div className="flex items-start justify-between mb-2">
                     <div>
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="px-4 py-1.5 bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest rounded-full border border-primary/20">
-                          {item.category}
-                        </span>
-                        {item.ratingAvg > 0 && (
-                          <div className="flex items-center gap-1.5 bg-muted/80 backdrop-blur-md rounded-full px-3 py-1 shadow-sm border border-border">
-                            <Star className="h-4 w-4 text-accent fill-accent" />
-                            <span className="font-bold text-foreground text-sm">{item.ratingAvg}</span>
-                          </div>
-                        )}
-                      </div>
-                      <h3 className="font-outfit font-bold text-2xl md:text-3xl mb-1 text-foreground group-hover:text-primary transition-colors">{item.name}</h3>
+                      <h3 className="font-outfit font-bold text-2xl mb-1 text-gray-900 group-hover:text-primary transition-colors">{item.name}</h3>
                       <div className="flex items-center text-muted-foreground font-medium text-sm">
                         <MapPin className="h-4 w-4 mr-1.5 text-primary" />
-                        {item.location}
+                        {item.location || item.district}
                       </div>
                     </div>
+                    {item.ratingAvg > 0 && (
+                      <div className="flex items-center gap-1.5 bg-amber-50 px-3 py-1 rounded-lg border border-amber-100">
+                        <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+                        <span className="font-bold text-amber-700 text-sm">{item.ratingAvg}</span>
+                      </div>
+                    )}
                   </div>
+
                   {item.description && (
-                    <p className="text-muted-foreground mb-6 line-clamp-2 text-sm leading-relaxed font-inter font-light">
+                    <p className="text-gray-500 mb-6 line-clamp-2 text-sm leading-relaxed font-inter">
                       {item.description}
                     </p>
                   )}
+
                   <div className="mt-auto flex items-center justify-between">
-                    <Button className="bg-primary hover:bg-primary/95 text-primary-foreground rounded-xl px-8 h-10 font-bold uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20 transition-all">
+                    <Button className="bg-slate-900 hover:bg-black text-white rounded-xl px-6 h-10 font-bold text-xs shadow-lg transition-all group-hover:bg-primary group-hover:shadow-primary/25">
                       View Details
                     </Button>
                   </div>

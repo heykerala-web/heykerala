@@ -65,9 +65,9 @@ const config: Config = {
         },
       },
       borderRadius: {
-        lg: '12px',
-        md: '8px',
-        sm: '4px',
+        lg: 'var(--radius)',
+        md: 'calc(var(--radius) - 2px)',
+        sm: 'calc(var(--radius) - 4px)',
       },
       spacing: {
         '18': '4.5rem',

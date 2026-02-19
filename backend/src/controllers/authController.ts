@@ -72,6 +72,10 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
 
     const token = generateToken(user._id as string);
 
+    // Log Activity
+    const { logActivity } = await import("../utils/activityLogger");
+    await logActivity(user._id as string, "LOGIN", "User logged in", req);
+
     res.json({
       success: true,
       token,

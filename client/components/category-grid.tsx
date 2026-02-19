@@ -7,7 +7,7 @@ const categories = [
     href: "/explore/category/Hill Station",
     gradient: "from-primary/80 to-primary",
     count: "10+ places",
-    image: "/munnar-tea-gardens-rolling-green-hills.png",
+    image: "https://images.unsplash.com/photo-1590510328503-903069695d38?auto=format&fit=crop&w=1200&q=80",
     icon: "🏔️",
   },
   {
@@ -16,7 +16,7 @@ const categories = [
     href: "/explore/category/Beach",
     gradient: "from-blue-500/80 to-blue-600",
     count: "15+ beaches",
-    image: "https://www.keralaholidays.com/uploads/tourpackages/main/Ripples-of-Kerala.jpg",
+    image: "https://images.unsplash.com/photo-1590050811270-e322662c919d?auto=format&fit=crop&w=1200&q=80",
     icon: "🏖️",
   },
   {
@@ -25,7 +25,7 @@ const categories = [
     href: "/explore/category/Backwaters",
     gradient: "from-primary/60 to-primary/90",
     count: "12+ spots",
-    image: "https://c.ndtvimg.com/2025-08/tv011i6g_kerala-backwaters_625x300_18_August_25.jpeg?im=FeatureCrop,algorithm=dnn,width=1200,height=738",
+    image: "https://images.unsplash.com/photo-1602216056096-3c40cc0c9855?auto=format&fit=crop&w=1200&q=80",
     icon: "🛶",
   },
   {
@@ -34,7 +34,7 @@ const categories = [
     href: "/explore/category/Waterfalls",
     gradient: "from-cyan-400 to-cyan-600",
     count: "30+ falls",
-    image: "https://www.keralatourism.org/images/enchanting_kerala/large/keralamkundu_waterfalls_malappuram20220607175322_1196_1.jpg",
+    image: "https://images.unsplash.com/photo-1540555700478-4be289aefcf1?auto=format&fit=crop&w=1200&q=80",
     icon: "🌊",
   },
   {
@@ -43,7 +43,7 @@ const categories = [
     href: "/explore/category/Wildlife",
     gradient: "from-green-500 to-green-700",
     count: "18+ reserves",
-    image: "https://irisholidays.com/keralatourism/wp-content/uploads/2020/04/chinnar-wildlife-sanctuary.gif",
+    image: "https://images.unsplash.com/photo-1581023779269-80517c80536c?auto=format&fit=crop&w=1200&q=80",
     icon: "🐘",
   },
   {
@@ -52,7 +52,7 @@ const categories = [
     href: "/explore/category/Adventure",
     gradient: "from-orange-400 to-orange-600",
     count: "50+ activities",
-    image: "https://irisholidays.com/keralatourism/wp-content/uploads/2014/07/Paragiliding-kerala.jpg",
+    image: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=80",
     icon: "🧗",
   },
   {
@@ -61,7 +61,7 @@ const categories = [
     href: "/explore/category/History",
     gradient: "from-indigo-400 to-indigo-600",
     count: "5+ sites",
-    image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
+    image: "https://images.unsplash.com/photo-1589310344464-9d1034446465?auto=format&fit=crop&w=1200&q=80",
     icon: "📜",
   },
   {
@@ -70,7 +70,7 @@ const categories = [
     href: "/explore/category/Heritage Site",
     gradient: "from-purple-400 to-purple-600",
     count: "8+ sites",
-    image: "https://upload.wikimedia.org/wikipedia/commons/f/f0/Mattancherry_Palace_02.JPG",
+    image: "https://images.unsplash.com/photo-1589921200632-132d75f2ee3f?auto=format&fit=crop&w=1200&q=80",
     icon: "🏛️",
   },
   {
@@ -79,7 +79,7 @@ const categories = [
     href: "/explore/category/Spirituality",
     gradient: "from-yellow-400 to-orange-500",
     count: "20+ temples",
-    image: "https://upload.wikimedia.org/wikipedia/commons/3/3d/Padmanabhaswamy_Temple_in_Tiruvananthapuram.jpg",
+    image: "https://images.unsplash.com/photo-1590510328503-903069695d38?auto=format&fit=crop&w=1200&q=80",
     icon: "🛕",
   },
 ]
@@ -106,6 +106,7 @@ export function CategoryGrid() {
               <img
                 src={category.image || "/placeholder.svg"}
                 alt={category.name}
+                loading="lazy"
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
               />
               {/* Refined Overlays */}

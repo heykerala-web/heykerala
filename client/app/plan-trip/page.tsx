@@ -50,6 +50,8 @@ export default function PlanTripPage() {
   const [loading, setLoading] = useState(false);
   const [packages, setPackages] = useState<PackageType[]>([]);
 
+  const [customInterest, setCustomInterest] = useState("");
+
   // OPTIONS
   const durations = ["3-4 days", "5-7 days", "8-10 days", "10+ days", "Custom"];
   const budgets = ["Budget", "Mid-range", "Luxury", "Custom"];
@@ -98,21 +100,33 @@ export default function PlanTripPage() {
       return;
     }
 
-    if (form.interests.length === 0) {
-      alert("Please select at least 1 interest.");
+    const finalInterests = [...form.interests];
+    if (customInterest.trim()) {
+      finalInterests.push(customInterest.trim());
+    }
+
+    if (finalInterests.length === 0) {
+      alert("Please select at least 1 interest or type a custom one.");
       return;
     }
 
     setLoading(true);
 
+    const payload = { ...form, interests: finalInterests };
+
     const res = await fetch(`/api/itinerary/${mode}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify(payload),
     });
 
     const data = await res.json();
     setLoading(false);
+
+    if (!res.ok || data.error) {
+      alert(data.error || "Failed to generate plan. Please try again.");
+      return;
+    }
 
     router.push(
       `/plan-trip/result?data=${encodeURIComponent(JSON.stringify(data))}`
@@ -260,10 +274,9 @@ export default function PlanTripPage() {
                   key={value}
                   onClick={() => toggleInterest(value)}
                   className={`flex items-center gap-3 p-4 rounded-xl border transition
-                    ${
-                      active
-                        ? "bg-emerald-50 border-emerald-600"
-                        : "bg-gray-50 border-gray-200"
+                    ${active
+                      ? "bg-emerald-50 border-emerald-600"
+                      : "bg-gray-50 border-gray-200"
                     }`}
                 >
                   <span className="text-2xl">{icon}</span>
@@ -272,6 +285,17 @@ export default function PlanTripPage() {
                 </button>
               );
             })}
+          </div>
+
+          {/* Custom Interest Input */}
+          <div className="mt-4">
+            <input
+              type="text"
+              placeholder="Other interest? (e.g. Yoga, Photography, Food Tour...)"
+              value={customInterest}
+              onChange={(e) => setCustomInterest(e.target.value)}
+              className="w-full p-4 rounded-xl border bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all placeholder:text-gray-400"
+            />
           </div>
         </div>
 

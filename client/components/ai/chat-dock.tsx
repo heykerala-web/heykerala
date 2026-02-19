@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
+import { API_URL } from "@/lib/api"
+
 export function ChatDock() {
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState<{ id: string; role: "assistant" | "user"; content: string }[]>([
@@ -28,9 +30,9 @@ export function ChatDock() {
     "Backwater cruise options",
   ]
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!input.trim()) return
+    if (!input.trim() || isLoading) return
 
     // Add user message
     const userMessage = {
@@ -40,18 +42,65 @@ export function ChatDock() {
     }
     setMessages((prev) => [...prev, userMessage])
     setInput("")
-
-    // Fake AI response for demo
     setIsLoading(true)
-    setTimeout(() => {
+
+    // Context helper
+    const getContext = () => {
+      const hour = new Date().getHours();
+      let time = "Daytime";
+      if (hour < 12) time = "Morning";
+      else if (hour < 17) time = "Afternoon";
+      else if (hour < 21) time = "Evening";
+      else time = "Night";
+
+      return {
+        time,
+        location: "Kerala",
+        weather: "Sunny"
+      }
+    }
+
+    try {
+      // Map history for API
+      const history = messages.map(m => ({
+        role: m.role === "assistant" ? "model" : "user",
+        parts: [{ text: m.content }]
+      }));
+
+      const response = await fetch(`${API_URL}/ai/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: userMessage.content,
+          history: history,
+          context: getContext()
+        }),
+      })
+
+      const data = await response.json()
+
+      let aiContent = "I'm having a little trouble thinking clearly. Please try again! 🌴";
+      if (data.reply) {
+        aiContent = data.reply;
+      }
+
       const reply = {
         id: Date.now().toString(),
         role: "assistant" as const,
-        content: `This is a demo reply for: "${userMessage.content}"`,
+        content: aiContent,
       }
       setMessages((prev) => [...prev, reply])
+    } catch (error) {
+      console.error("Chat error:", error)
+      const errorReply = {
+        id: Date.now().toString(),
+        role: "assistant" as const,
+        content: "Sorry, I'm having trouble connecting right now. 🌴",
+      }
+      setMessages((prev) => [...prev, errorReply])
+    } finally {
       setIsLoading(false)
-    }, 1200)
+    }
   }
 
   return (
@@ -86,7 +135,7 @@ export function ChatDock() {
                   <h2 id="ai-chat-title" className="text-sm font-semibold">
                     Kerala Travel Assistant
                   </h2>
-                  <p className="text-xs text-gray-600">Demo Mode</p>
+                  <p className="text-xs text-gray-600">Online • AI Assistant</p>
                 </div>
               </div>
               <button
@@ -128,7 +177,7 @@ export function ChatDock() {
                           key={prompt}
                           onClick={() => {
                             setInput(prompt)
-                            handleSubmit({ preventDefault: () => {} } as any)
+                            handleSubmit({ preventDefault: () => { } } as any)
                           }}
                           className="block w-full text-left text-xs bg-gray-50 hover:bg-gray-100 rounded-md px-2 py-1 text-gray-700"
                         >

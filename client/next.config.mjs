@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  reactStrictMode: true,
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -10,6 +11,22 @@ const nextConfig = {
 
   images: {
     unoptimized: true,
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**",
+      },
+      {
+        protocol: "http",
+        hostname: "**",
+      },
+    ],
+  },
+
+  compress: true,
+
+  experimental: {
+    optimizePackageImports: ["lucide-react", "date-fns", "lodash", "recharts"],
   },
 
   async rewrites() {

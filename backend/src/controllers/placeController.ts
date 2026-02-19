@@ -124,19 +124,27 @@ export const getPlaceBySlug = async (req: Request, res: Response) => {
 // Get all places (Search, Filter, Sort, Pagination)
 export const getAllPlaces = async (req: Request, res: Response) => {
   try {
-    const { category, district, search, sort, page = 1, limit = 10, minRating, type, status } = req.query;
+    const { category, district, search, sort, page = 1, limit = 10, minRating, type, status, budget } = req.query;
 
     const query: any = {
       $or: [{ status: 'approved' }, { status: { $exists: false } }]
     };
 
     // If admin and requesting other status, allow it
-    // Check if req.user exists and is admin (You need to extend Request type or use (req as any))
-    // For now, let's stick to the public API contract: Public = approved only.
-    // If admin wants pending, they should use the admin/submissions endpoint.
-    // However, if we want to reuse this for admin list:
     if ((req as any).user && (req as any).user.role === 'Admin' && status) {
       query.status = status;
+    }
+
+    // Budget Filter
+    if (budget) {
+      const budgetStr = budget as string;
+      if (budgetStr === 'Low') {
+        query.priceLevel = { $in: ['Free', 'Cheap'] };
+      } else if (budgetStr === 'Mid') {
+        query.priceLevel = 'Moderate';
+      } else if (budgetStr === 'High') {
+        query.priceLevel = { $in: ['Expensive', 'Luxury'] };
+      }
     }
 
 

@@ -20,12 +20,17 @@ import {
   Wind,
   Droplets
 } from "lucide-react"
-import LeafletMap from "@/app/components/Map/LeafletMap"
+import dynamic from "next/dynamic";
+const LeafletMap = dynamic(() => import("@/app/components/Map/LeafletMap"), {
+  ssr: false,
+  loading: () => <div className="h-[400px] w-full bg-muted animate-pulse rounded-3xl" />
+});
 import toast from "react-hot-toast"
 import PlaceCard from "@/components/places/PlaceCard"
 import ReviewList from "@/components/reviews/ReviewList"
 import ReviewForm from "@/components/reviews/ReviewForm"
 import ReviewSummary from "@/components/reviews/ReviewSummary"
+import { ReviewSummary as AIReviewSummary } from "@/components/ai/ReviewSummary"
 import { Review } from "@/types/review"
 
 // New Premium Components
@@ -34,6 +39,8 @@ import PlaceGallery from "@/app/components/places/PlaceGallery"
 import QuickInfoPanel from "@/app/components/places/QuickInfoPanel"
 import StickyMiniHeader from "@/app/components/places/StickyMiniHeader"
 import PlacePhotoGallery from "@/components/places/PlacePhotoGallery";
+import { Container } from "@/components/ui/container";
+import { getTourismImage } from "@/lib/images";
 
 export default function PlaceDetailsPage({ params }: { params: { id: string } }) {
   const router = useRouter()
@@ -246,7 +253,7 @@ export default function PlaceDetailsPage({ params }: { params: { id: string } })
     )
   }
 
-  const images = place.images?.length > 0 ? place.images : [place.image || "/placeholder.svg"];
+  const images = place.images?.length > 0 ? place.images : [getTourismImage(place.name, place.category)];
 
   return (
     <main className="min-h-screen bg-white">
@@ -329,7 +336,7 @@ export default function PlaceDetailsPage({ params }: { params: { id: string } })
         </div>
       </div>
 
-      <div className="container mx-auto px-6 py-24 lg:py-32">
+      <Container size="xl" className="py-24 lg:py-32">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-20 lg:gap-32">
 
           {/* LEFT: Main Content */}
@@ -421,6 +428,8 @@ export default function PlaceDetailsPage({ params }: { params: { id: string } })
                 ratingCount={totalReviews}
                 breakdown={reviewBreakdown}
               />
+
+              <AIReviewSummary targetId={placeId} />
 
               {user ? (
                 <ReviewForm
@@ -517,7 +526,7 @@ export default function PlaceDetailsPage({ params }: { params: { id: string } })
           </div>
         </div>
 
-      </div>
+      </Container>
 
       {/* Similar Places (Mobile Bottom) */}
       <div className="lg:hidden mt-12">

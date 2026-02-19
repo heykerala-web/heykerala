@@ -15,10 +15,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         if (!loading) {
             console.log("Admin Layout Check:", { user, role: user?.role });
             if (!user) {
-                router.push("/login?redirect=/admin");
+                router.push("/admin/login");
             } else if (user.role !== "Admin") {
                 console.warn("Access Denied: User is not Admin", user.role);
-                router.push("/dashboard");
+                router.push("/");
             } else {
                 setAuthorized(true);
             }
@@ -34,10 +34,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
 
     return (
-        <div className="flex min-h-screen bg-gray-50">
+        <div className="flex min-h-screen bg-slate-50">
             <AdminSidebar />
-            <div className="pl-64 flex-1">
-                <main className="p-8">
+            <div className="pl-72 flex-1 transition-all duration-300">
+                <main className="p-8 max-w-7xl mx-auto">
                     {children}
                 </main>
             </div>

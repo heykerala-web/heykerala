@@ -278,7 +278,6 @@ export default function WhereToGoPage() {
     <main className="min-h-screen bg-background pb-20 lg:pb-8">
       {/* Hero Header */}
       <div className="relative bg-primary text-white py-24 md:py-32 overflow-hidden">
-        <div className="absolute inset-0 opacity-10 bg-[url('/kerala-pattern.png')] bg-repeat" />
         <div className="relative container mx-auto px-6 max-w-7xl text-center z-10">
           <h1 className="font-outfit text-5xl md:text-8xl font-bold mb-8 tracking-tighter">Where to go</h1>
           <p className="text-xl md:text-2xl mb-12 opacity-80 max-w-3xl mx-auto font-inter font-light leading-relaxed">
@@ -369,7 +368,6 @@ export default function WhereToGoPage() {
       {/* Bottom CTA */}
       <div className="container mx-auto px-6 pb-20 max-w-7xl">
         <div className="relative bg-primary rounded-[3rem] p-12 md:p-20 text-white text-center overflow-hidden shadow-2xl">
-          <div className="absolute inset-0 opacity-10 bg-[url('/kerala-pattern.png')] bg-repeat" />
           <div className="relative z-10">
             <h2 className="font-outfit text-4xl md:text-5xl font-bold mb-6 tracking-tight">Need Help Planning?</h2>
             <p className="text-xl opacity-80 mb-12 max-w-2xl mx-auto font-inter leading-relaxed">

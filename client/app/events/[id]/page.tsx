@@ -12,6 +12,7 @@ import Link from "next/link";
 import ReviewList from "@/components/reviews/ReviewList";
 import ReviewForm from "@/components/reviews/ReviewForm";
 import ReviewSummary from "@/components/reviews/ReviewSummary";
+import { ReviewSummary as AIReviewSummary } from "@/components/ai/ReviewSummary";
 import { reviewService } from "@/services/reviewService";
 import { Review } from "@/types/review";
 
@@ -20,6 +21,7 @@ import PlaceGallery from "@/app/components/places/PlaceGallery";
 import StickyMiniHeader from "@/app/components/places/StickyMiniHeader";
 import QuickInfoPanel from "@/app/components/places/QuickInfoPanel";
 import { format } from "date-fns";
+import { getTourismImage } from "@/lib/images";
 
 export default function EventDetailsPage({ params }: { params: { id: string } }) {
   // const { id } = useParams();
@@ -197,7 +199,7 @@ export default function EventDetailsPage({ params }: { params: { id: string } })
       <div className="relative h-[90vh] w-full overflow-hidden bg-gray-900">
         <div className="absolute inset-0">
           <img
-            src={event.images[0] || "/placeholder.svg"}
+            src={getTourismImage(event.title, event.category)}
             alt={event.title}
             className="w-full h-full object-cover scale-105 animate-slow-zoom"
           />
@@ -368,6 +370,8 @@ export default function EventDetailsPage({ params }: { params: { id: string } })
                 ratingCount={totalReviews}
                 breakdown={reviewBreakdown}
               />
+
+              <AIReviewSummary targetId={id} />
 
               {user ? (
                 <ReviewForm

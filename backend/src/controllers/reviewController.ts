@@ -42,6 +42,10 @@ export const createReview = async (req: Request, res: Response) => {
         // Recalculate Rating
         const newRatings = await updateTargetRating(targetId, targetType);
 
+        // Log Activity
+        const { logActivity } = await import("../utils/activityLogger");
+        await logActivity(userId, "REVIEW_ADDED", `User reviewed ${targetType} ${targetId}`, req);
+
         res.status(201).json({
             success: true,
             data: review,

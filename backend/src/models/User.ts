@@ -16,6 +16,8 @@ export interface IUser extends Document {
   phone?: string;
   location?: string;
   travelBadge?: string;
+  persona?: string;
+  travelInterests?: string[];
   contributionCount?: number;
   savedCount?: number;
   bookingCount?: number;
@@ -56,6 +58,8 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
     phone: { type: String, default: "" },
     location: { type: String, default: "" },
     travelBadge: { type: String, default: "Explorer 🌍" },
+    persona: { type: String, default: "New Traveler" },
+    travelInterests: [{ type: String }],
     contributionCount: { type: Number, default: 0 },
     savedCount: { type: Number, default: 0 },
     bookingCount: { type: Number, default: 0 },

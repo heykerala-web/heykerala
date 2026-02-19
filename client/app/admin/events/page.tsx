@@ -4,7 +4,15 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { eventService, Event } from "@/services/eventService";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash, Eye, MapPin, Calendar } from "lucide-react";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import { Plus, Trash, Eye, MapPin, Calendar, Edit, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import api from "@/services/api";
 
@@ -48,64 +56,82 @@ export default function AdminEventsPage() {
     if (loading) return <div>Loading...</div>;
 
     return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold">Manage Events</h1>
-                <Link href="/admin/events/create">
-                    <Button className="flex items-center gap-2">
-                        <Plus className="h-4 w-4" /> Add New Event
-                    </Button>
-                </Link>
+        <div className="space-y-8">
+            <div className="flex justify-between items-end">
+                <div>
+                    <h1 className="text-3xl font-black text-slate-900 tracking-tight">Manage Events</h1>
+                    <p className="text-slate-500 font-medium mt-2">Oversee upcoming local events and festivals.</p>
+                </div>
+                <Button asChild className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-lg shadow-emerald-500/20 font-bold h-12 px-6 transition-all hover:scale-105 active:scale-95">
+                    <Link href="/admin/events/create">
+                        <Plus className="mr-2 h-5 w-5" /> Add New Event
+                    </Link>
+                </Button>
             </div>
 
-            <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
-                <table className="w-full text-sm text-left">
-                    <thead className="bg-gray-50 text-gray-700 uppercase">
-                        <tr>
-                            <th className="px-6 py-3">Title</th>
-                            <th className="px-6 py-3">Date</th>
-                            <th className="px-6 py-3">Venue</th>
-                            <th className="px-6 py-3">Category</th>
-                            <th className="px-6 py-3">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+            <div className="bg-white rounded-[2rem] border border-slate-100 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.05)] overflow-hidden">
+                <Table>
+                    <TableHeader className="bg-slate-50/50">
+                        <TableRow className="border-b border-slate-100 hover:bg-transparent">
+                            <TableHead className="font-bold text-slate-400 uppercase tracking-widest text-xs py-6 pl-8">Event Name</TableHead>
+                            <TableHead className="font-bold text-slate-400 uppercase tracking-widest text-xs py-6">Date & Time</TableHead>
+                            <TableHead className="font-bold text-slate-400 uppercase tracking-widest text-xs py-6">Location</TableHead>
+                            <TableHead className="font-bold text-slate-400 uppercase tracking-widest text-xs py-6">Category</TableHead>
+                            <TableHead className="font-bold text-slate-400 uppercase tracking-widest text-xs py-6 text-right pr-8">Actions</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
                         {events.map((event) => (
-                            <tr key={event._id} className="border-b hover:bg-gray-50">
-                                <td className="px-6 py-4 font-medium text-gray-900">{event.title}</td>
-                                <td className="px-6 py-4">
-                                    <div className="flex items-center gap-1">
-                                        <Calendar className="h-3 w-3" /> {new Date(event.startDate).toLocaleDateString()}
+                            <TableRow key={event._id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors group">
+                                <TableCell className="py-5 pl-8">
+                                    <div className="flex items-center gap-4">
+                                        <div className="h-12 w-12 rounded-xl bg-slate-100 overflow-hidden relative shadow-inner flex items-center justify-center text-slate-300">
+                                            {/* Ideally display image here if available */}
+                                            <Calendar className="h-5 w-5" />
+                                        </div>
+                                        <div>
+                                            <div className="font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">{event.title}</div>
+                                        </div>
                                     </div>
-                                </td>
-                                <td className="px-6 py-4">
-                                    <div className="flex items-center gap-1">
-                                        <MapPin className="h-3 w-3" /> {event.venue}, {event.district}
+                                </TableCell>
+                                <TableCell>
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-semibold text-slate-700">{new Date(event.startDate).toLocaleDateString()}</span>
+                                        <span className="text-xs text-slate-400">{event.time}</span>
                                     </div>
-                                </td>
-                                <td className="px-6 py-4">
-                                    <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-0.5 rounded">
+                                </TableCell>
+                                <TableCell>
+                                    <div className="flex items-center text-slate-500 text-sm">
+                                        <MapPin className="mr-1.5 h-3.5 w-3.5" />
+                                        {event.venue}, {event.district}
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-purple-50 text-purple-600 border border-purple-100 text-[10px] font-bold uppercase tracking-wide">
                                         {event.category}
                                     </span>
-                                </td>
-                                <td className="px-6 py-4 flex gap-2">
-                                    <Link href={`/admin/events/edit/${event._id}`}>
-                                        <Button size="icon" variant="ghost" className="text-blue-600"><span className="sr-only">Edit</span>✎</Button>
-                                    </Link>
-                                    <Link href={`/events/${event._id}`} target="_blank">
-                                        <Button size="icon" variant="ghost"><Eye className="h-4 w-4" /></Button>
-                                    </Link>
-                                    <Button size="icon" variant="ghost" className="text-red-500" onClick={() => handleDelete(event._id)}>
-                                        <Trash className="h-4 w-4" />
-                                    </Button>
-                                </td>
-                            </tr>
+                                </TableCell>
+                                <TableCell className="text-right pr-8">
+                                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
+                                        <Button asChild variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
+                                            <Link href={`/admin/events/edit/${event._id}`}>
+                                                <Edit className="h-4 w-4" />
+                                            </Link>
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => handleDelete(event._id)}
+                                            className="h-9 w-9 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </TableCell>
+                            </TableRow>
                         ))}
-                        {events.length === 0 && (
-                            <tr><td colSpan={5} className="text-center py-6 text-gray-500">No events found.</td></tr>
-                        )}
-                    </tbody>
-                </table>
+                    </TableBody>
+                </Table>
             </div>
         </div>
     );

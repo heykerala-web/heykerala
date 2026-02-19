@@ -12,7 +12,11 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!authLoading) {
       if (user) {
-        router.replace("/profile?tab=overview");
+        if (user.role === "Admin") {
+          router.replace("/admin");
+        } else {
+          router.replace("/profile?tab=overview");
+        }
       } else {
         router.replace("/login");
       }

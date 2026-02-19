@@ -6,7 +6,11 @@ import { hotels } from "@/lib/data"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, MapPin, Star, Filter, Grid, List, Map, IndianRupee } from "lucide-react"
-import LeafletMap from "@/app/components/Map/LeafletMap"
+import dynamic from "next/dynamic";
+const LeafletMap = dynamic(() => import("@/app/components/Map/LeafletMap"), {
+  ssr: false,
+  loading: () => <div className="h-[600px] w-full bg-muted animate-pulse rounded-3xl" />
+});
 
 export default function HotelsPage() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -87,25 +91,22 @@ export default function HotelsPage() {
                 <div className="flex rounded-full border border-gray-200 p-1 bg-gray-50">
                   <button
                     onClick={() => setViewMode("grid")}
-                    className={`p-2 rounded-full transition-all ${
-                      viewMode === "grid" ? "bg-emerald-600 text-white" : "text-gray-600"
-                    }`}
+                    className={`p-2 rounded-full transition-all ${viewMode === "grid" ? "bg-emerald-600 text-white" : "text-gray-600"
+                      }`}
                   >
                     <Grid className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => setViewMode("list")}
-                    className={`p-2 rounded-full transition-all ${
-                      viewMode === "list" ? "bg-emerald-600 text-white" : "text-gray-600"
-                    }`}
+                    className={`p-2 rounded-full transition-all ${viewMode === "list" ? "bg-emerald-600 text-white" : "text-gray-600"
+                      }`}
                   >
                     <List className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => setViewMode("map")}
-                    className={`p-2 rounded-full transition-all ${
-                      viewMode === "map" ? "bg-emerald-600 text-white" : "text-gray-600"
-                    }`}
+                    className={`p-2 rounded-full transition-all ${viewMode === "map" ? "bg-emerald-600 text-white" : "text-gray-600"
+                      }`}
                   >
                     <Map className="h-4 w-4" />
                   </button>

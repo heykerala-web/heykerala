@@ -4,6 +4,7 @@ export interface Place {
   lat: number;
   lng: number;
   tags: string[];
+  priceLevel?: string;
 }
 
 export const KERALA_PLACES: Place[] = [

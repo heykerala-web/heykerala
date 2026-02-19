@@ -9,6 +9,7 @@ import { migrateStays } from "./seed/migrateStays";
 // Load Env
 dotenv.config();
 console.log("ENV loaded");
+console.log("Forcing restart to apply AI changes...");
 
 // DB + Passport Config
 import connectDB from "./config/db";
@@ -24,6 +25,7 @@ import itineraryRoutes from "./routes/itineraryRoutes";
 import itinerariesRoutes from "./routes/itinerariesRoutes";
 import packageRoutes from "./routes/packageRoutes";
 import bookingRoutes from "./routes/bookingRoutes";
+import aiRoutes from "./routes/aiRoutes";
 
 const app = express();
 
@@ -56,6 +58,7 @@ app.use("/api/itinerary", itineraryRoutes);
 app.use("/api/itineraries", itinerariesRoutes);
 app.use("/api/packages", packageRoutes);
 app.use("/api/bookings", bookingRoutes);
+app.use("/api/ai", aiRoutes);
 
 // ⭐ Places & Weather Routes
 import placeRoutes from "./routes/placeRoutes";

@@ -1,13 +1,18 @@
-import { streamText } from "ai"
+import { generateText } from "ai"
 import { openai } from "@ai-sdk/openai"
 
 export async function POST(req: Request) {
   try {
-    const { messages } = await req.json()
+    const { history, message, context } = await req.json()
 
-    const result = await streamText({
-      model: openai("gpt-4o-mini"),
-      system: `You are a helpful Kerala travel assistant for "Hey Kerala" website. You help users plan trips, recommend places, hotels, and events in Kerala, India. 
+    // Convert Google-style history to Vercel AI SDK CoreMessage format
+    const coreMessages = history.map((msg: any) => ({
+      role: msg.role === "model" ? "assistant" : "user",
+      content: msg.parts[0].text
+    }));
+
+    // Add current context to system prompt
+    const systemPrompt = `You are a helpful Kerala travel assistant for "Hey Kerala" website. You help users plan trips, recommend places, hotels, and events in Kerala, India. 
 
 Key information about Kerala:
 - Known as "God's Own Country"
@@ -16,17 +21,37 @@ Key information about Kerala:
 - Cuisine includes seafood, coconut-based dishes, and spices
 - Best time to visit: October to March
 
-Be friendly, informative, and focus on Kerala-specific recommendations. Keep responses concise but helpful.`,
-      messages,
-      maxTokens: 500,
+Current Context:
+Time: ${context?.time || "Unknown"}
+Location: ${context?.location || "Kerala"}
+Weather: ${context?.weather || "Unknown"}
+
+Be friendly, informative, and focus on Kerala-specific recommendations. Keep responses concise but helpful.`;
+
+    const result = await generateText({
+      model: openai("gpt-4o-mini"),
+      system: systemPrompt,
+      messages: coreMessages,
     })
 
-    return result.toAIStreamResponse()
-  } catch (error) {
+    return Response.json({ reply: result.text })
+  } catch (error: any) {
     console.error("Chat API error:", error)
-    return new Response("Sorry, I encountered an error. Please try again.", {
-      status: 500,
-      headers: { "Content-Type": "text/plain" },
-    })
+
+    // Check for API key issues
+    const errorMessage = error.message || "Unknown error";
+    const isApiKeyError = errorMessage.includes("API key");
+
+    return new Response(
+      JSON.stringify({
+        error: "Server Error",
+        details: isApiKeyError ? "Missing or invalid API Key" : errorMessage,
+        reply: null // Ensure client handles this gracefully
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    )
   }
 }

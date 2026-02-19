@@ -79,7 +79,6 @@ export default function PlacesPage() {
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Hero Banner */}
       <div className="bg-primary text-white py-16 md:py-24 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10 bg-[url('/kerala-pattern.png')] bg-repeat" />
         <div className="container mx-auto px-6 lg:px-10 max-w-7xl relative z-10">
           <h1 className="font-outfit text-5xl md:text-6xl font-bold mb-6 tracking-tight">Places in Kerala</h1>
           <p className="text-xl opacity-90 max-w-2xl font-inter leading-relaxed">

@@ -34,6 +34,12 @@ const placeSchema = new mongoose.Schema(
       default: "pending"
     },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    embedding: { type: [Number], default: [] }, // For Vector Search
+    priceLevel: {
+      type: String,
+      enum: ['Free', 'Cheap', 'Moderate', 'Expensive', 'Luxury'],
+      default: 'Moderate'
+    },
   },
   {
     timestamps: true,

@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import ReviewList from "@/components/reviews/ReviewList";
 import ReviewForm from "@/components/reviews/ReviewForm";
 import ReviewSummary from "@/components/reviews/ReviewSummary";
+import { ReviewSummary as AIReviewSummary } from "@/components/ai/ReviewSummary";
 import { reviewService } from "@/services/reviewService";
 import { Review } from "@/types/review";
 
@@ -22,6 +23,8 @@ import { Review } from "@/types/review";
 import PlaceGallery from "@/app/components/places/PlaceGallery";
 import StickyMiniHeader from "@/app/components/places/StickyMiniHeader";
 import QuickInfoPanel from "@/app/components/places/QuickInfoPanel";
+
+import { getTourismImage } from "@/lib/images";
 
 export default function StayDetailsPage({ params }: { params: { id: string } }) {
     // const { id } = useParams();
@@ -247,7 +250,7 @@ export default function StayDetailsPage({ params }: { params: { id: string } }) 
             <div className="relative h-[90vh] w-full overflow-hidden bg-gray-900">
                 <div className="absolute inset-0">
                     <img
-                        src={stay.images[0] || "/placeholder.svg"}
+                        src={stay.images[0] || getTourismImage(stay.name, stay.type)}
                         alt={stay.name}
                         className="w-full h-full object-cover scale-105 animate-slow-zoom"
                     />
@@ -369,6 +372,8 @@ export default function StayDetailsPage({ params }: { params: { id: string } }) 
                                 ratingCount={totalReviews}
                                 breakdown={reviewBreakdown}
                             />
+
+                            <AIReviewSummary targetId={id} />
 
                             {user ? (
                                 <ReviewForm
