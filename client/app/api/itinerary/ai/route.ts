@@ -1,7 +1,13 @@
 
-import { openai } from "@ai-sdk/openai";
+import { createOpenAI } from "@ai-sdk/openai";
 import { generateObject } from "ai";
 import { z } from "zod";
+
+// Create an OpenAI provider instance pointing to OpenRouter
+const openrouter = createOpenAI({
+    baseURL: 'https://openrouter.ai/api/v1',
+    apiKey: process.env.OPENROUTER_API_KEY,
+});
 
 export const maxDuration = 60; // Allow longer generation times
 
@@ -59,8 +65,9 @@ export async function POST(req: Request) {
     try {
         const { duration, budget, interests, travelers } = await req.json();
 
+        // 1-shot generation for better consistency
         const result = await generateObject({
-            model: openai("gpt-4o-mini"),
+            model: openrouter("google/gemini-2.0-flash-001"),
             schema: itinerarySchema,
             prompt: `Generate a detailed day-by-day travel itinerary for Kerala, India.
       

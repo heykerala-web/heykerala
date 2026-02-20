@@ -1,84 +1,162 @@
+// @ts-nocheck
 import { Response } from "express";
 import { AuthRequest } from "../middleware/authMiddleware";
-import Place from "../models/Place";
-import User from "../models/User";
-import mongoose from "mongoose";
+import AIRecommendCache from "../models/AIRecommendCache";
+import https from "https";
+import fs from "fs";
 
 export const getRecommendations = async (req: AuthRequest, res: Response) => {
     try {
-        const user = req.user;
         const { weather } = req.query; // e.g. "Rainy", "Sunny", "Hot"
-        let recommendations: any[] = [];
+        const category = (req.query.category as string) || "General";
+        const apiKey = process.env.OPENROUTER_API_KEY;
 
-        // Logic for weather-aware filtering
-        let weatherFilter: any = {};
-        if (weather === "Rainy") {
-            weatherFilter = { category: { $in: ["Museum", "Art Gallery", "Cafe", "Temple"] } };
-        } else if (weather === "Sunny") {
-            weatherFilter = { category: { $in: ["Beach", "Hill Station", "Wildlife", "Trekking"] } };
+        if (!apiKey) {
+            console.error("AI Configuration Error: OPENROUTER_API_KEY is missing");
+            return res.status(500).json({ message: "OpenRouter API key not configured" });
         }
 
-        if (user) {
-            // Logic for logged-in users: Recommend based on saved items
-            const savedPlaceIds = user.savedPlaces || [];
+        // 1. Check Cache
+        const cacheKey = `${category}-${weather || "General"}`;
+        const cached = await AIRecommendCache.findOne({ category: cacheKey });
 
-            // Get categories of saved items
-            const savedPlaces = await Place.find({ _id: { $in: savedPlaceIds } }).select("category tags");
-            const categories = [...new Set(savedPlaces.map(p => p.category))];
-            const tags = [...new Set(savedPlaces.flatMap(p => p.tags))];
-
-            // Find places in same categories or with same tags, excluding already saved ones
-            recommendations = await Place.find({
-                $and: [
-                    {
-                        $or: [
-                            { category: { $in: categories } },
-                            { tags: { $in: tags } }
-                        ]
-                    },
-                    weatherFilter, // Apply weather filter if exists
-                    { _id: { $nin: savedPlaceIds } },
-                    { status: "approved" }
-                ]
-            })
-                .sort({ ratingAvg: -1 })
-                .limit(6);
+        if (cached) {
+            return res.status(200).json(cached.result);
         }
 
-        // Fallback or guest
-        if (recommendations.length < 4) {
-            const fallbackQuery = {
-                status: "approved",
-                ...weatherFilter
-            };
+        // 2. Call OpenRouter
+        // Updated prompt to ask for an object (better for JSON mode)
+        const prompt = `
+        Recommend 5 unique travel destinations in Kerala, India for this context:
+        Category: ${category}
+        Weather: ${weather || "Any"}
 
-            const topRated = await Place.find(fallbackQuery)
-                .sort({ ratingAvg: -1, ratingCount: -1 })
-                .limit(8);
+        Respond strictly with a JSON object in this format:
+        {
+          "recommendations": [
+            {
+                "_id": "placeholder_id", 
+                "name": "Place Name",
+                "category": "Category",
+                "district": "District",
+                "image": "https://images.unsplash.com/photo-1593693397690-362cb9666fc2?q=80&w=1000&auto=format&fit=crop",
+                "ratingAvg": 4.8
+            }
+          ]
+        }
+        Do not include any other text or explanation.
+        `;
 
-            // Combine and remove duplicates
-            const recIds = new Set(recommendations.map(r => r._id.toString()));
-            topRated.forEach(p => {
-                if (!recIds.has(p._id.toString()) && recommendations.length < 8) {
-                    recommendations.push(p);
-                }
+        const requestBody = JSON.stringify({
+            model: "google/gemini-2.0-flash-001",
+            messages: [
+                { role: "system", content: "You are a Kerala tourism expert. You strictly output JSON objects containing travel recommendations." },
+                { role: "user", content: prompt }
+            ],
+            max_tokens: 1000, // Increased to avoid truncation
+            temperature: 0.7,
+            response_format: { type: "json_object" }
+        });
+
+        const options = {
+            hostname: "openrouter.ai",
+            path: "/api/v1/chat/completions",
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${apiKey}`,
+                "Content-Type": "application/json",
+                "Content-Length": Buffer.byteLength(requestBody)
+            }
+        };
+
+        const makeRequest = () => new Promise((resolve, reject) => {
+            const apiReq = https.request(options, (apiRes) => {
+                let data = "";
+                apiRes.on("data", (chunk) => { data += chunk; });
+                apiRes.on("end", () => {
+                    try {
+                        const jsonResponse = JSON.parse(data);
+                        resolve({ statusCode: apiRes.statusCode, data: jsonResponse });
+                    } catch (e) {
+                        reject(new Error("Failed to parse OpenRouter response: " + data.substring(0, 100)));
+                    }
+                });
+            });
+
+            apiReq.on("error", (e) => { reject(e); });
+            apiReq.write(requestBody);
+            apiReq.end();
+        });
+
+        const apiResponse: any = await makeRequest();
+        const { statusCode, data } = apiResponse;
+
+        if (statusCode && statusCode >= 400) {
+            console.error("OpenRouter Recommendation API Error:", JSON.stringify(data, null, 2));
+            return res.status(statusCode).json({
+                message: "AI recommendation error",
+                realError: data.error?.message || data.message || "Unknown OpenRouter error"
             });
         }
 
-        // Final fallback if weather filter was too strict
-        if (recommendations.length < 2 && Object.keys(weatherFilter).length > 0) {
-            const unrestricted = await Place.find({ status: "approved" }).sort({ ratingAvg: -1 }).limit(4);
-            unrestricted.forEach(p => {
-                const recIds = new Set(recommendations.map(r => r._id.toString()));
-                if (!recIds.has(p._id.toString()) && recommendations.length < 8) {
-                    recommendations.push(p);
+        const rawContent = data.choices?.[0]?.message?.content;
+        if (!rawContent) {
+            throw new Error("Invalid response format from OpenRouter (no content)");
+        }
+
+        let recommendations = [];
+        try {
+            // Clean up markdown if present (though json_object should prevent it)
+            const jsonStr = rawContent.replace(/```json|```/g, "").trim();
+            const parsed = JSON.parse(jsonStr);
+
+            // Extract array from object
+            if (Array.isArray(parsed)) {
+                recommendations = parsed;
+            } else if (parsed.recommendations && Array.isArray(parsed.recommendations)) {
+                recommendations = parsed.recommendations;
+            } else if (parsed.destinations && Array.isArray(parsed.destinations)) {
+                recommendations = parsed.destinations;
+            } else {
+                // Fallback: search for any array value
+                const firstArray = Object.values(parsed).find(v => Array.isArray(v));
+                if (firstArray) {
+                    recommendations = firstArray as any[];
+                } else {
+                    throw new Error("Could not find recommendations array in response");
                 }
+            }
+
+            // Ensure items have IDs
+            recommendations = recommendations.map((item, idx) => ({
+                ...item,
+                _id: item._id || `ai_${Date.now()}_${idx}`
+            }));
+
+        } catch (e) {
+            console.error("Failed to parse recommendations JSON:", rawContent);
+            return res.status(500).json({
+                message: "AI generation failed to produce valid JSON",
+                detail: rawContent,
+                error: (e as Error).message
             });
         }
+
+        // 3. Save to Cache
+        await AIRecommendCache.findOneAndUpdate(
+            { category: cacheKey },
+            { result: recommendations },
+            { upsert: true, new: true }
+        );
 
         res.status(200).json(recommendations);
+
     } catch (error: any) {
         console.error("AI Recommendation Error:", error);
+        try {
+            fs.appendFileSync("error.log", `[${new Date().toISOString()}] REC-ERROR: ${error.stack || error.message}\n`);
+        } catch (e) { }
+
         res.status(500).json({ message: "Failed to fetch recommendations", error: error.message });
     }
 };

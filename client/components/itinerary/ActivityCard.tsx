@@ -1,4 +1,5 @@
 "use client";
+import { getTourismImage } from "@/lib/images";
 
 interface Activity {
   time: string;
@@ -20,7 +21,7 @@ export default function ActivityCard({ activity }: ActivityCardProps) {
     <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow">
       <div className="relative h-48">
         <img
-          src={activity.image}
+          src={activity.image || getTourismImage(activity.name, "Kerala activity")}
           alt={activity.name}
           className="w-full h-full object-cover"
         />
@@ -33,11 +34,11 @@ export default function ActivityCard({ activity }: ActivityCardProps) {
           </div>
         )}
       </div>
-      
+
       <div className="p-4">
         <h3 className="text-xl font-bold text-gray-800 mb-2">{activity.name}</h3>
         <p className="text-gray-600 text-sm mb-3 line-clamp-2">{activity.desc}</p>
-        
+
         <div className="flex items-center justify-between pt-3 border-t border-gray-100">
           <div className="flex items-center gap-2 text-emerald-600">
             <span>📍</span>

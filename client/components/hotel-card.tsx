@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Star, MapPin, Heart } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { getTourismImage } from "@/lib/images"
 
 export interface HotelCardProps {
   id: string
@@ -30,7 +31,7 @@ export function HotelCard({
   return (
     <article className="rounded-[2rem] bg-card border border-border shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden flex flex-col h-full hover:-translate-y-2 group">
       <div className="relative h-52 overflow-hidden">
-        <img src={image || "/placeholder.svg"} alt={name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
+        <img src={image || getTourismImage(name, "hotel")} alt={name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
         <button
           aria-label={`${bookmarked ? "Remove from" : "Add to"} bookmarks`}
           onClick={() => setBookmarked((b) => !b)}

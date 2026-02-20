@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { getTourismImage } from "@/lib/images"
 
 const categories = [
   {
@@ -104,7 +105,7 @@ export function CategoryGrid() {
             {/* Background Image */}
             <div className="absolute inset-0 overflow-hidden">
               <img
-                src={category.image || "/placeholder.svg"}
+                src={category.image || getTourismImage(category.name, "Kerala tourism")}
                 alt={category.name}
                 loading="lazy"
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"

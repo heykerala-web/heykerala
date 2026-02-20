@@ -16,6 +16,7 @@ export interface PlaceCardProps {
 }
 
 import Link from "next/link"
+import { getTourismImage } from "@/lib/images"
 
 export function PlaceCard({
   id,
@@ -36,7 +37,7 @@ export function PlaceCard({
         {/* Image Section */}
         <div className="relative h-56 w-full overflow-hidden">
           <img
-            src={image || "/placeholder.svg"}
+            src={image || getTourismImage(name, category)}
             alt={name}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           />

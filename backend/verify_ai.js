@@ -1,33 +1,37 @@
-const fetch = require('node-fetch'); // Ensure node-fetch is available or use native fetch if node version >= 18
 
-async function verify() {
-    const baseUrl = 'http://localhost:5000/api';
-    console.log('--- Verifying AI Recommendations (DB Strategy) ---');
-    try {
-        const res = await fetch(`${baseUrl}/ai/recommendations?weather=Sunny`);
-        const data = await res.json();
-        console.log(`Status: ${res.status}`);
-        console.log('Result:', JSON.stringify(data, null, 2).substring(0, 200) + '...');
-    } catch (e) {
-        console.error('Recommendations Error:', e.message);
+const http = require('http');
+
+const data = JSON.stringify({
+    message: "Hello, recommend me a place in Kerala"
+});
+
+const options = {
+    hostname: 'localhost',
+    port: 5000,
+    path: '/api/ai/chat',
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': data.length
     }
+};
 
-    console.log('\n--- Verifying AI Chat (Gemini) ---');
-    try {
-        const res = await fetch(`${baseUrl}/ai/chat`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                message: "Suggest a nice beach in Kerala",
-                history: []
-            })
-        });
-        const data = await res.json();
-        console.log(`Status: ${res.status}`);
-        console.log('Result:', JSON.stringify(data, null, 2));
-    } catch (e) {
-        console.error('Chat Error:', e.message);
-    }
-}
+const req = http.request(options, (res) => {
+    console.log(`StatusCode: ${res.statusCode}`);
+    let responseData = '';
 
-verify();
+    res.on('data', (chunk) => {
+        responseData += chunk;
+    });
+
+    res.on('end', () => {
+        console.log('Response Body:', responseData);
+    });
+});
+
+req.on('error', (error) => {
+    console.error('Error:', error);
+});
+
+req.write(data);
+req.end();

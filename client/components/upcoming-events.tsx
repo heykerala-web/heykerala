@@ -49,7 +49,7 @@ export function UpcomingEvents() {
                 date={new Date(e.startDate).toLocaleDateString()}
                 time={e.time}
                 location={e.district}
-                image={e.images[0] || "/placeholder.svg"}
+                image={e.images?.[0] || ""}
                 description={e.description}
                 category={e.category}
               />

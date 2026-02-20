@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Star, MapPin, Heart, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { placeService } from "@/services/placeService"
+import { getTourismImage } from "@/lib/images"
 
 export function TopPicks() {
   const [topPicks, setTopPicks] = useState<any[]>([])
@@ -59,7 +60,7 @@ export function TopPicks() {
             >
               <div className="relative aspect-[4/5] overflow-hidden shrink-0">
                 <img
-                  src={place.image || place.images?.[0] || "/placeholder.svg"}
+                  src={(place.image || place.images?.[0]) || getTourismImage(place.name, place.category)}
                   alt={place.name}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
                 />

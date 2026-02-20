@@ -503,7 +503,7 @@ export default function PlaceDetailsPage({ params }: { params: { id: string } })
                 <Link key={np._id} href={`/places/${np._id}`} className="group block">
                   <div className="bg-white hover:bg-white rounded-3xl p-5 transition-all hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)] border border-transparent hover:border-gray-100 flex gap-6">
                     <div className="h-24 w-24 rounded-[1.5rem] overflow-hidden shrink-0 shadow-lg relative">
-                      <img src={np.image} className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-700" alt={np.name} />
+                      <img src={np.image || getTourismImage(np.name, np.category)} className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-700" alt={np.name} />
                       <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors" />
                     </div>
                     <div className="flex flex-col justify-center gap-1.5">

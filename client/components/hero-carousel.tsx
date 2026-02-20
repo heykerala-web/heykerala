@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { getTourismImage } from "@/lib/images"
 
 const heroSlides = [
   {
@@ -49,7 +50,7 @@ export function HeroCarousel() {
         >
           {/* Parallax-like scale effect */}
           <div className={`w-full h-full relative ${index === currentSlide ? 'animate-slow-zoom' : ''}`}>
-            <img src={slide.image || "/placeholder.svg"} alt={slide.title} className="w-full h-full object-cover" />
+            <img src={slide.image || getTourismImage(slide.title, "Kerala tourism")} alt={slide.title} className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/60" />
           </div>
         </div>
