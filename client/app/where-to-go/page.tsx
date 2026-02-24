@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Mountain, Palette, TreePine, MapPin, Church, ArrowRight } from "lucide-react"
+import { Mountain, Palette, TreePine, MapPin, Church, ArrowRight, Sparkles } from "lucide-react"
 
 export default function WhereToGoPage() {
   const [activeTab, setActiveTab] = useState("attractions")
@@ -22,10 +22,18 @@ export default function WhereToGoPage() {
     { id: "picnic", label: "Picnic Spots", icon: TreePine },
     { id: "regions", label: "Regions", icon: MapPin },
     { id: "spirituality", label: "Spirituality", icon: Church },
+    { id: "untold", label: "Untold", icon: Sparkles },
   ]
 
   // ✅ Updated with free online image URLs
   const attractionsData = [
+    {
+      title: "Untold",
+      image: "https://www.keralatourism.org/images/enchanting_kerala/large/keralamkundu_waterfalls_malappuram20220607175322_1196_1.jpg",
+      description: "Hidden gems and secret stories",
+      count: "10+ secrets",
+      href: "/places?untold=true",
+    },
     {
       title: "Trending",
       image: "https://images.travelandleisureasia.com/wp-content/uploads/sites/2/2023/12/20140736/Athirapally-Waterfall.jpg",
@@ -269,6 +277,30 @@ export default function WhereToGoPage() {
         return regionsData
       case "spirituality":
         return spiritualityData
+      case "untold":
+        return [
+          {
+            title: "Maravanthuruthu",
+            image: "https://www.keralatourism.org/images/enchanting_kerala/large/maravanthuruthu_water_street_kottayam20220607175322_1196_1.jpg",
+            description: "Hidden water streets and village life",
+            count: "Secret Gem",
+            href: "/places/maravanthuruthu",
+          },
+          {
+            title: "Nelliyampathy Hills",
+            image: "https://upload.wikimedia.org/wikipedia/commons/6/67/DR0069DSC_9221.jpg",
+            description: "Misty mountains and tea estates",
+            count: "Untold Story",
+            href: "/places/nelliyampathy",
+          },
+          {
+            title: "Chendamangalam",
+            image: "https://upload.wikimedia.org/wikipedia/commons/f/f0/Mattancherry_Palace_02.JPG",
+            description: "Traditional weaving and heritage",
+            count: "Hidden Heritage",
+            href: "/places/chendamangalam",
+          }
+        ]
       default:
         return attractionsData
     }
@@ -277,15 +309,29 @@ export default function WhereToGoPage() {
   return (
     <main className="min-h-screen bg-background pb-20 lg:pb-8">
       {/* Hero Header */}
-      <div className="relative bg-primary text-white py-24 md:py-32 overflow-hidden">
-        <div className="relative container mx-auto px-6 max-w-7xl text-center z-10">
-          <h1 className="font-outfit text-5xl md:text-8xl font-bold mb-8 tracking-tighter">Where to go</h1>
-          <p className="text-xl md:text-2xl mb-12 opacity-80 max-w-3xl mx-auto font-inter font-light leading-relaxed">
+      <div className="relative min-h-[50vh] flex items-center justify-center overflow-hidden">
+        {/* Background Image with Zoom Animation */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/munnar-tea-gardens-rolling-green-hills.png"
+            alt="Kerala Tea Gardens"
+            className="w-full h-full object-cover animate-slow-zoom"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-primary/60 via-primary/40 to-primary/80 backdrop-blur-[2px]" />
+        </div>
+
+        <div className="relative container mx-auto px-6 max-w-7xl text-center z-10 pt-20">
+          <h1 className="font-outfit text-6xl md:text-9xl font-bold mb-8 tracking-tighter text-white drop-shadow-2xl animate-fade-in-up">
+            Where to go
+          </h1>
+          <p className="text-xl md:text-2xl mb-12 text-white/90 max-w-3xl mx-auto font-inter font-light leading-relaxed drop-shadow-lg animate-fade-in-up [animation-delay:200ms]">
             Discover the diverse experiences that make Kerala truly God&apos;s Own Country
           </p>
-          <div className="flex justify-center">
-            <div className="bg-white/5 backdrop-blur-md rounded-full px-8 py-3 border border-white/10 shadow-2xl">
-              <span className="text-sm font-bold uppercase tracking-[0.3em]">✨ 500+ Amazing Destinations</span>
+          <div className="flex justify-center animate-fade-in-up [animation-delay:400ms]">
+            <div className="bg-white/10 backdrop-blur-xl rounded-full px-8 py-4 border border-white/20 shadow-2xl transition-all duration-500 hover:bg-white/20 hover:scale-105">
+              <span className="text-xs md:text-sm font-bold uppercase tracking-[0.4em] text-white">
+                ✨ 500+ Amazing Destinations
+              </span>
             </div>
           </div>
         </div>
@@ -365,12 +411,13 @@ export default function WhereToGoPage() {
         </div>
       </div>
 
+
       {/* Bottom CTA */}
       <div className="container mx-auto px-6 pb-20 max-w-7xl">
         <div className="relative bg-primary rounded-[3rem] p-12 md:p-20 text-white text-center overflow-hidden shadow-2xl">
           <div className="relative z-10">
-            <h2 className="font-outfit text-4xl md:text-5xl font-bold mb-6 tracking-tight">Need Help Planning?</h2>
-            <p className="text-xl opacity-80 mb-12 max-w-2xl mx-auto font-inter leading-relaxed">
+            <h2 className="font-outfit text-4xl md:text-5xl font-bold mb-6 tracking-tight text-white">Need Help Planning?</h2>
+            <p className="text-xl opacity-80 mb-12 max-w-2xl mx-auto font-inter leading-relaxed text-white">
               Our AI assistant can create personalized recommendations based on your unique interests and travel style.
             </p>
             <Link

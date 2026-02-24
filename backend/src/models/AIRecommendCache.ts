@@ -28,4 +28,4 @@ const AIRecommendCacheSchema: Schema = new Schema(
     { timestamps: true }
 );
 
-export default mongoose.model<IAIRecommendCache>("AIRecommendCache", AIRecommendCacheSchema);
+export default mongoose.model<IAIRecommendCache>("AIRecommendCacheV3", AIRecommendCacheSchema);

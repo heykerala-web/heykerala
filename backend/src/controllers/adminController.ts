@@ -162,6 +162,10 @@ export const deleteSubmission = async (req: Request, res: Response) => {
         else return res.status(400).json({ message: "Invalid type" });
 
         await Model.findByIdAndDelete(id);
+
+        // Cascading delete reviews
+        await Review.deleteMany({ targetId: id, targetType: type.toLowerCase() });
+
         res.json({ success: true, message: "Deleted successfully" });
     } catch (error: any) {
         res.status(500).json({ message: error.message });
@@ -182,7 +186,12 @@ export const getAllPlaces = async (req: Request, res: Response) => {
 
 export const deletePlace = async (req: Request, res: Response) => {
     try {
-        await Place.findByIdAndDelete(req.params.id);
+        const { id } = req.params;
+        await Place.findByIdAndDelete(id);
+
+        // Cascading delete reviews
+        await Review.deleteMany({ targetId: id, targetType: "place" });
+
         res.json({ success: true, message: "Place deleted" });
     } catch (error: any) {
         res.status(500).json({ message: error.message });

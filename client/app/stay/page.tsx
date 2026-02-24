@@ -78,7 +78,7 @@ export default function StayPage() {
                     <h1 className="text-6xl md:text-8xl lg:text-9xl font-black text-white tracking-tighter leading-[0.8] mb-8 drop-shadow-2xl animate-fade-in-up">
                         Elite <br /><span className="text-emerald-400">Sanctuaries</span>
                     </h1>
-                    <p className="text-white/60 text-lg md:text-xl max-w-2xl font-medium animate-fade-in-up delay-100">
+                    <p className="text-white text-lg md:text-xl max-w-2xl font-medium animate-fade-in-up delay-100">
                         Discover Kerala's most exclusive retreats, from colonial heritage bungalows to floating glass villas.
                     </p>
                 </div>

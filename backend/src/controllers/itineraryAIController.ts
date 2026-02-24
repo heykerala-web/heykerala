@@ -41,7 +41,7 @@ function generateHotels(centerLat: number, centerLng: number, budget: string) {
             price: price,
             rating: parseFloat(rating.toFixed(1)),
             distanceKm: parseFloat(distance.toFixed(1)),
-            image: `https://images.unsplash.com/photo-${1500000000000 + i}?w=800&h=600&fit=crop`
+            image: "/stay/green-gates-hotel.jpg"
         };
     });
 }
@@ -153,7 +153,7 @@ Return this EXACT JSON structure:
           "desc": "Brief description",
           "lat": number,
           "lng": number,
-          "image": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop",
+          "image": "/places/munnar-teagardens.jpg",
           "duration": "2h",
           "cost": 100
         }
@@ -238,7 +238,7 @@ Requirements:
             const id = `itn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
             // Get hero image
-            const heroImage = processedDays[0]?.activities[0]?.image || "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=600&fit=crop";
+            const heroImage = processedDays[0]?.activities[0]?.image || "/places/munnar-teagardens.jpg";
 
             const itinerary = {
                 id: id,

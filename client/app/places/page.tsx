@@ -6,7 +6,12 @@ import Link from "next/link"
 import api from "@/services/api" // Import API
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, MapPin, Star, Filter, Grid, List, Loader2 } from "lucide-react"
+import { Search, MapPin, Star, Filter, Grid, List, Map, Loader2 } from "lucide-react"
+import dynamic from "next/dynamic";
+const LeafletMap = dynamic(() => import("@/app/components/Map/LeafletMap"), {
+  ssr: false,
+  loading: () => <div className="h-[600px] w-full bg-muted animate-pulse rounded-3xl" />
+});
 
 // Define Interface
 interface Place {
@@ -27,7 +32,7 @@ export default function PlacesPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [sortBy, setSortBy] = useState<"name" | "rating" | "location">("name")
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
+  const [viewMode, setViewMode] = useState<"grid" | "list" | "map">("grid")
   const [showFilters, setShowFilters] = useState(false)
 
   const categories = ["all", "Hill Station", "Beach", "Backwaters", "Wildlife"]
@@ -80,8 +85,8 @@ export default function PlacesPage() {
       {/* Hero Banner */}
       <div className="bg-primary text-white py-16 md:py-24 relative overflow-hidden">
         <div className="container mx-auto px-6 lg:px-10 max-w-7xl relative z-10">
-          <h1 className="font-outfit text-5xl md:text-6xl font-bold mb-6 tracking-tight">Places in Kerala</h1>
-          <p className="text-xl opacity-90 max-w-2xl font-inter leading-relaxed">
+          <h1 className="font-outfit text-5xl md:text-6xl font-bold mb-6 tracking-tight text-white">Places in Kerala</h1>
+          <p className="text-xl opacity-90 max-w-2xl font-inter leading-relaxed text-white">
             Discover hill stations, backwaters, beaches, wildlife sanctuaries and more across God&apos;s Own Country
           </p>
         </div>
@@ -141,6 +146,15 @@ export default function PlacesPage() {
                   >
                     <List className="h-4 w-4" />
                   </button>
+                  <button
+                    onClick={() => setViewMode("map")}
+                    className={`p-2.5 rounded-xl transition-all duration-300 ${viewMode === "map" ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    aria-label="Map view"
+                    title="Map view"
+                  >
+                    <Map className="h-4 w-4" />
+                  </button>
                 </div>
               </div>
             </div>
@@ -180,7 +194,23 @@ export default function PlacesPage() {
           </div>
         </div>
 
-        {viewMode === "grid" ? (
+        {viewMode === "map" ? (
+          <div className="space-y-6">
+            <div className="h-[600px] w-full rounded-[2.5rem] overflow-hidden border-8 border-white shadow-2xl relative">
+              <LeafletMap
+                center={[10.5276, 76.2144]}
+                zoom={7}
+                markers={filteredAndSorted.map(p => ({
+                  lat: p.latitude || 10,
+                  lng: p.longitude || 76,
+                  title: p.name,
+                  description: p.location
+                }))}
+                height="600px"
+              />
+            </div>
+          </div>
+        ) : viewMode === "grid" ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredAndSorted.map((place) => (
               <Link

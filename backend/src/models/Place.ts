@@ -20,10 +20,10 @@ const placeSchema = new mongoose.Schema(
     longitude: { type: Number, required: true },
     tags: [{ type: String }],
     nearby: [nearbyAttractionSchema],
-    ratingAvg: { type: Number, default: 0, min: 0, max: 5 },
+    ratingAvg: { type: Number, default: 5.0, min: 0, max: 5 },
     ratingCount: { type: Number, default: 0 },
     totalReviews: { type: Number, default: 0 }, // Keeping for backward compatibility
-    rating: { type: Number, default: 0, min: 0, max: 5 }, // Keeping for backward compatibility
+    rating: { type: Number, default: 5.0, min: 0, max: 5 }, // Keeping for backward compatibility
     highlights: [{ type: String }],
     bestTimeToVisit: { type: String },
     entryFee: { type: String },
@@ -40,11 +40,20 @@ const placeSchema = new mongoose.Schema(
       enum: ['Free', 'Cheap', 'Moderate', 'Expensive', 'Luxury'],
       default: 'Moderate'
     },
+    isUntold: { type: Boolean, default: false },
+    untoldStory: { type: String },
   },
   {
     timestamps: true,
   }
 );
+
+// Indexes for Search & Filter Optimization
+placeSchema.index({ district: 1 });
+placeSchema.index({ category: 1 });
+placeSchema.index({ status: 1 });
+placeSchema.index({ isUntold: 1 });
+placeSchema.index({ name: 'text', description: 'text', location: 'text', tags: 'text' }); // Text index for full-text search
 
 
 

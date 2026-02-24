@@ -2,7 +2,7 @@
 
 import { Calendar, MapPin, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { getTourismImage } from "@/lib/images"
+import { getFullImageUrl } from "@/lib/images"
 
 export interface EventCardProps {
   id: string
@@ -25,7 +25,7 @@ export function EventCard({ name, date, time, location, image, description, cate
 
       <div className="relative h-56 overflow-hidden">
         <img
-          src={getTourismImage(name, category)}
+          src={getFullImageUrl(image, name, category)}
           alt={name}
           className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
         />

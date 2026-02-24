@@ -32,14 +32,27 @@ export function PremiumCard({
     );
 }
 
-export function PremiumCardImage({ src, alt, className }: { src: string; alt: string; className?: string }) {
+import { SmartImage } from "./SmartImage";
+
+export function PremiumCardImage({
+    src,
+    alt,
+    category = 'default',
+    className
+}: {
+    src: string | null | undefined;
+    alt: string;
+    category?: 'restaurant' | 'place' | 'stay' | 'event' | 'default';
+    className?: string
+}) {
     return (
         <div className="overflow-hidden h-full w-full">
-            <img
+            <SmartImage
                 src={src}
                 alt={alt}
-                className={cn("w-full h-full object-cover transition-transform duration-700 hover:scale-110", className)}
-                loading="lazy"
+                category={category}
+                className={cn("transition-transform duration-700 hover:scale-110", className)}
+                aspectRatio="none" // Parent controls dimensions
             />
         </div>
     )

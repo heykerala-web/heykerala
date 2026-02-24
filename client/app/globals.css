@@ -69,6 +69,23 @@
   .text-gradient-gold {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-yellow-600 via-yellow-500 to-yellow-600;
   }
+
+  /* Premium Shimmer Effect */
+  @keyframes premium-shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  .animate-shimmer {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: premium-shimmer 2s infinite linear;
+  }
 }
 
 @layer base {
@@ -301,5 +318,48 @@
 
   100% {
     transform: translateX(100%);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   BirdBackground — GPU-accelerated, CSS-only bird animation
+   Compositor-only properties: transform, opacity.
+   prefers-reduced-motion: birds hidden to respect user settings.
+───────────────────────────────────────────────────────────── */
+
+/**
+ * Fly across the full viewport width (left: -60px → right: 110vw).
+ * Vertical drift is driven by --bird-drift CSS custom property set
+ * inline per bird, so a single shared keyframe handles all variations.
+ */
+@keyframes birdFly {
+  0% {
+    transform: translateX(0vw) translateY(0px);
+    opacity: 0;
+  }
+
+  3% {
+    opacity: 1;
+  }
+
+  50% {
+    transform: translateX(55vw) translateY(var(--bird-drift, -8px));
+    opacity: 1;
+  }
+
+  97% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(110vw) translateY(0px);
+    opacity: 0;
+  }
+}
+
+/* Honour the user's motion preference — no movement at all */
+@media (prefers-reduced-motion: reduce) {
+  .bird-fly {
+    display: none !important;
   }
 }

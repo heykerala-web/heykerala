@@ -21,6 +21,8 @@ export interface IUser extends Document {
   contributionCount?: number;
   savedCount?: number;
   bookingCount?: number;
+  resetPasswordToken?: string;
+  resetPasswordExpire?: Date;
 }
 
 const userSchema: Schema<IUser> = new mongoose.Schema(
@@ -63,6 +65,8 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
     contributionCount: { type: Number, default: 0 },
     savedCount: { type: Number, default: 0 },
     bookingCount: { type: Number, default: 0 },
+    resetPasswordToken: { type: String },
+    resetPasswordExpire: { type: Date },
   },
   { timestamps: true }
 );

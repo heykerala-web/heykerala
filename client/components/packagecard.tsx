@@ -1,4 +1,4 @@
-import { getTourismImage } from "@/lib/images";
+import { getFullImageUrl } from "@/lib/images";
 
 type PackageType = {
   image: string;
@@ -15,7 +15,7 @@ export default function PackageCard({ pkg }: PackageCardProps) {
   return (
     <div className="bg-white p-4 rounded-xl shadow">
       <img
-        src={pkg.image || getTourismImage(pkg.title, "kerala tour package")}
+        src={getFullImageUrl(pkg.image, pkg.title, "kerala tour package")}
         alt={pkg.title}
         className="w-full h-40 rounded-xl object-cover"
       />

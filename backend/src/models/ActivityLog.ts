@@ -15,7 +15,6 @@ const ActivityLogSchema: Schema = new Schema({
     details: { type: String },
     ip: { type: String },
     userAgent: { type: String },
-    createdAt: { type: Date, default: Date.now }
-});
+}, { timestamps: true });
 
 export default mongoose.models.ActivityLog || mongoose.model<IActivityLog>('ActivityLog', ActivityLogSchema);

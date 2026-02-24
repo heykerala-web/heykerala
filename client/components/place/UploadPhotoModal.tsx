@@ -12,12 +12,13 @@ import api from "@/services/api";
 import { toast } from "react-hot-toast";
 
 interface UploadPhotoModalProps {
-    placeId: string;
-    placeName: string;
+    targetId: string;
+    targetName: string;
+    targetType?: "place" | "event";
     onUploadSuccess?: () => void;
 }
 
-export default function UploadPhotoModal({ placeId, placeName, onUploadSuccess }: UploadPhotoModalProps) {
+export default function UploadPhotoModal({ targetId, targetName, targetType = "place", onUploadSuccess }: UploadPhotoModalProps) {
     const { user } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
     const [file, setFile] = useState<File | null>(null);
@@ -69,15 +70,20 @@ export default function UploadPhotoModal({ placeId, placeName, onUploadSuccess }
             setUploading(true);
             const formData = new FormData();
             formData.append("image", file);
-            formData.append("placeId", placeId);
+            if (targetType === "place") {
+                formData.append("placeId", targetId);
+            } else {
+                formData.append("eventId", targetId);
+            }
             formData.append("caption", caption);
+            formData.append("targetType", targetType);
 
             const res = await api.post("/place-photos/upload", formData, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
 
             if (res.data.success) {
-                toast.success("Photo uploaded successfully! Pending approval.");
+                toast.success("Photo uploaded successfully! Your contribution counts.");
                 setIsOpen(false);
                 setFile(null);
                 setPreview(null);
@@ -110,7 +116,7 @@ export default function UploadPhotoModal({ placeId, placeName, onUploadSuccess }
             <DialogContent className="sm:max-w-md rounded-[2rem] p-0 overflow-hidden border-none gap-0">
                 <DialogHeader className="p-6 bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-gray-100">
                     <DialogTitle className="text-xl font-black text-gray-800">Share your experience</DialogTitle>
-                    <p className="text-sm text-gray-500 font-medium">Upload a photo from {placeName}</p>
+                    <p className="text-sm text-gray-500 font-medium">Upload a photo from {targetName}</p>
                 </DialogHeader>
 
                 <div className="p-6 space-y-6 bg-white">

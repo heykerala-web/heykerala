@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { Footer } from "@/components/footer";
-import { ChatDock } from "@/components/ai/chat-dock";
+import { Chatbot } from "@/components/ai/Chatbot";
 import ClientLayout from "@/components/ClientLayout";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -19,7 +19,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
             {!isAdminPath && (
                 <>
-                    <ChatDock />
+                    <Chatbot />
                     <Footer />
                 </>
             )}

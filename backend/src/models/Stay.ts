@@ -15,6 +15,7 @@ export interface IStay extends Document {
     status: 'pending' | 'approved' | 'rejected';
     createdBy?: string;
     createdAt: Date;
+    updatedAt: Date;
 }
 
 const StaySchema: Schema = new Schema({
@@ -31,7 +32,7 @@ const StaySchema: Schema = new Schema({
     images: [{ type: String }],
     price: { type: Number, required: true },
     amenities: [{ type: String }],
-    ratingAvg: { type: Number, default: 0 },
+    ratingAvg: { type: Number, default: 5.0 },
     ratingCount: { type: Number, default: 0 },
     status: {
         type: String,
@@ -39,7 +40,6 @@ const StaySchema: Schema = new Schema({
         default: 'pending'
     },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
-    createdAt: { type: Date, default: Date.now },
-});
+}, { timestamps: true });
 
 export default mongoose.models.Stay || mongoose.model<IStay>('Stay', StaySchema);

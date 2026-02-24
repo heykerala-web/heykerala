@@ -4,7 +4,8 @@ import { useEffect, useState } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { getTourismImage } from "@/lib/images"
+import { getFullImageUrl } from "@/lib/images"
+import { SafeImage } from "@/components/ui/SafeImage"
 
 const heroSlides = [
   {
@@ -50,7 +51,13 @@ export function HeroCarousel() {
         >
           {/* Parallax-like scale effect */}
           <div className={`w-full h-full relative ${index === currentSlide ? 'animate-slow-zoom' : ''}`}>
-            <img src={slide.image || getTourismImage(slide.title, "Kerala tourism")} alt={slide.title} className="w-full h-full object-cover" />
+            <SafeImage
+              src={getFullImageUrl(slide.image, slide.title, "Kerala tourism")}
+              alt={slide.title}
+              fallbackName={slide.title}
+              fallbackCategory="Kerala tourism"
+              className="w-full h-full object-cover"
+            />
             <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/60" />
           </div>
         </div>
@@ -60,7 +67,7 @@ export function HeroCarousel() {
       <div className="relative z-10 h-full flex items-center justify-center text-center px-4">
         <div className="max-w-5xl mx-auto flex flex-col items-center">
 
-          <h1 className="text-hero md:text-[6rem] leading-[0.9] font-outfit font-black mb-6 text-white drop-shadow-2xl opacity-0 animate-in slide-in-from-bottom-4 duration-1000 fill-mode-forwards">
+          <h1 className="text-hero md:text-[6rem] leading-[0.9] font-outfit font-black mb-6 text-white drop-shadow-2xl animate-in slide-in-from-bottom-4 duration-1000 [animation-fill-mode:forwards]">
             <span className="block text-3xl md:text-4xl font-light tracking-widest uppercase mb-4 text-white/80">Discover</span>
             Hey Kerala
           </h1>

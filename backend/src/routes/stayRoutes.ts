@@ -7,7 +7,7 @@ import {
     updateStay,
     deleteStay
 } from '../controllers/stayController';
-import { protect, authorize } from '../middleware/authMiddleware';
+import { protect, authorize, requireContributor } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
@@ -15,7 +15,7 @@ router.get('/', getStays);
 router.get('/:id', getStayById);
 
 // Protected
-router.post('/user/submission', protect, submitStay);
+router.post('/user/submission', protect, requireContributor, submitStay);
 
 // Admin only routes
 router.post('/', protect, authorize('Admin'), addStay);

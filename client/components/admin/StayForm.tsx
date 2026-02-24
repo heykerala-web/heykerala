@@ -124,15 +124,7 @@ export function StayForm({ initialData, onSubmit, loading }: StayFormProps) {
                     <Input id="price" name="price" type="number" min="0" value={formData.price} onChange={handleChange} required />
                 </div>
 
-                <div className="space-y-2">
-                    <Label htmlFor="latitude">Latitude</Label>
-                    <Input id="latitude" name="latitude" type="number" step="any" value={formData.latitude} onChange={handleChange} />
-                </div>
 
-                <div className="space-y-2">
-                    <Label htmlFor="longitude">Longitude</Label>
-                    <Input id="longitude" name="longitude" type="number" step="any" value={formData.longitude} onChange={handleChange} />
-                </div>
             </div>
 
             <div className="space-y-2">

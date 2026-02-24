@@ -15,7 +15,18 @@ export const getWeather = async (req: Request, res: Response) => {
       });
     }
 
-    const cacheKey = `${lat},${lon}`;
+    // Numerical validation to prevent SSRF or injection
+    const latNum = parseFloat(lat as string);
+    const lonNum = parseFloat(lon as string);
+
+    if (isNaN(latNum) || isNaN(lonNum)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid latitude or longitude format",
+      });
+    }
+
+    const cacheKey = `${latNum},${lonNum}`;
     const cached = weatherCache.get(cacheKey);
 
     // Check if cached data is still valid
@@ -43,7 +54,7 @@ export const getWeather = async (req: Request, res: Response) => {
     try {
       // OpenWeatherMap API
       const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`
+        `https://api.openweathermap.org/data/2.5/weather?lat=${latNum}&lon=${lonNum}&appid=${API_KEY}&units=metric`
       );
 
       if (!response.ok) {
@@ -69,7 +80,7 @@ export const getWeather = async (req: Request, res: Response) => {
       // Fallback to WeatherAPI.com if OpenWeatherMap fails
       try {
         const response = await fetch(
-          `https://api.weatherapi.com/v1/current.json?key=${API_KEY}&q=${lat},${lon}&aqi=no`
+          `https://api.weatherapi.com/v1/current.json?key=${API_KEY}&q=${latNum},${lonNum}&aqi=no`
         );
 
         if (!response.ok) {

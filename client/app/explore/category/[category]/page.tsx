@@ -80,7 +80,7 @@ export default function CategoryExplorePage() {
                         <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" />
                         <span className="font-outfit font-bold uppercase tracking-widest text-xs">Back to Categories</span>
                     </Link>
-                    <h1 className="text-4xl md:text-7xl font-bold font-outfit mb-6 tracking-tight">
+                    <h1 className="text-4xl md:text-7xl font-bold font-outfit mb-6 tracking-tight text-white">
                         Explore {category === 'Waterfalls' ? 'Waterfalls' : category + (category.endsWith('s') ? '' : 's')}
                     </h1>
                     <p className="text-white/80 text-xl max-w-2xl font-inter font-light leading-relaxed">
@@ -91,7 +91,7 @@ export default function CategoryExplorePage() {
 
             {/* Search & Filter Bar */}
             <div className="container mx-auto max-w-7xl px-6 -mt-10 relative z-20">
-                <div className="bg-card rounded-[2rem] shadow-2xl p-6 md:p-8 border border-white/20 backdrop-blur-xl flex flex-col md:flex-row gap-6 items-center">
+                <div className="bg-card rounded-[2.5rem] shadow-2xl p-8 md:p-12 border border-white/20 backdrop-blur-xl flex flex-col md:flex-row gap-8 items-center">
                     <div className="relative flex-1 w-full">
                         <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
                         <Input
@@ -111,7 +111,7 @@ export default function CategoryExplorePage() {
                         <Loader2 className="w-12 h-12 animate-spin text-emerald-600" />
                     </div>
                 ) : places.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-12">
                         {places.map((place) => (
                             <Link
                                 key={place._id}

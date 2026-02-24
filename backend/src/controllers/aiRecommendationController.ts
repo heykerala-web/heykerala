@@ -2,8 +2,15 @@
 import { Response } from "express";
 import { AuthRequest } from "../middleware/authMiddleware";
 import AIRecommendCache from "../models/AIRecommendCache";
+import Place from "../models/Place";
 import https from "https";
 import fs from "fs";
+
+// Helper to escape special characters for regex
+const escapeRegex = (string: string) => {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
+
 
 export const getRecommendations = async (req: AuthRequest, res: Response) => {
     try {
@@ -25,35 +32,44 @@ export const getRecommendations = async (req: AuthRequest, res: Response) => {
         }
 
         // 2. Call OpenRouter
-        // Updated prompt to ask for an object (better for JSON mode)
+        const dbPlaces = await Place.find({ status: "approved" }, "name");
+        const validPlaces = dbPlaces.map(p => p.name);
+
+        if (validPlaces.length === 0) {
+            return res.status(200).json([]);
+        }
+
         const prompt = `
         Recommend 5 unique travel destinations in Kerala, India for this context:
         Category: ${category}
         Weather: ${weather || "Any"}
 
+        IMPORTANT: ONLY recommend places from this exact list:
+        ${validPlaces.join(", ")}
+
         Respond strictly with a JSON object in this format:
         {
           "recommendations": [
             {
-                "_id": "placeholder_id", 
-                "name": "Place Name",
-                "category": "Category",
-                "district": "District",
-                "image": "https://images.unsplash.com/photo-1593693397690-362cb9666fc2?q=80&w=1000&auto=format&fit=crop",
+                "name": "One of the exact names from the list above",
+                "category": "The actual category",
+                "district": "The actual district",
+                "image": "",
                 "ratingAvg": 4.8
             }
           ]
         }
+        Leave the "image" field as an empty string "". The system will handle the imaging.
         Do not include any other text or explanation.
         `;
 
         const requestBody = JSON.stringify({
             model: "google/gemini-2.0-flash-001",
             messages: [
-                { role: "system", content: "You are a Kerala tourism expert. You strictly output JSON objects containing travel recommendations." },
+                { role: "system", content: "You are a Kerala tourism expert. You strictly output JSON objects containing travel recommendations based ONLY on the provided list." },
                 { role: "user", content: prompt }
             ],
-            max_tokens: 1000, // Increased to avoid truncation
+            max_tokens: 1000,
             temperature: 0.7,
             response_format: { type: "json_object" }
         });
@@ -106,11 +122,9 @@ export const getRecommendations = async (req: AuthRequest, res: Response) => {
 
         let recommendations = [];
         try {
-            // Clean up markdown if present (though json_object should prevent it)
             const jsonStr = rawContent.replace(/```json|```/g, "").trim();
             const parsed = JSON.parse(jsonStr);
 
-            // Extract array from object
             if (Array.isArray(parsed)) {
                 recommendations = parsed;
             } else if (parsed.recommendations && Array.isArray(parsed.recommendations)) {
@@ -118,20 +132,49 @@ export const getRecommendations = async (req: AuthRequest, res: Response) => {
             } else if (parsed.destinations && Array.isArray(parsed.destinations)) {
                 recommendations = parsed.destinations;
             } else {
-                // Fallback: search for any array value
                 const firstArray = Object.values(parsed).find(v => Array.isArray(v));
-                if (firstArray) {
-                    recommendations = firstArray as any[];
-                } else {
-                    throw new Error("Could not find recommendations array in response");
-                }
+                if (firstArray) recommendations = firstArray as any[];
             }
 
-            // Ensure items have IDs
-            recommendations = recommendations.map((item, idx) => ({
-                ...item,
-                _id: item._id || `ai_${Date.now()}_${idx}`
+            // 3. Match with database and enhance
+            const enhancedRecommendations = await Promise.all(recommendations.map(async (item) => {
+                try {
+                    // Robust Matching Logic
+                    const cleanItemName = item.name.replace(/\([^)]*\)/g, '').trim();
+                    const words = cleanItemName.split(/\s+/).filter(w => w.length > 2);
+
+                    const dbPlace = await Place.findOne({
+                        $or: [
+                            { name: { $regex: new RegExp(`^${escapeRegex(item.name)}$`, 'i') } },
+                            { name: { $regex: new RegExp(`^${escapeRegex(cleanItemName)}$`, 'i') } },
+                            { name: { $regex: new RegExp(`${escapeRegex(cleanItemName)}`, 'i') } },
+                            // Match if first word is significant
+                            ...(words.length > 0 ? [{ name: { $regex: new RegExp(`^${escapeRegex(words[0])}`, 'i') } }] : [])
+                        ]
+                    });
+
+                    if (dbPlace) {
+                        return {
+                            ...item,
+                            name: dbPlace.name, // Use the official name
+                            _id: dbPlace._id,
+                            image: dbPlace.image || (dbPlace.images && dbPlace.images[0]) || item.image,
+                            category: dbPlace.category || item.category,
+                            district: dbPlace.district || item.district,
+                            ratingAvg: dbPlace.ratingAvg || item.ratingAvg
+                        };
+                    }
+
+                    // If NO match found, we skip this item to avoid broken links (filtered below)
+                    return null;
+                } catch (err) {
+                    console.error("Match error for:", item.name, err);
+                    return null;
+                }
             }));
+
+            // Filter out nulls (failed matches)
+            recommendations = enhancedRecommendations.filter(r => r !== null);
 
         } catch (e) {
             console.error("Failed to parse recommendations JSON:", rawContent);

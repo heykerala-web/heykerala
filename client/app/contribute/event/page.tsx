@@ -254,28 +254,6 @@ export default function ContributeEventPage() {
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Latitude</Label>
-                                        <Input
-                                            name="latitude"
-                                            value={formData.latitude}
-                                            onChange={handleChange}
-                                            placeholder="10.0"
-                                            className="h-14 rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-emerald-500/20 font-medium"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Longitude</Label>
-                                        <Input
-                                            name="longitude"
-                                            value={formData.longitude}
-                                            onChange={handleChange}
-                                            placeholder="76.0"
-                                            className="h-14 rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-emerald-500/20 font-medium"
-                                        />
-                                    </div>
-                                </div>
                             </div>
                         </Card>
 

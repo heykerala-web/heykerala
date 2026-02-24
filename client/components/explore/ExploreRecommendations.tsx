@@ -4,6 +4,8 @@ import * as React from "react"
 import { Sparkles, Star, MapPin, ChevronRight } from "lucide-react"
 import { API_URL, tokenManager } from "@/lib/api"
 import { cn } from "@/lib/utils"
+import { getFullImageUrl, getTourismImage } from "@/lib/images"
+import { useAuth } from "@/context/AuthContext"
 
 interface Recommendation {
     _id: string;
@@ -20,6 +22,7 @@ interface ExploreRecommendationsProps {
 }
 
 export function ExploreRecommendations({ onSelect }: ExploreRecommendationsProps) {
+    const { user } = useAuth()
     const [recommendations, setRecommendations] = React.useState<Recommendation[]>([]);
     const [loading, setLoading] = React.useState(true);
 
@@ -49,7 +52,7 @@ export function ExploreRecommendations({ onSelect }: ExploreRecommendationsProps
         fetchRecommendations();
     }, []);
 
-    if (loading || recommendations.length === 0) return null;
+    if (!user || loading || recommendations.length === 0) return null;
 
     return (
         <div className="mb-8 px-2">
@@ -69,9 +72,16 @@ export function ExploreRecommendations({ onSelect }: ExploreRecommendationsProps
                     >
                         <div className="relative aspect-[4/3] rounded-2xl overflow-hidden mb-2 shadow-sm border border-slate-100">
                             <img
-                                src={item.image || (item.images && item.images[0]) || "/placeholder.svg"}
+                                src={getFullImageUrl(item.image || (item.images && item.images[0]), item.name, item.category)}
                                 alt={item.name}
                                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    const fallback = getTourismImage(item.name, item.category);
+                                    if (target.src !== fallback) {
+                                        target.src = fallback;
+                                    }
+                                }}
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
                             <div className="absolute bottom-2 left-2 right-2 flex justify-between items-end">

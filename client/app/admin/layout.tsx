@@ -1,15 +1,18 @@
 "use client";
 
 import { useAuth } from "@/context/AuthContext";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowLeft } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const { user, loading } = useAuth();
     const router = useRouter();
+    const pathname = usePathname();
     const [authorized, setAuthorized] = useState(false);
+
+    const isRootAdmin = pathname === "/admin";
 
     useEffect(() => {
         if (!loading) {
@@ -38,6 +41,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <AdminSidebar />
             <div className="pl-72 flex-1 transition-all duration-300">
                 <main className="p-8 max-w-7xl mx-auto">
+                    {!isRootAdmin && (
+                        <button
+                            onClick={() => router.back()}
+                            className="mb-6 inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-200 rounded-xl shadow-sm hover:bg-slate-50 hover:text-emerald-700 hover:border-emerald-200 hover:shadow-md active:scale-95 transition-all duration-200 group"
+                        >
+                            <ArrowLeft className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform duration-200" />
+                            Back
+                        </button>
+                    )}
                     {children}
                 </main>
             </div>

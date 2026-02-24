@@ -7,12 +7,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "react-hot-toast";
-import { Loader2, Camera, MapPin, Phone, User as UserIcon } from "lucide-react";
+import { Loader2, Camera, MapPin, Phone, User as UserIcon, ShieldCheck, RefreshCcw } from "lucide-react";
 import api from "@/services/api";
+import { getAvatarUrl } from "@/lib/api";
 
 export default function PersonalInfo() {
     const { user, updateUser } = useAuth();
     const [loading, setLoading] = useState(false);
+    const [roleLoading, setRoleLoading] = useState(false);
     const [avatarLoading, setAvatarLoading] = useState(false);
 
     const [formData, setFormData] = useState({
@@ -54,6 +56,30 @@ export default function PersonalInfo() {
         }
     };
 
+    const handleRoleSwitch = async () => {
+        if (!user || user.role === "Admin") return;
+
+        const newRole = user.role === "Tourist" ? "Contributor" : "Tourist";
+        const confirmMessage = newRole === "Contributor"
+            ? "Switching to Contributor account will allow you to add places, stays and events. Proceed?"
+            : "Switching back to Tourist will hide your contribution tools. Proceed?";
+
+        if (!confirm(confirmMessage)) return;
+
+        setRoleLoading(true);
+        try {
+            const { data } = await api.patch("/auth/role", { role: newRole });
+            if (data.success) {
+                toast.success(data.message);
+                updateUser(data.user);
+            }
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || "Failed to switch role");
+        } finally {
+            setRoleLoading(false);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
@@ -83,7 +109,7 @@ export default function PersonalInfo() {
                     <div className="relative group">
                         <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-2xl relative z-10">
                             <img
-                                src={user?.avatar ? (user.avatar.startsWith('http') ? user.avatar : `http://localhost:5000${user.avatar}`) : '/default-avatar.png'}
+                                src={getAvatarUrl(user?.avatar)}
                                 alt={user?.name}
                                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                             />
@@ -115,6 +141,54 @@ export default function PersonalInfo() {
                         <p className="text-gray-500 text-sm leading-relaxed max-w-sm">
                             Make a lasting impression. Upload a clear, high-quality photo to help hosts and fellow travelers recognize you.
                         </p>
+                    </div>
+                </div>
+
+                {/* Account Type Section */}
+                <div className="bg-white border border-gray-100 p-8 rounded-[2rem] shadow-sm space-y-6">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl">
+                                <ShieldCheck className="w-6 h-6" />
+                            </div>
+                            <div>
+                                <h4 className="text-xl font-bold text-gray-900">Account Type</h4>
+                                <p className="text-sm text-gray-500">Manage your permissions and role</p>
+                            </div>
+                        </div>
+                        <div className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest flex items-center gap-2 ${user?.role === "Admin" ? "bg-purple-100 text-purple-700" :
+                            user?.role === "Contributor" ? "bg-emerald-100 text-emerald-700" :
+                                "bg-blue-100 text-blue-700"
+                            }`}>
+                            <span>{user?.role === "Admin" ? "🛡️ Admin" : user?.role === "Contributor" ? "✍️ Contributor" : "🎒 Tourist"}</span>
+                        </div>
+                    </div>
+
+                    <div className="p-6 bg-gray-50/50 rounded-3xl border border-gray-100/50">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                            <div className="max-w-md">
+                                <p className="text-sm font-semibold text-gray-900 mb-1">
+                                    {user?.role === "Contributor" ? "You are a recognized Contributor" : "Currently a Tourist"}
+                                </p>
+                                <p className="text-sm text-gray-500 leading-relaxed">
+                                    {user?.role === "Contributor"
+                                        ? "You have full access to add and manage tourism listings in Kerala. Your contributions help others discover hidden gems."
+                                        : "Want to contribute? Switch to a Contributor account to add places, stays, and events to HeyKerala."}
+                                </p>
+                            </div>
+                            {user?.role !== "Admin" && (
+                                <Button
+                                    type="button"
+                                    onClick={handleRoleSwitch}
+                                    disabled={roleLoading}
+                                    variant="outline"
+                                    className="h-12 px-6 rounded-2xl border-gray-200 hover:bg-white hover:text-emerald-600 hover:border-emerald-500 transition-all font-bold flex items-center gap-2"
+                                >
+                                    {roleLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCcw className="w-4 h-4" />}
+                                    {user?.role === "Tourist" ? "Switch to Contributor" : "Switch to Tourist"}
+                                </Button>
+                            )}
+                        </div>
                     </div>
                 </div>
 

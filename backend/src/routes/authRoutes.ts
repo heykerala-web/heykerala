@@ -2,7 +2,7 @@ import express from "express";
 const passport = require("passport");
 
 import jwt from "jsonwebtoken";
-import { registerUser, loginUser, getMe } from "../controllers/authController";
+import { registerUser, loginUser, getMe, updateRole, forgotPassword, resetPassword } from "../controllers/authController";
 import { protect } from "../middleware/authMiddleware";
 
 const router = express.Router();
@@ -13,6 +13,13 @@ router.post("/login", loginUser);
 
 // Protected route to get logged-in user
 router.get("/me", protect, getMe);
+
+// Update user role
+router.patch("/role", protect, updateRole);
+
+// Forgot & Reset Password
+router.post("/forgot-password", forgotPassword);
+router.put("/reset-password/:resettoken", resetPassword);
 
 // ------------------------
 // GOOGLE LOGIN

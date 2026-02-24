@@ -14,6 +14,7 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState<"Tourist" | "Contributor">("Tourist");
   const { register } = useAuth();
   const [loading, setLoading] = useState(false);
 
@@ -21,7 +22,7 @@ export default function RegisterPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data } = await api.post("/auth/register", { name, email, password });
+      const { data } = await api.post("/auth/register", { name, email, password, role });
       if (data.success) {
         toast.success("Account created successfully!");
         register(data);
@@ -89,14 +90,43 @@ export default function RegisterPage() {
               <Input
                 id="password"
                 type="password"
-                placeholder="Minimum 6 characters"
+                placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 className="h-12 border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
               />
             </div>
-            <Button type="submit" className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-lg" disabled={loading}>
+            <div className="space-y-3">
+              <Label className="text-gray-700">I want to join as</Label>
+              <div className="grid grid-cols-2 gap-4">
+                <div
+                  onClick={() => setRole("Tourist")}
+                  className={`cursor-pointer p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${role === "Tourist"
+                    ? "border-emerald-500 bg-emerald-50 text-emerald-700 shadow-sm"
+                    : "border-gray-200 hover:border-gray-300 bg-white text-gray-500"
+                    }`}
+                >
+                  <span className="text-2xl">🎒</span>
+                  <span className="font-bold text-sm">Tourist</span>
+                </div>
+                <div
+                  onClick={() => setRole("Contributor")}
+                  className={`cursor-pointer p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${role === "Contributor"
+                    ? "border-emerald-500 bg-emerald-50 text-emerald-700 shadow-sm"
+                    : "border-gray-200 hover:border-gray-300 bg-white text-gray-500"
+                    }`}
+                >
+                  <span className="text-2xl">✍️</span>
+                  <span className="font-bold text-sm">Contributor</span>
+                </div>
+              </div>
+              <p className="text-[10px] text-gray-400 text-center mt-1 italic">
+                {role === "Contributor" ? "Contributors can add places, stays and events." : "Tourists can explore and save destinations."}
+              </p>
+            </div>
+
+            <Button type="submit" className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-lg rounded-xl shadow-lg shadow-emerald-600/20" disabled={loading}>
               {loading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
               {loading ? "Creating Account..." : "Create Account"}
             </Button>

@@ -21,7 +21,8 @@ import PlaceGallery from "@/app/components/places/PlaceGallery";
 import StickyMiniHeader from "@/app/components/places/StickyMiniHeader";
 import QuickInfoPanel from "@/app/components/places/QuickInfoPanel";
 import { format } from "date-fns";
-import { getTourismImage } from "@/lib/images";
+import { getFullImageUrl } from "@/lib/images";
+import PlacePhotoGallery from "@/components/places/PlacePhotoGallery";
 
 export default function EventDetailsPage({ params }: { params: { id: string } }) {
   // const { id } = useParams();
@@ -33,6 +34,7 @@ export default function EventDetailsPage({ params }: { params: { id: string } })
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [userPhotos, setUserPhotos] = useState<any[]>([]);
 
   // Review States
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -49,6 +51,17 @@ export default function EventDetailsPage({ params }: { params: { id: string } })
       setIsFavorite(savedEvents.some((e: any) => (typeof e === 'string' ? e : e._id) === id));
     }
   }, [user, id]);
+
+  const fetchUserPhotos = async () => {
+    try {
+      const res = await api.get(`/place-photos/${id}?type=event`);
+      if (res.data.success) {
+        setUserPhotos(res.data.data);
+      }
+    } catch (e) {
+      console.error("User photos fetch failed", e);
+    }
+  };
 
   const handleToggleSave = async () => {
     if (!user) {
@@ -124,6 +137,10 @@ export default function EventDetailsPage({ params }: { params: { id: string } })
       try {
         setLoading(true);
         setEvent(null);
+
+        // Fetch User Photos
+        fetchUserPhotos();
+
         const response = await eventService.getById(id as string);
 
         if (response && response.success) {
@@ -199,7 +216,7 @@ export default function EventDetailsPage({ params }: { params: { id: string } })
       <div className="relative h-[90vh] w-full overflow-hidden bg-gray-900">
         <div className="absolute inset-0">
           <img
-            src={getTourismImage(event.title, event.category)}
+            src={getFullImageUrl(event.images?.[0], event.title, event.category)}
             alt={event.title}
             className="w-full h-full object-cover scale-105 animate-slow-zoom"
           />
@@ -294,7 +311,10 @@ export default function EventDetailsPage({ params }: { params: { id: string } })
                 <h2 className="text-4xl font-black text-gray-900 tracking-tight">Event Moments</h2>
                 <p className="text-gray-400 font-medium mt-1 uppercase tracking-widest text-xs">Visual highlights from this cultural experience</p>
               </div>
-              <PlaceGallery images={event.images} name={event.title} />
+              <PlaceGallery
+                images={[...(event.images || []), ...(userPhotos.map(p => p.image))].map(img => getFullImageUrl(img, event.title, event.category))}
+                name={event.title}
+              />
             </section>
 
             {/* Description Section */}
@@ -333,6 +353,15 @@ export default function EventDetailsPage({ params }: { params: { id: string } })
                 </div>
               </div>
             </section>
+
+            {/* Traveler Photos Section */}
+            <PlacePhotoGallery
+              targetId={event._id}
+              targetName={event.title}
+              targetType="event"
+              externalPhotos={userPhotos}
+              onUpdate={fetchUserPhotos}
+            />
 
             {/* Map Section */}
             <section className="space-y-8">

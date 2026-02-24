@@ -27,3 +27,9 @@ export const authorize = (...roles: string[]) => {
     next();
   };
 };
+export const requireContributor = (req: AuthRequest, res: Response, next: NextFunction) => {
+  if (!req.user || (req.user.role !== "Contributor" && req.user.role !== "Admin")) {
+    return res.status(403).json({ message: "Only Contributors can perform this action" });
+  }
+  next();
+};

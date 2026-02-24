@@ -21,11 +21,11 @@ const TARGET_LOCATIONS = [
 ];
 
 const FALLBACK_IMAGES = [
-    "https://images.unsplash.com/photo-1593693397690-362cb9666fc2?auto=format&fit=crop&w=1200&q=80",
-    "https://images.unsplash.com/photo-1602216056096-3c40cc0c9855?auto=format&fit=crop&w=1200&q=80",
-    "https://images.unsplash.com/photo-1590050811270-e322662c919d?auto=format&fit=crop&w=1200&q=80",
-    "https://images.unsplash.com/photo-1597735881932-d9664c9bbcea?auto=format&fit=crop&w=1200&q=80",
-    "https://images.unsplash.com/photo-1589310344464-9d1034446465?auto=format&fit=crop&w=1200&q=80"
+    "/places/munnar-teagardens.jpg",
+    "/places/alappuzhabackwaters.webp",
+    "/places/varkala-clif.jpg",
+    "/places/athirappillywaterfalls.jpg",
+    "/places/edakkal-caves.webp"
 ];
 
 // --- Helper Functions ---

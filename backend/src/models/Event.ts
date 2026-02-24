@@ -17,6 +17,7 @@ export interface IEvent extends Document {
     status: 'pending' | 'approved' | 'rejected';
     createdBy?: string;
     createdAt: Date;
+    updatedAt: Date;
 }
 
 const EventSchema: Schema = new Schema({
@@ -31,7 +32,7 @@ const EventSchema: Schema = new Schema({
     images: [{ type: String }],
     latitude: { type: Number },
     longitude: { type: Number },
-    ratingAvg: { type: Number, default: 0 },
+    ratingAvg: { type: Number, default: 5.0 },
     ratingCount: { type: Number, default: 0 },
     status: {
         type: String,
@@ -39,7 +40,6 @@ const EventSchema: Schema = new Schema({
         default: 'pending'
     },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
-    createdAt: { type: Date, default: Date.now }
-});
+}, { timestamps: true });
 
 export default mongoose.models.Event || mongoose.model<IEvent>('Event', EventSchema);

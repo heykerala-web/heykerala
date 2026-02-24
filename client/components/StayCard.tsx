@@ -1,10 +1,13 @@
 "use client"
 
+import { useState } from "react"
 import { Star, MapPin, ArrowRight, Heart } from "lucide-react"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { getTourismImage } from "@/lib/images"
+import { getFullImageUrl } from "@/lib/images"
+import api from "@/services/api"
+import toast from "react-hot-toast"
 
 interface StayCardProps {
     id: string
@@ -15,6 +18,7 @@ interface StayCardProps {
     rating: number
     price: number
     amenities: string[]
+    isSaved?: boolean
 }
 
 export function StayCard({
@@ -26,13 +30,43 @@ export function StayCard({
     rating,
     price,
     amenities,
+    isSaved = false,
 }: StayCardProps) {
+    const [saved, setSaved] = useState(isSaved)
+    const [saving, setSaving] = useState(false)
+
+    const handleSave = async (e: React.MouseEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
+        if (saving) return
+        setSaving(true)
+        try {
+            if (saved) {
+                await api.delete(`/users/save/stay/${id}`)
+                setSaved(false)
+                toast.success("Removed from wishlist")
+            } else {
+                await api.post(`/users/save/stay/${id}`)
+                setSaved(true)
+                toast.success("Saved to wishlist!")
+            }
+        } catch (err: any) {
+            if (err?.response?.status === 401) {
+                toast.error("Please log in to save stays")
+            } else {
+                toast.error("Something went wrong")
+            }
+        } finally {
+            setSaving(false)
+        }
+    }
+
     return (
         <div className="group relative h-[420px] w-full rounded-[2rem] overflow-hidden cursor-pointer transition-all duration-500 hover:shadow-2xl hover:shadow-primary/20">
             {/* Image Background */}
             <div className="absolute inset-0">
                 <img
-                    src={getTourismImage(name, type)}
+                    src={getFullImageUrl(image, name, type)}
                     alt={name}
                     className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
@@ -47,12 +81,18 @@ export function StayCard({
             </div>
 
             <div className="absolute top-4 right-4 z-10">
-                <div className="bg-white/20 backdrop-blur-md rounded-full p-2 text-white hover:bg-white/40 transition-colors">
-                    <Heart className="h-4 w-4" />
-                </div>
+                <button
+                    onClick={handleSave}
+                    disabled={saving}
+                    className="bg-white/20 backdrop-blur-md rounded-full p-2 text-white hover:bg-white/40 transition-all duration-200 active:scale-90"
+                >
+                    <Heart
+                        className={`h-4 w-4 transition-all duration-200 ${saved ? "fill-red-500 text-red-500" : "fill-transparent"}`}
+                    />
+                </button>
             </div>
 
-            {/* Bottom Content Content */}
+            {/* Bottom Content */}
             <div className="absolute bottom-0 left-0 right-0 p-6 z-20 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
                 {/* Location & Rating Row */}
                 <div className="flex items-center justify-between mb-2">

@@ -57,7 +57,7 @@ export default function ProfileOverview() {
                     <div className="flex-1 space-y-4 pt-2">
                         <div>
                             <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4 justify-center md:justify-start mb-2">
-                                <h1 className="text-4xl md:text-5xl font-black tracking-tight">{user.name}</h1>
+                                <h1 className="text-4xl md:text-5xl font-black tracking-tight text-white">{user.name}</h1>
                                 <span className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-white/10 backdrop-blur-md border border-white/10 text-emerald-200 text-xs font-bold rounded-full uppercase tracking-widest">
                                     {user.travelBadge || "Explorer"}
                                 </span>

@@ -14,8 +14,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Upload, X } from "lucide-react";
+import { Loader2, Upload, X, Sparkles } from "lucide-react";
 import toast from "react-hot-toast";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const KERALA_DISTRICTS = [
     "Thiruvananthapuram", "Kollam", "Pathanamthitta", "Alappuzha", "Kottayam",
@@ -50,6 +51,8 @@ export default function PlaceForm({ initialData, isEdit = false }: PlaceFormProp
         longitude: initialData?.longitude || "",
         tags: initialData?.tags?.join(", ") || "",
         images: (initialData?.images || []) as string[],
+        isUntold: initialData?.isUntold || false,
+        untoldStory: initialData?.untoldStory || "",
     });
 
     useEffect(() => {
@@ -65,6 +68,8 @@ export default function PlaceForm({ initialData, isEdit = false }: PlaceFormProp
                 longitude: initialData.longitude || "",
                 tags: initialData.tags?.join(", ") || "",
                 images: (initialData.images || []) as string[],
+                isUntold: initialData.isUntold || false,
+                untoldStory: initialData.untoldStory || "",
             });
         }
     }, [initialData]);
@@ -199,20 +204,40 @@ export default function PlaceForm({ initialData, isEdit = false }: PlaceFormProp
                 <Input id="location" name="location" value={formData.location} onChange={handleChange} required placeholder="e.g. 5km from Town" />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <Label htmlFor="latitude">Latitude</Label>
-                    <Input id="latitude" name="latitude" type="number" step="any" value={formData.latitude} onChange={handleChange} required />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="longitude">Longitude</Label>
-                    <Input id="longitude" name="longitude" type="number" step="any" value={formData.longitude} onChange={handleChange} required />
-                </div>
-            </div>
+
 
             <div className="space-y-2">
                 <Label htmlFor="tags">Tags (Comma Separated)</Label>
                 <Input id="tags" name="tags" value={formData.tags} onChange={handleChange} placeholder="nature, trekking, view" />
+            </div>
+
+            <div className="p-4 bg-primary/5 rounded-xl border border-primary/20 space-y-4">
+                <div className="flex items-center space-x-2">
+                    <Checkbox
+                        id="isUntold"
+                        checked={formData.isUntold}
+                        onCheckedChange={(checked) => setFormData({ ...formData, isUntold: !!checked })}
+                    />
+                    <Label htmlFor="isUntold" className="flex items-center gap-2 cursor-pointer font-bold text-primary italic">
+                        <Sparkles className="w-4 h-4" />
+                        Mark as Untold Kerala Gem
+                    </Label>
+                </div>
+
+                {formData.isUntold && (
+                    <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                        <Label htmlFor="untoldStory">Untold Story / Mystery</Label>
+                        <Textarea
+                            id="untoldStory"
+                            name="untoldStory"
+                            value={formData.untoldStory}
+                            onChange={handleChange}
+                            placeholder="Share the secret story or what makes this place a hidden gem..."
+                            rows={3}
+                            className="bg-white border-primary/20 focus:ring-primary/20"
+                        />
+                    </div>
+                )}
             </div>
 
             <div className="space-y-4">

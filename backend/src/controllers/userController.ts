@@ -6,6 +6,7 @@ import Stay from "../models/Stay";
 import Event from "../models/Event";
 import Booking from "../models/Booking";
 import Review from "../models/Review";
+import PlacePhoto from "../models/PlacePhoto";
 import { getModelByType, updateTargetRating } from "../utils/reviewUtils";
 
 // Update Profile (Name, Bio, Phone, Location)
@@ -60,9 +61,11 @@ export const getMe = async (req: any, res: Response): Promise<void> => {
 
         // Aggregate stats
         const bookingCount = await Booking.countDocuments({ userId });
+        const photoCount = await PlacePhoto.countDocuments({ user: userId });
         const contributionCount = (await Place.countDocuments({ createdBy: userId })) +
             (await Stay.countDocuments({ createdBy: userId })) +
-            (await Event.countDocuments({ createdBy: userId }));
+            (await Event.countDocuments({ createdBy: userId })) +
+            photoCount;
         const savedCount = user.savedPlaces.length;
 
         // Dynamic Badge Logic

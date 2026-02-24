@@ -1,11 +1,32 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
 import Place from "../models/Place";
+import Review from "../models/Review";
+
+// Helper to escape special characters for regex
+const escapeRegex = (string: string) => {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
 
 // Create a new place (Admin only)
 export const createPlace = async (req: Request, res: Response) => {
   try {
-    const place = await Place.create({ ...req.body, status: 'approved' }); // Admin created is auto-approved
+    // Whitelist fields for admin creation
+    const {
+      name, slug, district, category, description, image, images,
+      location, latitude, longitude, tags, nearby, highlights,
+      bestTimeToVisit, entryFee, openingHours, isUntold, untoldStory,
+      priceLevel
+    } = req.body;
+
+    const place = await Place.create({
+      name, slug, district, category, description, image, images,
+      location, latitude, longitude, tags, nearby, highlights,
+      bestTimeToVisit, entryFee, openingHours, isUntold, untoldStory,
+      priceLevel,
+      status: 'approved' // Admin created is auto-approved
+    });
+
     res.status(201).json({
       success: true,
       data: place,
@@ -24,8 +45,19 @@ export const createPlace = async (req: Request, res: Response) => {
 export const submitPlace = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user._id;
+    // Strictly whitelist fields for user submission to prevent mass assignment (e.g. settings status to approved)
+    const {
+      name, slug, district, category, description, image, images,
+      location, latitude, longitude, tags, nearby, highlights,
+      bestTimeToVisit, entryFee, openingHours, isUntold, untoldStory,
+      priceLevel
+    } = req.body;
+
     const place = await Place.create({
-      ...req.body,
+      name, slug, district, category, description, image, images,
+      location, latitude, longitude, tags, nearby, highlights,
+      bestTimeToVisit, entryFee, openingHours, isUntold, untoldStory,
+      priceLevel,
       status: 'pending',
       createdBy: userId
     });
@@ -124,7 +156,7 @@ export const getPlaceBySlug = async (req: Request, res: Response) => {
 // Get all places (Search, Filter, Sort, Pagination)
 export const getAllPlaces = async (req: Request, res: Response) => {
   try {
-    const { category, district, search, sort, page = 1, limit = 10, minRating, type, status, budget } = req.query;
+    const { category, district, search, sort, page = 1, limit = 10, minRating, type, status, budget, untold } = req.query;
 
     const query: any = {
       $or: [{ status: 'approved' }, { status: { $exists: false } }]
@@ -145,6 +177,11 @@ export const getAllPlaces = async (req: Request, res: Response) => {
       } else if (budgetStr === 'High') {
         query.priceLevel = { $in: ['Expensive', 'Luxury'] };
       }
+    }
+
+    // Untold Filter
+    if (untold === 'true') {
+      query.isUntold = true;
     }
 
 
@@ -173,7 +210,7 @@ export const getAllPlaces = async (req: Request, res: Response) => {
 
     // Search
     if (search) {
-      const searchRegex = new RegExp(search as string, "i");
+      const searchRegex = new RegExp(escapeRegex(search as string), "i");
       query.$or = [
         { name: searchRegex },
         { location: searchRegex },
@@ -228,7 +265,7 @@ export const getSearchSuggestions = async (req: Request, res: Response) => {
       return res.json({ success: true, data: [] });
     }
 
-    const searchRegex = new RegExp(query, "i");
+    const searchRegex = new RegExp(escapeRegex(query), "i");
 
     const suggestions = await Place.find({
       $or: [
@@ -296,7 +333,22 @@ export const updatePlace = async (req: Request, res: Response) => {
       req.body.images = [...(req.body.images || []), ...newImages];
     }
 
-    const place = await Place.findByIdAndUpdate(id, req.body, {
+    // Whitelist allowed fields for update
+    const updateData: any = {};
+    const allowedFields = [
+      'name', 'slug', 'district', 'category', 'description', 'image', 'images',
+      'location', 'latitude', 'longitude', 'tags', 'nearby', 'highlights',
+      'bestTimeToVisit', 'entryFee', 'openingHours', 'isUntold', 'untoldStory',
+      'priceLevel', 'status'
+    ];
+
+    Object.keys(req.body).forEach(key => {
+      if (allowedFields.includes(key)) {
+        updateData[key] = req.body[key];
+      }
+    });
+
+    const place = await Place.findByIdAndUpdate(id, updateData, {
       new: true,
       runValidators: true,
     });
@@ -339,6 +391,9 @@ export const deletePlace = async (req: Request, res: Response) => {
     if (!place) {
       return res.status(404).json({ success: false, message: "Place not found" });
     }
+
+    // Cascading delete reviews
+    await Review.deleteMany({ targetId: id, targetType: "place" });
 
     res.json({ success: true, message: "Place deleted successfully" });
   } catch (error: any) {

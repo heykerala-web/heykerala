@@ -13,11 +13,17 @@ interface MyPhoto {
     image: string;
     caption?: string;
     status: "pending" | "approved" | "rejected";
-    place: {
+    place?: {
         _id: string;
         name: string;
         district: string;
     };
+    event?: {
+        _id: string;
+        title: string;
+        district: string;
+    };
+    targetType?: "place" | "event";
     createdAt: string;
 }
 
@@ -98,28 +104,32 @@ export default function MyPhotos() {
                             <div className="aspect-[4/3] relative overflow-hidden">
                                 <img
                                     src={photo.image}
-                                    alt={photo.caption || photo.place?.name}
+                                    alt={photo.caption || photo.place?.name || photo.event?.title}
                                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
 
-                                <div className="absolute top-4 left-4">
+                                <div className="absolute top-4 left-4 flex flex-col gap-2">
                                     <Badge
                                         className={`backdrop-blur-md border border-white/10 shadow-lg font-bold uppercase tracking-widest text-[10px] ${photo.status === 'approved' ? 'bg-emerald-500/90 text-white' :
-                                                photo.status === 'rejected' ? 'bg-red-500/90 text-white' :
-                                                    'bg-amber-500/90 text-white'
+                                            photo.status === 'rejected' ? 'bg-red-500/90 text-white' :
+                                                'bg-amber-500/90 text-white'
                                             }`}
                                     >
                                         {photo.status === 'approved' && <CheckCircle2 className="w-3 h-3 mr-1" />}
                                         {photo.status === 'rejected' && <AlertCircle className="w-3 h-3 mr-1" />}
                                         {photo.status}
                                     </Badge>
+                                    <Badge variant="secondary" className="bg-white/20 backdrop-blur-md text-white border-white/10 text-[8px] uppercase tracking-tighter">
+                                        {photo.event ? "Event" : "Place"}
+                                    </Badge>
                                 </div>
 
                                 <div className="absolute bottom-4 left-4 right-4 text-white">
                                     <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-400 mb-1 uppercase tracking-wider">
-                                        <MapPin className="w-3 h-3" /> {photo.place?.name}
+                                        <MapPin className="w-3 h-3" /> {photo.place?.name || photo.event?.title}
                                     </div>
+                                    <div className="text-[10px] text-white/60 mb-2">{photo.place?.district || photo.event?.district}</div>
                                     {photo.caption ? (
                                         <p className="text-sm font-medium line-clamp-2 text-white/90">"{photo.caption}"</p>
                                     ) : (

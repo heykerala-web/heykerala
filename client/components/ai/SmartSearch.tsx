@@ -18,14 +18,26 @@ interface SearchResult {
     type: 'place' | 'stay' | 'event';
 }
 
-export function SmartSearch() {
-    const [query, setQuery] = React.useState("")
+interface SmartSearchProps {
+    defaultQuery?: string;
+}
+
+export function SmartSearch({ defaultQuery = "" }: SmartSearchProps) {
+    const [query, setQuery] = React.useState(defaultQuery)
     const [results, setResults] = React.useState<SearchResult[]>([])
     const [isLoading, setIsLoading] = React.useState(false)
     const [isOpen, setIsOpen] = React.useState(false)
     const [activeTab, setActiveTab] = React.useState<'all' | 'place' | 'stay' | 'event'>('all')
 
     const searchRef = React.useRef<HTMLDivElement>(null)
+
+    // Sync when parent changes defaultQuery
+    React.useEffect(() => {
+        if (defaultQuery) {
+            setQuery(defaultQuery)
+            setIsOpen(true)
+        }
+    }, [defaultQuery])
 
     React.useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {

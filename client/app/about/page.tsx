@@ -51,8 +51,8 @@ export default function AboutPage() {
       {/* Hero Banner */}
       <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white py-16 md:py-20">
         <div className="container mx-auto px-4 md:px-6 lg:px-10 max-w-7xl text-center">
-          <h1 className="font-poppins text-5xl md:text-6xl font-bold mb-6">About Hey Kerala</h1>
-          <p className="text-xl md:text-2xl opacity-90 max-w-3xl mx-auto">
+          <h1 className="font-poppins text-5xl md:text-6xl font-bold mb-6 text-white">About Hey Kerala</h1>
+          <p className="text-xl md:text-2xl opacity-90 max-w-3xl mx-auto text-white">
             Your friendly guide to God&apos;s Own Country. Discover the best of Kerala with curated destinations, events,
             and experiences.
           </p>

@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { getTourismImage } from "@/lib/images"
+import { getFullImageUrl } from "@/lib/images"
 
 const categories = [
   {
@@ -8,7 +8,7 @@ const categories = [
     href: "/explore/category/Hill Station",
     gradient: "from-primary/80 to-primary",
     count: "10+ places",
-    image: "https://images.unsplash.com/photo-1590510328503-903069695d38?auto=format&fit=crop&w=1200&q=80",
+    image: "/places/munnar-teagardens.jpg",
     icon: "🏔️",
   },
   {
@@ -17,7 +17,7 @@ const categories = [
     href: "/explore/category/Beach",
     gradient: "from-blue-500/80 to-blue-600",
     count: "15+ beaches",
-    image: "https://images.unsplash.com/photo-1590050811270-e322662c919d?auto=format&fit=crop&w=1200&q=80",
+    image: "/places/kovalambeach.webp",
     icon: "🏖️",
   },
   {
@@ -26,7 +26,7 @@ const categories = [
     href: "/explore/category/Backwaters",
     gradient: "from-primary/60 to-primary/90",
     count: "12+ spots",
-    image: "https://images.unsplash.com/photo-1602216056096-3c40cc0c9855?auto=format&fit=crop&w=1200&q=80",
+    image: "/places/alappuzhabackwaters.webp",
     icon: "🛶",
   },
   {
@@ -35,7 +35,7 @@ const categories = [
     href: "/explore/category/Waterfalls",
     gradient: "from-cyan-400 to-cyan-600",
     count: "30+ falls",
-    image: "https://images.unsplash.com/photo-1540555700478-4be289aefcf1?auto=format&fit=crop&w=1200&q=80",
+    image: "/places/athirappillywaterfalls.jpg",
     icon: "🌊",
   },
   {
@@ -44,7 +44,7 @@ const categories = [
     href: "/explore/category/Wildlife",
     gradient: "from-green-500 to-green-700",
     count: "18+ reserves",
-    image: "https://images.unsplash.com/photo-1581023779269-80517c80536c?auto=format&fit=crop&w=1200&q=80",
+    image: "/places/thekkadyperiyar.jpg",
     icon: "🐘",
   },
   {
@@ -53,7 +53,7 @@ const categories = [
     href: "/explore/category/Adventure",
     gradient: "from-orange-400 to-orange-600",
     count: "50+ activities",
-    image: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=80",
+    image: "/places/vagamon.webp",
     icon: "🧗",
   },
   {
@@ -62,7 +62,7 @@ const categories = [
     href: "/explore/category/History",
     gradient: "from-indigo-400 to-indigo-600",
     count: "5+ sites",
-    image: "https://images.unsplash.com/photo-1589310344464-9d1034446465?auto=format&fit=crop&w=1200&q=80",
+    image: "/places/edakkal-caves.webp",
     icon: "📜",
   },
   {
@@ -71,7 +71,7 @@ const categories = [
     href: "/explore/category/Heritage Site",
     gradient: "from-purple-400 to-purple-600",
     count: "8+ sites",
-    image: "https://images.unsplash.com/photo-1589921200632-132d75f2ee3f?auto=format&fit=crop&w=1200&q=80",
+    image: "/places/fort-koch.webp",
     icon: "🏛️",
   },
   {
@@ -80,7 +80,7 @@ const categories = [
     href: "/explore/category/Spirituality",
     gradient: "from-yellow-400 to-orange-500",
     count: "20+ temples",
-    image: "https://images.unsplash.com/photo-1590510328503-903069695d38?auto=format&fit=crop&w=1200&q=80",
+    image: "/places/padmanabhaswa.jpg",
     icon: "🛕",
   },
 ]
@@ -105,7 +105,7 @@ export function CategoryGrid() {
             {/* Background Image */}
             <div className="absolute inset-0 overflow-hidden">
               <img
-                src={category.image || getTourismImage(category.name, "Kerala tourism")}
+                src={getFullImageUrl(category.image, category.name, "Kerala tourism")}
                 alt={category.name}
                 loading="lazy"
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"

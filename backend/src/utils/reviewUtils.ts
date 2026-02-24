@@ -30,18 +30,20 @@ export const updateTargetRating = async (targetId: string, targetType: string) =
 
     if (stats.length > 0) {
         const { ratingAvg, ratingCount } = stats[0];
+        const roundedRating = parseFloat(ratingAvg.toFixed(1));
         await TargetModel.findByIdAndUpdate(targetId, {
-            ratingAvg: parseFloat(ratingAvg.toFixed(1)),
+            ratingAvg: roundedRating,
             ratingCount: ratingCount,
             ...(targetType === "place" ? { totalReviews: ratingCount } : {})
         });
-        return { ratingAvg, ratingCount };
+        return { ratingAvg: roundedRating, ratingCount };
     } else {
+        // Default to 5.0 if no reviews exist
         await TargetModel.findByIdAndUpdate(targetId, {
-            ratingAvg: 0,
+            ratingAvg: 5.0,
             ratingCount: 0,
             ...(targetType === "place" ? { totalReviews: 0 } : {})
         });
-        return { ratingAvg: 0, ratingCount: 0 };
+        return { ratingAvg: 5.0, ratingCount: 0 };
     }
 };

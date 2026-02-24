@@ -7,6 +7,8 @@ import useEmblaCarousel from "embla-carousel-react"
 import { API_URL, tokenManager } from "@/lib/api"
 import { useAuth } from "@/context/AuthContext"
 import { Button } from "@/components/ui/button"
+import { getFullImageUrl } from "@/lib/images"
+import { SafeImage } from "@/components/ui/SafeImage"
 
 interface Recommendation {
     _id: string;
@@ -68,6 +70,60 @@ export function RecommendedForYou() {
     }, []);
 
     const userPersona = (user as any)?.persona;
+
+    // Guest view: Show Login CTA instead of AI recommendations
+    if (!user) {
+        return (
+            <section className="py-12 md:py-20 bg-slate-50/50 dark:bg-slate-900/10 border-y border-dashed border-slate-200 dark:border-slate-800">
+                <div className="container mx-auto px-6 text-center">
+                    <div className="max-w-2xl mx-auto space-y-8 p-10 bg-white dark:bg-slate-900 rounded-[3rem] shadow-xl border border-slate-100 dark:border-slate-800">
+                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent/10 text-accent text-xs font-black uppercase tracking-widest">
+                            <Sparkles className="h-4 w-4" />
+                            AI Powered Travel
+                        </div>
+                        <div className="space-y-4">
+                            <h2 className="text-3xl md:text-5xl font-outfit font-black tracking-tight text-slate-900 dark:text-white">
+                                Unlock Your <span className="text-accent">Personalized</span> Kerala
+                            </h2>
+                            <p className="text-muted-foreground text-lg md:text-xl font-medium max-w-lg mx-auto leading-relaxed">
+                                Join HeyKerala today to get AI-powered destination suggestions based on your mood, the weather, and local trends!
+                            </p>
+                        </div>
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                            <Link href="/login">
+                                <Button
+                                    size="lg"
+                                    className="h-14 px-8 bg-accent hover:bg-accent/90 text-white rounded-2xl shadow-lg shadow-accent/20 transition-all hover:scale-105 font-bold text-lg"
+                                >
+                                    Log In to Explore
+                                </Button>
+                            </Link>
+                            <Link href="/register">
+                                <Button
+                                    variant="ghost"
+                                    size="lg"
+                                    className="h-14 px-8 rounded-2xl font-bold text-lg text-slate-600 dark:text-slate-400"
+                                >
+                                    Create Account
+                                </Button>
+                            </Link>
+                        </div>
+                        <div className="pt-4 flex items-center justify-center gap-6 text-slate-400">
+                            <div className="flex items-center gap-1.5">
+                                <Zap className="h-4 w-4 fill-current" />
+                                <span className="text-xs font-bold uppercase tracking-wider">Smart Suggestions</span>
+                            </div>
+                            <div className="w-1 h-1 rounded-full bg-slate-300" />
+                            <div className="flex items-center gap-1.5">
+                                <Star className="h-4 w-4 fill-current" />
+                                <span className="text-xs font-bold uppercase tracking-wider">Top Rated Finds</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        );
+    }
 
     if (!hasFetched && !loading) {
         return (
@@ -159,9 +215,11 @@ export function RecommendedForYou() {
                                     className="relative flex-[0_0_80%] md:flex-[0_0_350px] group cursor-pointer"
                                 >
                                     <div className="relative aspect-[4/5] rounded-3xl overflow-hidden shadow-md transition-all duration-500 group-hover:shadow-xl group-hover:-translate-y-1">
-                                        <img
-                                            src={item.image || (item.images && item.images[0]) || "/placeholder.svg"}
+                                        <SafeImage
+                                            src={getFullImageUrl(item.image, item.name, item.category)}
                                             alt={item.name}
+                                            fallbackName={item.name}
+                                            fallbackCategory={item.category}
                                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                                         />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />

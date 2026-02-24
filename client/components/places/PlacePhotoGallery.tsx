@@ -22,21 +22,31 @@ interface PlacePhoto {
 }
 
 interface PlacePhotoGalleryProps {
-    placeId: string;
-    placeName: string;
+    targetId: string;
+    targetName: string;
+    targetType?: "place" | "event";
+    externalPhotos?: PlacePhoto[];
+    onUpdate?: () => void;
 }
 
-export default function PlacePhotoGallery({ placeId, placeName }: PlacePhotoGalleryProps) {
+export default function PlacePhotoGallery({ targetId, targetName, targetType = "place", externalPhotos, onUpdate }: PlacePhotoGalleryProps) {
     const { user } = useAuth();
-    const [photos, setPhotos] = useState<PlacePhoto[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [internalPhotos, setInternalPhotos] = useState<PlacePhoto[]>([]);
+    const [loading, setLoading] = useState(!externalPhotos);
     const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
+    const photos = externalPhotos || internalPhotos;
+
     const fetchPhotos = async () => {
+        if (externalPhotos && onUpdate) {
+            onUpdate();
+            return;
+        }
+
         try {
-            const res = await api.get(`/place-photos/${placeId}`);
+            const res = await api.get(`/place-photos/${targetId}?type=${targetType}`);
             if (res.data.success) {
-                setPhotos(res.data.data);
+                setInternalPhotos(res.data.data);
             }
         } catch (error) {
             console.error("Failed to fetch photos", error);
@@ -46,8 +56,12 @@ export default function PlacePhotoGallery({ placeId, placeName }: PlacePhotoGall
     };
 
     useEffect(() => {
-        fetchPhotos();
-    }, [placeId]);
+        if (!externalPhotos) {
+            fetchPhotos();
+        } else {
+            setLoading(false);
+        }
+    }, [targetId, targetType, externalPhotos]);
 
     const openLightbox = (index: number) => {
         setLightboxIndex(index);
@@ -89,7 +103,7 @@ export default function PlacePhotoGallery({ placeId, placeName }: PlacePhotoGall
                     </p>
                 </div>
                 <div className="flex gap-3">
-                    <UploadPhotoModal placeId={placeId} placeName={placeName} onUploadSuccess={fetchPhotos} />
+                    <UploadPhotoModal targetId={targetId} targetName={targetName} targetType={targetType} onUploadSuccess={fetchPhotos} />
                 </div>
             </div>
 
@@ -102,7 +116,7 @@ export default function PlacePhotoGallery({ placeId, placeName }: PlacePhotoGall
                     <p className="text-gray-500 max-w-sm mx-auto mb-8">
                         This place is waiting to be discovered. Share your best shots and help others decide where to go.
                     </p>
-                    <UploadPhotoModal placeId={placeId} placeName={placeName} onUploadSuccess={fetchPhotos} />
+                    <UploadPhotoModal targetId={targetId} targetName={targetName} targetType={targetType} onUploadSuccess={fetchPhotos} />
                 </div>
             ) : (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

@@ -8,7 +8,18 @@ const bookingSchema = Joi.object({
   phone: Joi.string().required(),
   email: Joi.string().email().optional(),
   packageId: Joi.string().optional(),
-  date: Joi.date().required()
+  date: Joi.date().min('now').required() // Prevent past dates
+});
+
+const stayBookingSchema = Joi.object({
+  stayId: Joi.string().required(),
+  roomType: Joi.string().required(),
+  checkIn: Joi.date().min('now').required(),
+  checkOut: Joi.date().greater(Joi.ref('checkIn')).required(),
+  guests: Joi.object({
+    adults: Joi.number().min(1).default(1),
+    children: Joi.number().min(0).default(0)
+  }).required()
 });
 
 export const createBooking = async (
@@ -31,12 +42,13 @@ export const createBooking = async (
 
 export const createStayBooking = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // Basic validation could be added here
-    const { stayId, roomType, checkIn, checkOut, guests, userId } = req.body;
+    const userId = (req as any).user?._id;
+    if (!userId) return res.status(401).json({ message: "Not authorized" });
 
-    if (!stayId || !userId || !checkIn || !checkOut) {
-      return res.status(400).json({ message: "Missing required fields" });
-    }
+    const { error } = stayBookingSchema.validate(req.body);
+    if (error) return res.status(400).json({ message: error.details[0].message });
+
+    const { stayId, roomType, checkIn, checkOut, guests } = req.body;
 
     const booking = await Booking.create({
       userId,
@@ -45,7 +57,7 @@ export const createStayBooking = async (req: Request, res: Response, next: NextF
       checkIn,
       checkOut,
       guests,
-      status: 'pending' // Default status
+      status: 'pending'
     });
 
     res.status(201).json({ message: "Stay booking request sent", booking });
@@ -56,7 +68,14 @@ export const createStayBooking = async (req: Request, res: Response, next: NextF
 
 export const getUserBookings = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { userId } = req.params; // Or from req.user if using auth middleware
+    const { userId } = req.params;
+    const authUser = (req as any).user;
+
+    // Security check: Only allow user to see their own bookings unless admin
+    if (authUser.role !== 'Admin' && authUser._id.toString() !== userId) {
+      return res.status(403).json({ message: "Not authorized to view these bookings" });
+    }
+
     const bookings = await Booking.find({ userId: userId }).populate('stayId').populate('packageId');
     res.status(200).json(bookings);
   } catch (err) {

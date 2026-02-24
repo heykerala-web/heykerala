@@ -1,8 +1,10 @@
+import React from 'react';
 import Link from 'next/link';
-import { MapPin, Star } from 'lucide-react';
+import { MapPin, Star, Clock } from 'lucide-react';
 import { Place } from '@/services/placeService';
 import { Button } from '@/components/ui/button';
-import { getTourismImage } from '@/lib/images';
+import { getFullImageUrl } from '@/lib/images';
+import { SafeImage } from '@/components/ui/SafeImage';
 
 interface PlaceCardProps {
     place: Place;
@@ -17,9 +19,11 @@ const PlaceCard: React.FC<PlaceCardProps> = ({ place, viewMode = 'grid' }) => {
                 className="group bg-card rounded-[2rem] border border-border p-6 flex flex-col md:flex-row gap-8 hover:shadow-2xl transition-all duration-500 hover:-translate-y-1 overflow-hidden"
             >
                 <div className="relative w-full md:w-56 h-48 flex-shrink-0 overflow-hidden rounded-[1.5rem] shadow-inner">
-                    <img
-                        src={getTourismImage(place.name, place.category)}
+                    <SafeImage
+                        src={getFullImageUrl(place.image, place.name, place.category)}
                         alt={place.name}
+                        fallbackName={place.name}
+                        fallbackCategory={place.category}
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
                 </div>
@@ -33,6 +37,12 @@ const PlaceCard: React.FC<PlaceCardProps> = ({ place, viewMode = 'grid' }) => {
                                 <MapPin className="h-4 w-4 mr-1.5 text-primary" />
                                 {place.location}
                             </div>
+                            {place.openingHours && (
+                                <div className="flex items-center text-primary font-bold text-[10px] uppercase tracking-wider mt-2 bg-primary/5 px-3 py-1 rounded-full border border-primary/10 w-fit">
+                                    <Clock className="h-3 w-3 mr-1.5" />
+                                    {place.openingHours}
+                                </div>
+                            )}
                         </div>
                         <div className="flex items-center gap-1.5 bg-muted/80 backdrop-blur-md rounded-full px-4 py-2 border border-border shadow-sm">
                             <Star className="h-4 w-4 text-accent fill-accent" />
@@ -62,9 +72,11 @@ const PlaceCard: React.FC<PlaceCardProps> = ({ place, viewMode = 'grid' }) => {
             className="group bg-card rounded-[2rem] border border-border overflow-hidden hover:shadow-2xl transition-all duration-700 transform hover:-translate-y-2 h-full flex flex-col shadow-sm"
         >
             <div className="relative overflow-hidden h-48 sm:h-56">
-                <img
-                    src={getTourismImage(place.name, place.category)}
+                <SafeImage
+                    src={getFullImageUrl(place.image, place.name, place.category)}
                     alt={place.name}
+                    fallbackName={place.name}
+                    fallbackCategory={place.category}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
@@ -78,13 +90,19 @@ const PlaceCard: React.FC<PlaceCardProps> = ({ place, viewMode = 'grid' }) => {
                     </span>
                 </div>
                 <div className="absolute bottom-4 left-6 right-6 text-white overflow-hidden">
-                    <h3 className="font-outfit font-bold text-2xl leading-tight mb-1 drop-shadow-md group-hover:text-accent transition-colors">
+                    <h3 className="font-outfit font-bold text-2xl leading-tight mb-1 drop-shadow-md text-white group-hover:text-accent transition-colors">
                         {place.name}
                     </h3>
                     <div className="flex items-center text-white/90 text-xs font-bold uppercase tracking-widest">
                         <MapPin className="h-3.5 w-3.5 mr-1.5 text-accent" />
                         {place.location}
                     </div>
+                    {place.openingHours && (
+                        <div className="flex items-center text-accent font-bold text-[10px] uppercase tracking-wider mt-2 drop-shadow-md">
+                            <Clock className="h-3 w-3 mr-1.5" />
+                            {place.openingHours}
+                        </div>
+                    )}
                 </div>
             </div>
             <div className="p-8 flex-1 flex flex-col">

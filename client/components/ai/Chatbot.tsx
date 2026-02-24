@@ -32,19 +32,20 @@ function TypewriterText({ text, onComplete }: { text: string; onComplete?: () =>
     }, [currentIndex, text, onComplete])
 
     return (
-        <ReactMarkdown
-            className="markdown-content"
-            components={{
-                p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                ul: ({ children }) => <ul className="list-disc ml-4 mb-2">{children}</ul>,
-                ol: ({ children }) => <ol className="list-decimal ml-4 mb-2">{children}</ol>,
-                li: ({ children }) => <li className="mb-1">{children}</li>,
-                h3: ({ children }) => <h3 className="font-bold text-base mb-1">{children}</h3>,
-                strong: ({ children }) => <strong className="font-bold text-accent dark:text-accent/90">{children}</strong>,
-            }}
-        >
-            {displayedText}
-        </ReactMarkdown>
+        <div className="markdown-content">
+            <ReactMarkdown
+                components={{
+                    p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                    ul: ({ children }) => <ul className="list-disc ml-4 mb-2">{children}</ul>,
+                    ol: ({ children }) => <ol className="list-decimal ml-4 mb-2">{children}</ol>,
+                    li: ({ children }) => <li className="mb-1">{children}</li>,
+                    h3: ({ children }) => <h3 className="font-bold text-base mb-1">{children}</h3>,
+                    strong: ({ children }) => <strong className="font-bold text-accent dark:text-accent/90">{children}</strong>,
+                }}
+            >
+                {displayedText}
+            </ReactMarkdown>
+        </div>
     )
 }
 
@@ -198,19 +199,20 @@ export function Chatbot() {
                                     {msg.role === "model" && msg.isNew ? (
                                         <TypewriterText text={msg.parts[0].text} onComplete={scrollToBottom} />
                                     ) : msg.role === "model" ? (
-                                        <ReactMarkdown
-                                            className="markdown-content"
-                                            components={{
-                                                p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                                                ul: ({ children }) => <ul className="list-disc ml-4 mb-2">{children}</ul>,
-                                                ol: ({ children }) => <ol className="list-decimal ml-4 mb-2">{children}</ol>,
-                                                li: ({ children }) => <li className="mb-1">{children}</li>,
-                                                h3: ({ children }) => <h3 className="font-bold text-base mb-1">{children}</h3>,
-                                                strong: ({ children }) => <strong className="font-bold text-accent dark:text-accent/90">{children}</strong>,
-                                            }}
-                                        >
-                                            {msg.parts[0].text}
-                                        </ReactMarkdown>
+                                        <div className="markdown-content">
+                                            <ReactMarkdown
+                                                components={{
+                                                    p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                                                    ul: ({ children }) => <ul className="list-disc ml-4 mb-2">{children}</ul>,
+                                                    ol: ({ children }) => <ol className="list-decimal ml-4 mb-2">{children} </ol>,
+                                                    li: ({ children }) => <li className="mb-1">{children}</li>,
+                                                    h3: ({ children }) => <h3 className="font-bold text-base mb-1">{children}</h3>,
+                                                    strong: ({ children }) => <strong className="font-bold text-accent dark:text-accent/90">{children}</strong>,
+                                                }}
+                                            >
+                                                {msg.parts[0].text}
+                                            </ReactMarkdown>
+                                        </div>
                                     ) : (
                                         msg.parts[0].text
                                     )}

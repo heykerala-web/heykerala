@@ -85,8 +85,8 @@ const SearchContent = () => {
       {/* Hero Banner */}
       <div className="bg-primary text-white py-20 relative overflow-hidden">
         <div className="relative container mx-auto px-6 max-w-7xl z-10">
-          <h1 className="font-outfit text-4xl md:text-6xl font-bold mb-4 tracking-tight">Search Kerala</h1>
-          <p className="text-lg md:text-xl opacity-80 max-w-2xl font-inter font-light">
+          <h1 className="font-outfit text-4xl md:text-6xl font-bold mb-4 tracking-tight text-white">Search Kerala</h1>
+          <p className="text-lg md:text-xl opacity-80 max-w-2xl font-inter font-light text-white">
             Find places, hotels, events, and experiences across God&apos;s Own Country
           </p>
         </div>

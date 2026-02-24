@@ -86,7 +86,7 @@ export default function ReviewForm({
     };
 
     return (
-        <div className={`bg-white ${isEditing ? "" : "p-8 rounded-[2rem] shadow-xl border border-gray-100 mb-12"}`}>
+        <div className={`bg-white ${isEditing ? "" : "p-10 rounded-[2.5rem] shadow-xl border border-gray-100 mb-12"}`}>
             <div className="flex justify-between items-center mb-6">
                 <h3 className="text-2xl font-black text-gray-900">
                     {isEditing ? "Edit Your Review" : `Share Your Experience`}
@@ -98,9 +98,9 @@ export default function ReviewForm({
                 )}
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-8">
                 {/* Star Rating */}
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-4">
                     <label className="text-sm font-bold text-gray-500 uppercase tracking-widest">How would you rate it?</label>
                     <div className="flex gap-2">
                         {[1, 2, 3, 4, 5].map((star) => (

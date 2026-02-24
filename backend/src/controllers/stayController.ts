@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import mongoose from 'mongoose';
 import Stay from '../models/Stay';
+import Review from '../models/Review';
 
 // Add new stay
 export const addStay = async (req: Request, res: Response, next: NextFunction) => {
@@ -8,9 +9,11 @@ export const addStay = async (req: Request, res: Response, next: NextFunction) =
         const user = (req as any).user;
         const role = user?.role;
 
-        const stayData = {
-            ...req.body,
-            status: role === 'Admin' ? 'approved' : 'pending', // Admins auto-approve
+        const { name, type, description, district, latitude, longitude, images, price, amenities } = req.body;
+
+        const stayData: any = {
+            name, type, description, district, latitude, longitude, images, price, amenities,
+            status: role === 'Admin' ? 'approved' : 'pending',
             createdBy: user?._id
         };
 
@@ -28,8 +31,10 @@ export const addStay = async (req: Request, res: Response, next: NextFunction) =
 export const submitStay = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const userId = (req as any).user._id;
+        const { name, type, description, district, latitude, longitude, images, price, amenities } = req.body;
+
         const stay = await Stay.create({
-            ...req.body,
+            name, type, description, district, latitude, longitude, images, price, amenities,
             status: 'pending',
             createdBy: userId
         });
@@ -138,7 +143,17 @@ export const updateStay = async (req: Request, res: Response, next: NextFunction
             });
         }
 
-        const stay = await Stay.findByIdAndUpdate(id, req.body, { new: true });
+        // Whitelist
+        const updateData: any = {};
+        const allowedFields = ['name', 'type', 'description', 'district', 'latitude', 'longitude', 'images', 'price', 'amenities', 'status'];
+
+        Object.keys(req.body).forEach(key => {
+            if (allowedFields.includes(key)) {
+                updateData[key] = req.body[key];
+            }
+        });
+
+        const stay = await Stay.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
         if (!stay) {
             return res.status(404).json({
                 success: false,
@@ -173,6 +188,9 @@ export const deleteStay = async (req: Request, res: Response, next: NextFunction
                 message: 'Stay not found'
             });
         }
+
+        // Cascading delete reviews
+        await Review.deleteMany({ targetId: id, targetType: "stay" });
         res.status(200).json({
             success: true,
             message: 'Stay deleted successfully'

@@ -3,38 +3,31 @@
 import { useState } from "react";
 import { Grid, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getTourismImage } from "@/lib/images";
 
 interface PlaceGalleryProps {
     images: string[];
     name: string;
 }
 
+const BASE_URL = "http://localhost:5000";
+
+/** Returns a full URL only for real uploaded images. Returns null for anything else. */
+function getUploadedImageUrl(img: string | null | undefined): string | null {
+    if (!img) return null;
+    if (img.startsWith("http://") || img.startsWith("https://")) return img;
+    if (img.startsWith("/uploads/")) return `${BASE_URL}${img}`;
+    // Ignore AI/external placeholders (unsplash, picsum, etc.)
+    return null;
+}
+
 export default function PlaceGallery({ images, name }: PlaceGalleryProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [currentIndex, setCurrentIndex] = useState(0);
 
-    // Use up to 5 images for the grid
-    const displayImages = images.slice(0, 5);
-
-    // Fill with AI generated images if less than 5 images
-    // We use a deterministic seed based on the index to ensure unique but stable images
-    while (displayImages.length < 5) {
-        const seedOffset = displayImages.length + 1;
-        // We pass a seedOverride constructed from a simple hash or just a number if we want
-        // But getTourismImage's seedOverride takes a number.
-        // Let's just pass a large number modification to the default hash, or use a pseudo-random stable number.
-        // The getTourismImage uses the name to generate a base hash if no seed is provided.
-        // If we want *different* images for the same place, we MUST provide a seed.
-        // We can generate a base seed from the name, then add the index.
-
-        // Let's simple pass a number based on the name length + index
-        // Actually, let's use the helper we just wrote by importing the hash function? No, it's not exported.
-        // We can just pass a random-looking but stable number.
-        // Let's use name.charCodeAt(0) + index * 1000
-        const baseSeed = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-        displayImages.push(getTourismImage(name, "tourism", 800, 600, baseSeed + displayImages.length * 123));
-    }
+    // Only keep real uploaded images
+    const validImages = (images || [])
+        .map(getUploadedImageUrl)
+        .filter((url): url is string => url !== null);
 
     const openLightbox = (index: number) => {
         setCurrentIndex(index);
@@ -47,8 +40,19 @@ export default function PlaceGallery({ images, name }: PlaceGalleryProps) {
         document.body.style.overflow = "auto";
     };
 
-    const nextImage = () => setCurrentIndex((prev) => (prev + 1) % images.length);
-    const prevImage = () => setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+    const nextImage = () => setCurrentIndex((prev) => (prev + 1) % validImages.length);
+    const prevImage = () => setCurrentIndex((prev) => (prev - 1 + validImages.length) % validImages.length);
+
+    if (validImages.length === 0) {
+        return (
+            <div className="flex items-center justify-center h-64 rounded-3xl bg-gray-100 border-2 border-dashed border-gray-200">
+                <p className="text-gray-400 font-medium text-sm uppercase tracking-widest">No photos uploaded yet</p>
+            </div>
+        );
+    }
+
+    // Limit grid display to 5 images
+    const displayImages = validImages.slice(0, 5);
 
     return (
         <div className="relative group">
@@ -66,7 +70,7 @@ export default function PlaceGallery({ images, name }: PlaceGalleryProps) {
                     />
                 </div>
 
-                {/* 4 Smaller images */}
+                {/* Up to 4 smaller images */}
                 {displayImages.slice(1).map((img, idx) => (
                     <div
                         key={idx}
@@ -81,45 +85,51 @@ export default function PlaceGallery({ images, name }: PlaceGalleryProps) {
                     </div>
                 ))}
 
-                <Button
-                    onClick={() => openLightbox(0)}
-                    className="absolute bottom-6 right-6 bg-white/90 hover:bg-white text-black font-semibold rounded-xl border-none shadow-xl flex gap-2 py-6 px-6 backdrop-blur-md"
-                >
-                    <Grid className="h-5 w-5" />
-                    Show all photos
-                </Button>
+                {validImages.length > 1 && (
+                    <Button
+                        onClick={() => openLightbox(0)}
+                        className="absolute bottom-6 right-6 bg-white/90 hover:bg-white text-black font-semibold rounded-xl border-none shadow-xl flex gap-2 py-6 px-6 backdrop-blur-md"
+                    >
+                        <Grid className="h-5 w-5" />
+                        Show all photos
+                    </Button>
+                )}
             </div>
 
             {/* Lightbox Modal */}
             {isOpen && (
                 <div className="fixed inset-0 z-[100] bg-black/95 flex flex-col backdrop-blur-sm animate-in fade-in duration-300">
                     <div className="flex justify-between items-center p-6 text-white">
-                        <span className="font-medium">{currentIndex + 1} / {images.length}</span>
+                        <span className="font-medium">{currentIndex + 1} / {validImages.length}</span>
                         <button onClick={closeLightbox} className="p-3 hover:bg-white/10 rounded-full transition-colors">
                             <X className="h-8 w-8" />
                         </button>
                     </div>
 
                     <div className="flex-1 relative flex items-center justify-center p-4 md:p-12">
-                        <button
-                            onClick={prevImage}
-                            className="absolute left-4 md:left-8 p-4 hover:bg-white/10 rounded-full text-white transition-all hover:scale-110"
-                        >
-                            <ChevronLeft className="h-10 w-10" />
-                        </button>
+                        {validImages.length > 1 && (
+                            <button
+                                onClick={prevImage}
+                                className="absolute left-4 md:left-8 p-4 hover:bg-white/10 rounded-full text-white transition-all hover:scale-110"
+                            >
+                                <ChevronLeft className="h-10 w-10" />
+                            </button>
+                        )}
 
                         <img
-                            src={images[currentIndex]}
+                            src={validImages[currentIndex]}
                             alt={`${name} gallery`}
                             className="max-w-full max-h-full object-contain shadow-2xl rounded-lg"
                         />
 
-                        <button
-                            onClick={nextImage}
-                            className="absolute right-4 md:right-8 p-4 hover:bg-white/10 rounded-full text-white transition-all hover:scale-110"
-                        >
-                            <ChevronRight className="h-10 w-10" />
-                        </button>
+                        {validImages.length > 1 && (
+                            <button
+                                onClick={nextImage}
+                                className="absolute right-4 md:right-8 p-4 hover:bg-white/10 rounded-full text-white transition-all hover:scale-110"
+                            >
+                                <ChevronRight className="h-10 w-10" />
+                            </button>
+                        )}
                     </div>
 
                     <div className="p-8 text-center text-white/60 text-sm font-medium">

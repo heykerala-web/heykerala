@@ -15,13 +15,9 @@ const samplePlaces = [
         location: "Munnar, Idukki",
         category: "Hill Station",
         description: "Explore the vast, rolling green hills of Munnar, carpeted with lush tea plantations. A haven for nature lovers and photographers.",
-        image: "https://images.unsplash.com/photo-1593693397690-362cb9666fc2?auto=format&fit=crop&w=1200&q=80",
+        image: "/places/munnar-teagardens.jpg",
         images: [
-            "https://images.unsplash.com/photo-1593693397690-362cb9666fc2?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1540555700478-4be289aefcf1?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1590510328503-903069695d38?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1516738901171-8eb4fc13bd20?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1506461883276-594a12b11cf3?auto=format&fit=crop&w=1200&q=80"
+            "/places/munnar-teagardens.jpg"
         ],
         latitude: 10.0889,
         longitude: 77.0595,
@@ -38,13 +34,9 @@ const samplePlaces = [
         location: "Alappuzha",
         category: "Backwaters",
         description: "Experience the ultimate Kerala experience in a traditional houseboat cruising through the scenic canals and lagoons of Alleppey.",
-        image: "https://images.unsplash.com/photo-1602216056096-3c40cc0c9855?auto=format&fit=crop&w=1200&q=80",
+        image: "/places/alappuzhabackwaters.webp",
         images: [
-            "https://images.unsplash.com/photo-1602216056096-3c40cc0c9855?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1593181629936-11c609b8db9b?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1582234032338-34824874d6c7?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1591524311091-db801b7c4d8d?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1593181629936-11c609b8db9b?auto=format&fit=crop&w=1200&q=80"
+            "/places/alappuzhabackwaters.webp"
         ],
         latitude: 9.4981,
         longitude: 76.3388,
@@ -61,13 +53,9 @@ const samplePlaces = [
         location: "Varkala",
         category: "Beach",
         description: "Varkala's dramatic red cliffs overlooking the Arabian Sea offer breathtaking views and a unique beach experience.",
-        image: "https://images.unsplash.com/photo-1590050811270-e322662c919d?auto=format&fit=crop&w=1200&q=80",
+        image: "/places/varkala-clif.jpg",
         images: [
-            "https://images.unsplash.com/photo-1590050811270-e322662c919d?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1626297394991-38914c8106d4?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1589710385573-3f8d22941914?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1589710385573-3f8d22941914?auto=format&fit=crop&w=1200&q=80"
+            "/places/varkala-clif.jpg"
         ],
         latitude: 8.7379,
         longitude: 76.7163,
@@ -84,13 +72,9 @@ const samplePlaces = [
         location: "Athirappilly",
         category: "Waterfalls",
         description: "Often called the Niagra of India, Athirappilly is the largest waterfall in Kerala, surrounded by dense tropical forests.",
-        image: "https://images.unsplash.com/photo-1597735881932-d9664c9bbcea?auto=format&fit=crop&w=1200&q=80",
+        image: "/places/athirappillywaterfalls.jpg",
         images: [
-            "https://images.unsplash.com/photo-1597735881932-d9664c9bbcea?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1540321262939-2f22fa10ce85?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1582234032338-34824874d6c7?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1579227114347-15d08fc37cae?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1590510328503-903069695d38?auto=format&fit=crop&w=1200&q=80"
+            "/places/athirappillywaterfalls.jpg"
         ],
         latitude: 10.2851,
         longitude: 76.5698,
@@ -107,13 +91,9 @@ const samplePlaces = [
         location: "Ambalavayal",
         category: "History",
         description: "Prehistoric caves featuring ancient rock carvings dating back to the Neolithic era. A trek to the top offers panoramic views.",
-        image: "https://images.unsplash.com/photo-1589310344464-9d1034446465?auto=format&fit=crop&w=1200&q=80",
+        image: "/places/edakkal-caves.webp",
         images: [
-            "https://images.unsplash.com/photo-1589310344464-9d1034446465?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1516738901171-8eb4fc13bd20?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1590510328503-903069695d38?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1540555700478-4be289aefcf1?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1516738901171-8eb4fc13bd20?auto=format&fit=crop&w=1200&q=80"
+            "/places/edakkal-caves.webp"
         ],
         latitude: 11.6322,
         longitude: 76.2366,
@@ -130,13 +110,9 @@ const samplePlaces = [
         location: "Kochi",
         category: "Heritage Site",
         description: "A blend of Dutch, Portuguese, and British colonial history. Explore art galleries, cafes, and the famous Chinese fishing nets.",
-        image: "https://images.unsplash.com/photo-1582234032338-34824874d6c7?auto=format&fit=crop&w=1200&q=80",
+        image: "/places/fort-koch.webp",
         images: [
-            "https://images.unsplash.com/photo-1582234032338-34824874d6c7?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1589921200632-132d75f2ee3f?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1593444209167-1738817ca4b5?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1591524311091-db801b7c4d8d?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1589921200632-132d75f2ee3f?auto=format&fit=crop&w=1200&q=80"
+            "/places/fort-koch.webp"
         ],
         latitude: 9.9656,
         longitude: 76.2421,
@@ -153,13 +129,9 @@ const samplePlaces = [
         location: "Thekkady",
         category: "Wildlife",
         description: "One of the finest wildlife reserves in India. Spot elephants, bison, and exotic birds in their natural habitat during a boat safari.",
-        image: "https://images.unsplash.com/photo-1581023779269-80517c80536c?auto=format&fit=crop&w=1200&q=80",
+        image: "/places/thekkadyperiyar.jpg",
         images: [
-            "https://images.unsplash.com/photo-1581023779269-80517c80536c?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1540555700478-4be289aefcf1?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1516233758813-a38d024919c5?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1516233758813-a38d024919c5?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1581023779269-80517c80536c?auto=format&fit=crop&w=1200&q=80"
+            "/places/thekkadyperiyar.jpg"
         ],
         latitude: 9.6031,
         longitude: 77.1615,
@@ -176,13 +148,9 @@ const samplePlaces = [
         location: "Kovalam",
         category: "Beach",
         description: "Kerala's most famous beach destination with its iconic red-and-white lighthouse and crescent-shaped coastline.",
-        image: "https://images.unsplash.com/photo-1626297394991-38914c8106d4?auto=format&fit=crop&w=1200&q=80",
+        image: "/places/kovalambeach.webp",
         images: [
-            "https://images.unsplash.com/photo-1626297394991-38914c8106d4?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1589710385573-3f8d22941914?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1589710385573-3f8d22941914?auto=format&fit=crop&w=1200&q=80"
+            "/places/kovalambeach.webp"
         ],
         latitude: 8.4004,
         longitude: 76.9787,
@@ -199,13 +167,9 @@ const samplePlaces = [
         location: "Chadayamangalam",
         category: "Heritage Site",
         description: "The world's largest bird sculpture, Jatayu is a rock-themed park promoting mythology, adventure, and eco-tourism.",
-        image: "https://images.unsplash.com/photo-1582234032338-34824874d6c7?auto=format&fit=crop&w=1200&q=80",
+        image: "/places/jatayu-earthcenter.jpg",
         images: [
-            "https://images.unsplash.com/photo-1582234032338-34824874d6c7?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1610427920789-514ca68c67c7?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1579227114347-15d08fc37cae?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1582234032338-34824874d6c7?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1610427920789-514ca68c67c7?auto=format&fit=crop&w=1200&q=80"
+            "/places/jatayu-earthcenter.jpg"
         ],
         latitude: 8.8684,
         longitude: 76.8684,
@@ -222,13 +186,9 @@ const samplePlaces = [
         location: "Wagamon",
         category: "Hill Station",
         description: "A sleepy town with rolling meadows, pine forests, and mystical fogs. Perfect for paragliding and quiet retreats.",
-        image: "https://images.unsplash.com/photo-1540555700478-4be289aefcf1?auto=format&fit=crop&w=1200&q=80",
+        image: "/places/vagamon.webp",
         images: [
-            "https://images.unsplash.com/photo-1540555700478-4be289aefcf1?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1596522354195-e84ae3c98731?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1590510328503-903069695d38?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1596522354195-e84ae3c98731?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1540555700478-4be289aefcf1?auto=format&fit=crop&w=1200&q=80"
+            "/places/vagamon.webp"
         ],
         latitude: 9.6917,
         longitude: 76.9067,
@@ -249,11 +209,7 @@ const sampleStays = [
         latitude: 10.0889,
         longitude: 77.0595,
         images: [
-            "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80"
+            "/stay/green-gates-hotel.jpg"
         ],
         price: 8500,
         amenities: ["Pool", "Spa", "Gym", "Restaurant", "WiFi"],
@@ -268,11 +224,7 @@ const sampleStays = [
         latitude: 9.4981,
         longitude: 76.3388,
         images: [
-            "https://images.unsplash.com/photo-1593181629936-11c609b8db9b?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1602216056096-3c40cc0c9855?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1591524311091-db801b7c4d8d?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1582234032338-34824874d6c7?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1593181629936-11c609b8db9b?auto=format&fit=crop&w=1200&q=80"
+            "/stay/spice-coasthouseboats.jpg"
         ],
         price: 12000,
         amenities: ["Traditional Meals", "Private Deck", "A/C", "Guide"],
@@ -287,11 +239,7 @@ const sampleStays = [
         latitude: 9.9656,
         longitude: 76.2421,
         images: [
-            "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1589921200632-132d75f2ee3f?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1593444209167-1738817ca4b5?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1589921200632-132d75f2ee3f?auto=format&fit=crop&w=1200&q=80"
+            "/stay/the-terracecafe.jpg"
         ],
         price: 1200,
         amenities: ["Cafe", "Common Area", "Laundry", "WiFi"],
@@ -306,11 +254,7 @@ const sampleStays = [
         latitude: 9.9894,
         longitude: 76.2673,
         images: [
-            "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80"
+            "/stay/zostel-kochi.jpg"
         ],
         price: 15000,
         amenities: ["Helipad", "Spa", "Infinity Pool", "Fine Dining"],
@@ -344,11 +288,7 @@ const sampleStays = [
         latitude: 8.4004,
         longitude: 76.9787,
         images: [
-            "https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1551218808-94e220e084d2?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=1200&q=80"
+            "/stay/elixir-hillsresort.jpg"
         ],
         price: 800,
         amenities: ["Outdoor Seating", "Live Music", "Free WiFi"],
@@ -382,11 +322,7 @@ const sampleStays = [
         latitude: 9.6176,
         longitude: 76.4301,
         images: [
-            "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80"
+            "/stay/beach-safarihomestay.jpg"
         ],
         price: 18000,
         amenities: ["Ayurveda", "Boat Rides", "Heritage Rooms"],
@@ -420,11 +356,7 @@ const sampleStays = [
         latitude: 9.9656,
         longitude: 76.2421,
         images: [
-            "https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1551218808-94e220e084d2?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1551218808-94e220e084d2?auto=format&fit=crop&w=1200&q=80"
+            "/stay/the-rice-boat.jpg"
         ],
         price: 3500,
         amenities: ["Fine Dining", "Waterfront View", "Wine Menu"],
@@ -444,11 +376,7 @@ const sampleEvents = [
         endDate: new Date("2026-04-27"),
         time: "Whole Day",
         images: [
-            "https://images.unsplash.com/photo-1582234032338-34824874d6c7?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1579227114347-15d08fc37cae?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1590510328503-903069695d38?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1582234032338-34824874d6c7?auto=format&fit=crop&w=1200&q=80"
+            "/events/thrissurpooram.webp"
         ],
         status: "approved"
     },
@@ -462,11 +390,7 @@ const sampleEvents = [
         endDate: new Date("2026-08-08"),
         time: "2:00 PM - 5:00 PM",
         images: [
-            "https://images.unsplash.com/photo-1626297394991-38914c8106d4?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1602216056096-3c40cc0c9855?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1593181629936-11c609b8db9b?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1626297394991-38914c8106d4?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1602216056096-3c40cc0c9855?auto=format&fit=crop&w=1200&q=80"
+            "/events/nehru-trophyboat-race.jpg"
         ],
         status: "approved"
     },
@@ -480,11 +404,7 @@ const sampleEvents = [
         endDate: new Date("2027-04-10"),
         time: "10:00 AM - 6:00 PM",
         images: [
-            "https://images.unsplash.com/photo-1563089145-599997674d42?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1589921200632-132d75f2ee3f?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1593444209167-1738817ca4b5?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1563089145-599997674d42?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1589921200632-132d75f2ee3f?auto=format&fit=crop&w=1200&q=80"
+            "/events/fort-kochi-artsfest.jpg"
         ],
         status: "approved"
     },
@@ -497,7 +417,7 @@ const sampleEvents = [
         startDate: new Date("2026-08-25"),
         endDate: new Date("2026-09-02"),
         time: "Various Times",
-        images: ["https://images.unsplash.com/photo-1582234032338-34824874d6c7?auto=format&fit=crop&w=1200&q=80"],
+        images: ["/events/onam-festiva.jpg"],
         status: "approved"
     },
     {
@@ -509,7 +429,7 @@ const sampleEvents = [
         startDate: new Date("2026-02-15"),
         endDate: new Date("2026-02-15"),
         time: "6:00 PM - 7:30 PM",
-        images: ["https://images.unsplash.com/photo-1582234032338-34824874d6c7?auto=format&fit=crop&w=1200&q=80"],
+        images: ["/events/kalaripayattunigh.jpg"],
         status: "approved"
     },
     {
@@ -522,11 +442,7 @@ const sampleEvents = [
         endDate: new Date("2026-03-15"),
         time: "4:00 PM - 10:00 PM",
         images: [
-            "https://images.unsplash.com/photo-1555126634-323283e090fa?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1589710385573-3f8d22941914?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1591524311091-db801b7c4d8d?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1555126634-323283e090fa?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1589710385573-3f8d22941914?auto=format&fit=crop&w=1200&q=80"
+            "/stay/paragonrestaurant.jpg"
         ],
         status: "approved"
     },
@@ -539,7 +455,7 @@ const sampleEvents = [
         startDate: new Date("2026-01-30"),
         endDate: new Date("2026-01-30"),
         time: "5:00 PM - 10:00 PM",
-        images: ["https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&w=1200&q=80"],
+        images: ["/events/music-on-thebeach.webp"],
         status: "approved"
     },
     {
@@ -552,11 +468,7 @@ const sampleEvents = [
         endDate: new Date("2026-02-10"),
         time: "9:00 AM - 1:00 PM",
         images: [
-            "https://images.unsplash.com/photo-1590510328503-903069695d38?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1540555700478-4be289aefcf1?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1593693397690-362cb9666fc2?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1516738901171-8eb4fc13bd20?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1590510328503-903069695d38?auto=format&fit=crop&w=1200&q=80"
+            "/events/spice-plantationtou.jpeg"
         ],
         status: "approved"
     },
@@ -570,11 +482,7 @@ const sampleEvents = [
         endDate: new Date("2026-03-20"),
         time: "7:00 PM - 11:00 PM",
         images: [
-            "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1514525253341-b01a8157756e?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&w=1200&q=80"
+            "/events/sufi-musicnight.jpg"
         ],
         status: "approved"
     },
@@ -588,11 +496,7 @@ const sampleEvents = [
         endDate: new Date("2026-01-25"),
         time: "9:00 AM - 6:00 PM",
         images: [
-            "https://images.unsplash.com/photo-1593693397690-362cb9666fc2?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1540555700478-4be289aefcf1?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1590510328503-903069695d38?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1593693397690-362cb9666fc2?auto=format&fit=crop&w=1200&q=80",
-            "https://images.unsplash.com/photo-1540555700478-4be289aefcf1?auto=format&fit=crop&w=1200&q=80"
+            "/events/munnar-flowershow..avif"
         ],
         status: "approved"
     }

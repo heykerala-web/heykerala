@@ -6,10 +6,12 @@ import { MessageSquare, X, Send, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { useAuth } from "@/context/AuthContext"
 
 import { API_URL } from "@/lib/api"
 
 export function ChatDock() {
+  const { user } = useAuth()
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState<{ id: string; role: "assistant" | "user"; content: string }[]>([
     {
@@ -102,6 +104,8 @@ export function ChatDock() {
       setIsLoading(false)
     }
   }
+
+  if (!user) return null
 
   return (
     <>

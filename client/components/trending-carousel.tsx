@@ -10,7 +10,7 @@ const trendingPlaces = [
     {
         id: "wayanad-hills",
         title: "Wayanad Hills",
-        image: "https://images.unsplash.com/photo-1516569422553-07fce0b03d5e",
+        image: "/places/wayanadrainforest.jpg",
         rating: 4.9,
         reviews: 128,
         category: "Hill Station",
@@ -19,7 +19,7 @@ const trendingPlaces = [
     {
         id: "varkala-cliff",
         title: "Varkala Cliff",
-        image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
+        image: "/places/varkala-clif.jpg",
         rating: 4.8,
         reviews: 245,
         category: "Beach",
@@ -28,7 +28,7 @@ const trendingPlaces = [
     {
         id: "alleppey-backwaters",
         title: "Alleppey Houseboats",
-        image: "https://c.ndtvimg.com/2025-08/tv011i6g_kerala-backwaters_625x300_18_August_25.jpeg?im=FeatureCrop,algorithm=dnn,width=1200,height=738",
+        image: "/places/alappuzhabackwaters.webp",
         rating: 4.9,
         reviews: 350,
         category: "Backwaters",
@@ -37,7 +37,7 @@ const trendingPlaces = [
     {
         id: "munnar-tea",
         title: "Munnar Tea Gardens",
-        image: "https://upload.wikimedia.org/wikipedia/commons/6/67/DR0069DSC_9221.jpg",
+        image: "/places/munnar-teagardens.jpg",
         rating: 5.0,
         reviews: 412,
         category: "Hill Station",
@@ -46,7 +46,7 @@ const trendingPlaces = [
     {
         id: "bekal-fort",
         title: "Bekal Fort",
-        image: "https://upload.wikimedia.org/wikipedia/commons/f/f2/St.Angelos_Fort_Kannur.jpg",
+        image: "/places/bekal-fort..jpg",
         rating: 4.7,
         reviews: 98,
         category: "Heritage",

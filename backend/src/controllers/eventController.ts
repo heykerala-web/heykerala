@@ -1,11 +1,23 @@
 import { Request, Response, NextFunction } from 'express';
 import mongoose from 'mongoose';
 import Event from '../models/Event';
+import Review from '../models/Review';
 
 // Add new event (Admin)
 export const addEvent = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const event = await Event.create({ ...req.body, status: 'approved' });
+        const { title, description, category, district, venue, startDate, endDate, time, images, latitude, longitude } = req.body;
+
+        if (!title || !startDate || !endDate) {
+            return res.status(400).json({ success: false, message: "Missing required fields" });
+        }
+
+        const event = await Event.create({
+            title, description, category, district, venue,
+            startDate, endDate, time, images, latitude, longitude,
+            status: 'approved'
+        });
+
         res.status(201).json({
             success: true,
             data: event
@@ -19,8 +31,28 @@ export const addEvent = async (req: Request, res: Response, next: NextFunction) 
 export const submitEvent = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const userId = (req as any).user._id;
+        const { title, description, category, district, venue, startDate, endDate, time, images, latitude, longitude } = req.body;
+
+        if (!title || !startDate || !endDate) {
+            return res.status(400).json({ success: false, message: "Missing required fields" });
+        }
+
+        // Date Validation
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+
+        if (start < now) {
+            return res.status(400).json({ success: false, message: "Start date cannot be in the past" });
+        }
+        if (end < start) {
+            return res.status(400).json({ success: false, message: "End date must be after start date" });
+        }
+
         const event = await Event.create({
-            ...req.body,
+            title, description, category, district, venue,
+            startDate, endDate, time, images, latitude, longitude,
             status: 'pending',
             createdBy: userId
         });
@@ -34,18 +66,24 @@ export const submitEvent = async (req: Request, res: Response, next: NextFunctio
 export const getEvents = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { district, category, date, search, status } = req.query;
-        const query: any = {
-            $or: [{ status: 'approved' }, { status: { $exists: false } }]
-        };
+        const isAdmin = (req as any).user && (req as any).user.role === 'Admin';
 
-        if ((req as any).user && (req as any).user.role === 'Admin' && status) {
-            query.status = status;
+        let query: any = {};
+
+        if (isAdmin) {
+            // Admin sees all events; optionally filter by status
+            if (status) {
+                query.status = status;
+            }
+        } else {
+            // Public sees only approved events
+            query.$or = [{ status: 'approved' }, { status: { $exists: false } }];
         }
 
         if (district) {
             query.district = { $regex: new RegExp(district as string, 'i') };
         }
-        if (category) {
+        if (category && category !== 'all') {
             query.category = { $regex: new RegExp(category as string, 'i') };
         }
         if (date) {
@@ -123,7 +161,17 @@ export const updateEvent = async (req: Request, res: Response, next: NextFunctio
             });
         }
 
-        const event = await Event.findByIdAndUpdate(id, req.body, { new: true });
+        // Whitelist updates
+        const updateData: any = {};
+        const allowedFields = ['title', 'description', 'category', 'district', 'venue', 'startDate', 'endDate', 'time', 'images', 'latitude', 'longitude', 'status'];
+
+        Object.keys(req.body).forEach(key => {
+            if (allowedFields.includes(key)) {
+                updateData[key] = req.body[key];
+            }
+        });
+
+        const event = await Event.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
         if (!event) {
             return res.status(404).json({
                 success: false,
@@ -158,6 +206,9 @@ export const deleteEvent = async (req: Request, res: Response, next: NextFunctio
                 message: 'Event not found'
             });
         }
+
+        // Cascading delete reviews
+        await Review.deleteMany({ targetId: id, targetType: "event" });
         res.status(200).json({
             success: true,
             message: 'Event deleted successfully'

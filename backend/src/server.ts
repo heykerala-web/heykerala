@@ -3,13 +3,15 @@ import dotenv from "dotenv";
 import cors from "cors";
 import morgan from "morgan";
 import passport from "passport";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import { seedStays } from "./seed/seedStays";
 import { migrateStays } from "./seed/migrateStays";
 
 // Load Env
 dotenv.config();
 console.log("ENV loaded");
-console.log("Forcing restart to apply AI changes...");
+console.log("Forcing restart to apply RBAC changes...");
 
 // DB + Passport Config
 import connectDB from "./config/db";
@@ -28,6 +30,18 @@ import bookingRoutes from "./routes/bookingRoutes";
 import aiRoutes from "./routes/aiRoutes";
 
 const app = express();
+
+// Security Middleware
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" } // Allow images to be loaded across origins
+}));
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 500, // Increased limit for development/testing
+  message: { message: "Too many requests from this IP, please try again after 15 minutes" }
+});
+app.use("/api/", limiter);
 
 // Middleware
 app.use(express.json());

@@ -12,6 +12,8 @@ export const saveItinerary = async (req: Request, res: Response) => {
         }
 
         const saved = await ItineraryHistory.create({
+            userId: (req as any).user?.id, // Get from authenticated user
+            packageId: itineraryData.packageId,
             method: itineraryData.aiReason ? "ai" : "manual",
             duration: itineraryData.duration?.toString() || "",
             budget: itineraryData.budgetEstimate ? `${itineraryData.budgetEstimate.min}-${itineraryData.budgetEstimate.max}` : "",
@@ -28,10 +30,10 @@ export const saveItinerary = async (req: Request, res: Response) => {
             itineraryData: itineraryData // Store full data
         });
 
-        res.status(201).json({ 
-            success: true, 
+        res.status(201).json({
+            success: true,
             id: saved._id,
-            message: "Itinerary saved successfully" 
+            message: "Itinerary saved successfully"
         });
     } catch (error: any) {
         console.error("Error saving itinerary:", error);
@@ -65,7 +67,7 @@ export const getItinerary = async (req: Request, res: Response) => {
                 min: itinerary.estimatedCost * 0.9,
                 max: itinerary.estimatedCost
             },
-            heroImage: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=600&fit=crop",
+            heroImage: "/places/munnar-teagardens.jpg",
             aiReason: itinerary.rawAI || null,
             days: itinerary.plan.map((p: any) => ({
                 day: p.day,

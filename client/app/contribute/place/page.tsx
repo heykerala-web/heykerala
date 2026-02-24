@@ -19,6 +19,8 @@ import { Loader2, Upload, X, ArrowLeft, ArrowRight } from "lucide-react";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import { TagInput } from "@/components/ui/tag-input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Sparkles } from "lucide-react";
 
 const KERALA_DISTRICTS = [
     "Thiruvananthapuram", "Kollam", "Pathanamthitta", "Alappuzha", "Kottayam",
@@ -48,6 +50,8 @@ export default function ContributePlacePage() {
         longitude: "",
         tags: [] as string[],
         images: [] as string[],
+        isUntold: false,
+        untoldStory: "",
     });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -234,6 +238,35 @@ export default function ContributePlacePage() {
                                 className="bg-gray-50 border-none rounded-2xl p-4 focus-within:ring-2 focus-within:ring-emerald-500/20 transition-all font-medium"
                             />
                         </Card>
+
+                        <Card className="p-8 rounded-[2rem] border-none shadow-sm bg-white">
+                            <div className="flex items-center space-x-3 mb-6">
+                                <Checkbox
+                                    id="isUntold"
+                                    checked={formData.isUntold}
+                                    onCheckedChange={(checked) => setFormData({ ...formData, isUntold: !!checked })}
+                                    className="border-emerald-200 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+                                />
+                                <Label htmlFor="isUntold" className="flex items-center gap-2 cursor-pointer font-bold text-emerald-600 italic">
+                                    <Sparkles className="w-4 h-4 text-emerald-500" />
+                                    This is an Untold Hidden Gem
+                                </Label>
+                            </div>
+
+                            {formData.isUntold && (
+                                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                    <Label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">The Untold Story / Mystery</Label>
+                                    <Textarea
+                                        name="untoldStory"
+                                        value={formData.untoldStory}
+                                        onChange={handleChange}
+                                        rows={4}
+                                        placeholder="What's the secret? Share the poetic story or the mystery of this place..."
+                                        className="rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-emerald-500/20 p-6 leading-relaxed font-medium italic"
+                                    />
+                                </div>
+                            )}
+                        </Card>
                     </div>
 
                     <div className="space-y-8">
@@ -256,28 +289,6 @@ export default function ContributePlacePage() {
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Latitude</Label>
-                                        <Input
-                                            name="latitude"
-                                            value={formData.latitude}
-                                            onChange={handleChange}
-                                            placeholder="10.0"
-                                            className="h-14 rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-emerald-500/20 font-medium"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Longitude</Label>
-                                        <Input
-                                            name="longitude"
-                                            value={formData.longitude}
-                                            onChange={handleChange}
-                                            placeholder="76.0"
-                                            className="h-14 rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-emerald-500/20 font-medium"
-                                        />
-                                    </div>
                                 </div>
                             </div>
                         </Card>

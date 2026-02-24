@@ -58,8 +58,8 @@ export default function HotelsPage() {
       {/* Hero Banner */}
       <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white py-12 md:py-16">
         <div className="container mx-auto px-4 md:px-6 lg:px-10 max-w-7xl">
-          <h1 className="font-poppins text-4xl md:text-5xl font-bold mb-4">Hotels & Resorts</h1>
-          <p className="text-lg md:text-xl opacity-90 max-w-2xl">
+          <h1 className="font-poppins text-4xl md:text-5xl font-bold mb-4 text-white">Hotels & Resorts</h1>
+          <p className="text-lg md:text-xl opacity-90 max-w-2xl text-white">
             Find comfortable stays for every budget and taste across Kerala
           </p>
         </div>

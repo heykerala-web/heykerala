@@ -75,7 +75,7 @@ export default function LoginPage() {
             <div className="space-y-2">
               <div className="flex justify-between">
                 <Label htmlFor="password">Password</Label>
-                <Link href="#" className="text-sm text-emerald-600 hover:underline">
+                <Link href="/forgot-password" className="text-sm text-emerald-600 hover:underline">
                   Forgot password?
                 </Link>
               </div>
@@ -95,19 +95,6 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <div className="relative my-8">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-gray-300" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="bg-gray-50 px-2 text-gray-500">Or continue with</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <Button variant="outline" className="h-12 border-gray-300">Google</Button>
-            <Button variant="outline" className="h-12 border-gray-300">Facebook</Button>
-          </div>
 
           <p className="text-center text-sm text-gray-600 mt-8">
             Don't have an account?{" "}

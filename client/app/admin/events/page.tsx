@@ -23,7 +23,7 @@ export default function AdminEventsPage() {
 
     const fetchEvents = async () => {
         try {
-            const response = await eventService.getAll({ category: "all" });
+            const response = await eventService.getAll();
             if (response.success && Array.isArray(response.data)) {
                 setEvents(response.data);
             } else if (Array.isArray(response)) {
@@ -33,6 +33,7 @@ export default function AdminEventsPage() {
             }
         } catch (error) {
             console.error(error);
+            setEvents([]);
         } finally {
             setLoading(false);
         }
@@ -81,7 +82,13 @@ export default function AdminEventsPage() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {events.map((event) => (
+                        {events.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={5} className="text-center py-16 text-slate-400 font-medium">
+                                    No events found. Add your first event!
+                                </TableCell>
+                            </TableRow>
+                        ) : events.map((event) => (
                             <TableRow key={event._id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors group">
                                 <TableCell className="py-5 pl-8">
                                     <div className="flex items-center gap-4">

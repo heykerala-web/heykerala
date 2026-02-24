@@ -82,6 +82,21 @@ export default function LeafletMapView({ days }: LeafletMapViewProps) {
     }
   }, []);
 
+  // Handle map focusing
+  const [map, setMap] = useState<L.Map | null>(null);
+
+  useEffect(() => {
+    if (!map) return;
+
+    const handleFocus = (e: any) => {
+      const { lat, lng } = e.detail;
+      map.flyTo([lat, lng], 14, { duration: 1.5 });
+    };
+
+    window.addEventListener('focus-map-location', handleFocus);
+    return () => window.removeEventListener('focus-map-location', handleFocus);
+  }, [map]);
+
   if (!isClient) {
     return (
       <div className="w-full h-[400px] bg-gray-200 rounded-xl flex items-center justify-center">
@@ -91,12 +106,13 @@ export default function LeafletMapView({ days }: LeafletMapViewProps) {
   }
 
   return (
-    <div className="w-full h-[400px] md:h-[500px] rounded-xl overflow-hidden border-2 border-emerald-200 shadow-lg">
+    <div id="itinerary-map" className="w-full h-[400px] md:h-[500px] rounded-xl overflow-hidden border-2 border-emerald-200 shadow-lg scroll-mt-24">
       <MapContainer
         center={center}
         zoom={8}
         style={{ height: "100%", width: "100%" }}
         scrollWheelZoom={true}
+        ref={setMap}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

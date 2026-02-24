@@ -9,9 +9,9 @@ export function CallToAction() {
         {/* Background Image with Parallax-like feel */}
         <div className="absolute inset-0">
           <img
-            src="https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?q=80&w=2000&auto=format&fit=crop"
+            src="/places/alappuzhabackwaters.webp"
             alt="Cinematic Kerala"
-            className="w-full h-full object-cover opacity-40 group-hover:scale-105 transition-transform duration-[3000ms]"
+            className="w-full h-full object-cover opacity-40 group-hover:scale-105 transition-transform duration-[3s]"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/80 to-transparent" />
         </div>
@@ -39,7 +39,7 @@ export function CallToAction() {
                 </Button>
               </Link>
               <Link href="/add-listing">
-                <Button variant="outline" className="h-16 px-10 rounded-2xl border-white/20 text-white hover:bg-white/10 font-bold text-lg backdrop-blur-md transition-all">
+                <Button variant="outline" className="h-16 px-10 rounded-2xl border-white/20 bg-transparent text-white hover:bg-white/10 font-bold text-lg backdrop-blur-md transition-all">
                   Join the Community
                 </Button>
               </Link>

@@ -1,34 +1,44 @@
 import { Request, Response } from "express";
 import PlacePhoto from "../models/PlacePhoto";
+import User from "../models/User";
 import mongoose from "mongoose";
 
 // Upload a photo
 export const uploadPhoto = async (req: Request, res: Response) => {
     try {
-        const { placeId, caption } = req.body;
+        const { placeId, eventId, caption, targetType } = req.body;
         const userId = (req as any).user._id;
 
         if (!req.file) {
             return res.status(400).json({ success: false, message: "No file uploaded" });
         }
 
-        if (!mongoose.Types.ObjectId.isValid(placeId)) {
-            return res.status(400).json({ success: false, message: "Invalid Place ID" });
-        }
-
-        // Create photo entry
-        const photo = await PlacePhoto.create({
-            place: placeId,
+        const photoData: any = {
             user: userId,
             image: `/uploads/${req.file.filename}`,
             caption,
-            status: "pending" // Default to pending
-        });
+            status: "approved", // Directly approved as requested
+            targetType: targetType || (placeId ? "place" : "event")
+        };
+
+        if (placeId && mongoose.Types.ObjectId.isValid(placeId)) {
+            photoData.place = placeId;
+        } else if (eventId && mongoose.Types.ObjectId.isValid(eventId)) {
+            photoData.event = eventId;
+        } else {
+            return res.status(400).json({ success: false, message: "Invalid Place or Event ID" });
+        }
+
+        // Create photo entry
+        const photo = await PlacePhoto.create(photoData);
+
+        // Update User Contribution Count
+        await User.findByIdAndUpdate(userId, { $inc: { contributionCount: 1 } });
 
         res.status(201).json({
             success: true,
             data: photo,
-            message: "Photo uploaded successfully! It will be visible after approval."
+            message: "Photo uploaded successfully! Your contribution has been recorded."
         });
 
     } catch (error: any) {
@@ -37,16 +47,27 @@ export const uploadPhoto = async (req: Request, res: Response) => {
     }
 };
 
-// Get approved photos for a place
+// Get approved photos for a place or event
 export const getPlacePhotos = async (req: Request, res: Response) => {
     try {
-        const { placeId } = req.params;
+        const { placeId } = req.params; // This will be used as the targetId
+        const { type } = req.query; // Optional type filter
 
         if (!mongoose.Types.ObjectId.isValid(placeId)) {
-            return res.status(400).json({ success: false, message: "Invalid Place ID" });
+            return res.status(400).json({ success: false, message: "Invalid ID" });
         }
 
-        const photos = await PlacePhoto.find({ place: placeId, status: "approved" })
+        const query: any = { status: "approved" };
+        if (type === "event") {
+            query.event = placeId;
+        } else if (type === "place") {
+            query.place = placeId;
+        } else {
+            // Default to checking both if type not specified (though usually it should be)
+            query.$or = [{ place: placeId }, { event: placeId }];
+        }
+
+        const photos = await PlacePhoto.find(query)
             .populate("user", "name avatar")
             .sort({ createdAt: -1 });
 
@@ -63,6 +84,7 @@ export const getUserPhotos = async (req: Request, res: Response) => {
 
         const photos = await PlacePhoto.find({ user: userId })
             .populate("place", "name district image")
+            .populate("event", "title district images")
             .sort({ createdAt: -1 });
 
         res.json({ success: true, count: photos.length, data: photos });

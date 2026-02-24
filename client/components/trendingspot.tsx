@@ -5,7 +5,8 @@ import Link from "next/link";
 import { MapPin, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { placeService } from "@/services/placeService";
-import { getTourismImage } from "@/lib/images";
+import { getFullImageUrl } from "@/lib/images";
+import { SafeImage } from "@/components/ui/SafeImage";
 
 export default function KeralaTourism() {
   const [trendingSpots, setTrendingSpots] = useState<any[]>([]);
@@ -155,9 +156,11 @@ function TrendingCard({ spot, index }: { spot: any; index: number }) {
       }}
     >
       <div className="absolute inset-0">
-        <img
-          src={(spot.image || spot.images?.[0]) || getTourismImage(spot.name, spot.category)}
+        <SafeImage
+          src={getFullImageUrl(spot.image || spot.images?.[0], spot.name, spot.category)}
           alt={spot.name}
+          fallbackName={spot.name}
+          fallbackCategory={spot.category}
           className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity" />

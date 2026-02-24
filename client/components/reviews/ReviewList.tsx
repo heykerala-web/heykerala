@@ -66,8 +66,8 @@ export default function ReviewList({
     }
 
     return (
-        <div className="space-y-8">
-            <div className="space-y-6">
+        <div className="space-y-10">
+            <div className="space-y-8">
                 {reviews.map((review) => (
                     <div key={review._id} className="bg-white p-10 rounded-[2.5rem] shadow-[0_16px_48px_-8px_rgba(0,0,0,0.05)] border border-gray-100 flex flex-col md:flex-row gap-10 transition-all hover:shadow-2xl hover:border-gray-200 group relative overflow-hidden">
                         {/* Status Blur */}

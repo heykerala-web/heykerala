@@ -50,6 +50,7 @@ const exploreCategories = [
   { name: "Picnic Spots", href: "/where-to-go?tab=picnic", icon: "🧺" },
   { name: "Regions", href: "/where-to-go?tab=regions", icon: "🗺️" },
   { name: "Spirituality", href: "/where-to-go?tab=spirituality", icon: "🛕" },
+  { name: "Untold", href: "/where-to-go?tab=untold", icon: "✨" },
 ];
 
 const navLinks = [
@@ -154,7 +155,7 @@ export function Navbar() {
 
             <div className="flex items-center gap-1 group relative">
               <Link href="/where-to-go" className={`text-sm font-bold tracking-wide transition-all duration-300 py-2 flex items-center gap-1 ${(!isScrolled && pathname === '/') ? 'text-white/90 hover:text-white' : 'text-muted-foreground hover:text-primary'}`}>
-                EXPLORE
+                WHERE TO GO
                 <ChevronDown className="h-3 w-3 opacity-50 group-hover:opacity-100 transition-opacity" />
               </Link>
 
@@ -217,8 +218,16 @@ export function Navbar() {
               <DropdownMenuContent align="end" className="w-56 rounded-xl border-white/20 bg-white/95 backdrop-blur-xl shadow-2xl p-2">
                 {!loading && user && (
                   <>
-                    <div className="px-2 py-1.5 mb-1 bg-muted/30 rounded-lg">
-                      <p className="text-xs font-semibold text-foreground">{user.name}</p>
+                    <div className="px-2 py-2 mb-1 bg-muted/30 rounded-lg flex flex-col gap-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-xs font-semibold text-foreground truncate">{user.name}</p>
+                        <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-tighter ${user.role === "Admin" ? "bg-purple-100 text-purple-700" :
+                          user.role === "Contributor" ? "bg-emerald-100 text-emerald-700" :
+                            "bg-blue-100 text-blue-700"
+                          }`}>
+                          {user.role}
+                        </span>
+                      </div>
                       <p className="text-[10px] text-muted-foreground truncate">{user.email}</p>
                     </div>
                     <DropdownMenuItem asChild>

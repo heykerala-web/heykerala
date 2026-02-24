@@ -7,11 +7,11 @@ import {
     updateEvent,
     deleteEvent
 } from '../controllers/eventController';
-import { protect, authorize } from '../middleware/authMiddleware';
+import { protect, authorize, requireContributor } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
-router.post('/user/submission', protect, submitEvent);
+router.post('/user/submission', protect, requireContributor, submitEvent);
 router.post('/', protect, authorize('Admin'), addEvent);
 router.get('/', getEvents);
 router.get('/:id', getEventById);

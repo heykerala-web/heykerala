@@ -12,10 +12,10 @@ const staysData = [
         type: "hotel",
         description: "Luxury hotel overlooking the backwaters of Kochi. Features multiple dining options, a large pool, and event spaces.",
         district: "Kochi",
-        pricePerNight: 12000,
+        price: 12000,
         images: ["https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80"],
         amenities: ["Wifi", "Pool", "Parking", "AC", "Restaurant"],
-        ratingAvg: 4.8,
+        ratingAvg: 5.0,
         rooms: [
             { roomType: "King Room", price: 12000, maxGuests: 2, availableCount: 5 },
             { roomType: "Suite", price: 25000, maxGuests: 4, availableCount: 2 }
@@ -26,10 +26,10 @@ const staysData = [
         type: "resort",
         description: "A jungle getaway in the heart of Wayanad rainforests. Treehouses and cottages available.",
         district: "Wayanad",
-        pricePerNight: 15000,
-        images: ["https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80"],
+        price: 15000,
+        images: ["/stay/vythiri-mist-resort.jpg"],
         amenities: ["Wifi", "Pool", "Spa", "Trekking"],
-        ratingAvg: 4.7,
+        ratingAvg: 5.0,
         rooms: [
             { roomType: "Cottage", price: 15000, maxGuests: 2, availableCount: 3 },
             { roomType: "Treehouse", price: 22000, maxGuests: 2, availableCount: 1 }
@@ -40,10 +40,10 @@ const staysData = [
         type: "restaurant",
         description: "The most famous biryani spot in Kozhikode. Authentic Malabar flavors.",
         district: "Kozhikode",
-        averagePrice: 500,
-        images: ["https://media-cdn.tripadvisor.com/media/photo-s/0e/96/52/56/paragon.jpg"],
+        price: 500,
+        images: ["/stay/paragonrestaurant.jpg"],
         amenities: ["AC", "Parking"],
-        ratingAvg: 4.9,
+        ratingAvg: 5.0,
         rooms: []
     },
     {
@@ -51,10 +51,10 @@ const staysData = [
         type: "resort",
         description: "Surrounded by tea gardens, offering a misty and cool vacation experience.",
         district: "Munnar",
-        pricePerNight: 8000,
-        images: ["https://images.unsplash.com/photo-1590510328503-903069695d38?auto=format&fit=crop&w=1200&q=80"],
+        price: 8000,
+        images: ["/stay/munnar-teahills.jpg"],
         amenities: ["Wifi", "Breakfast", "View"],
-        ratingAvg: 4.5,
+        ratingAvg: 5.0,
         rooms: [
             { roomType: "Standard Room", price: 8000, maxGuests: 2, availableCount: 10 }
         ]
@@ -64,10 +64,10 @@ const staysData = [
         type: "homestay",
         description: "Experience local life in this charming heritage home in Fort Kochi.",
         district: "Kochi",
-        pricePerNight: 2500,
-        images: ["https://dynamic-media-cdn.tripadvisor.com/media/photo-o/12/36/49/09/facade.jpg?w=700&h=-1&s=1"],
+        price: 2500,
+        images: ["/stay/fort-kochihomestay.jpg"],
         amenities: ["Wifi", "Kitchen", "Breakfast"],
-        ratingAvg: 4.6,
+        ratingAvg: 5.0,
         rooms: [
             { roomType: "Standard Room", price: 2500, maxGuests: 2, availableCount: 2 }
         ]
@@ -77,20 +77,20 @@ const staysData = [
         type: "cafe",
         description: "Arts, coffee, and delicious continental food in a relaxed gallery setting.",
         district: "Kochi",
-        averagePrice: 600,
-        images: ["https://media-cdn.tripadvisor.com/media/photo-s/0e/cc/14/0d/entrance.jpg"],
+        price: 600,
+        images: ["/stay/kashi-art-cafe..jpg"],
         amenities: ["Wifi", "Art Gallery"],
-        ratingAvg: 4.7
+        ratingAvg: 5.0
     },
     {
         name: "The Raviz Ashtamudi",
         type: "resort",
         description: "Traditional architecture meets modern luxury on the banks of Ashtamudi Lake.",
         district: "Kollam",
-        pricePerNight: 11000,
-        images: ["https://cf.bstatic.com/xdata/images/hotel/max1024x768/39534576.jpg?k=152b144405362145322765104443422071981240166258071853610080644026&o=&hp=1"],
+        price: 11000,
+        images: ["/stay/the-ravizashtamudi.jpg"],
         amenities: ["Pool", "Boating", "Spa", "Wifi"],
-        ratingAvg: 4.6,
+        ratingAvg: 5.0,
         rooms: [
             { roomType: "Lake View Room", price: 11000, maxGuests: 2, availableCount: 5 }
         ]
@@ -100,20 +100,20 @@ const staysData = [
         type: "restaurant",
         description: "Specializing in various types of Puttu, a Kerala breakfast staple.",
         district: "Kochi",
-        averagePrice: 400,
-        images: ["https://b.zmtcdn.com/data/pictures/2/9500642/47b4e3391d17973059434444585f9227.jpg"],
+        price: 400,
+        images: ["/stay/dhe-puttu.jpg"],
         amenities: ["AC", "Family Friendly"],
-        ratingAvg: 4.3
+        ratingAvg: 5.0
     },
     {
         name: "Varkala Cliff Resort",
         type: "resort",
         description: "Stunning views of the Arabian Sea from the famous Varkala Cliff.",
         district: "Varkala",
-        pricePerNight: 5000,
-        images: ["https://cf.bstatic.com/xdata/images/hotel/max1024x768/295175402.jpg?k=f867451314757304165158203061611252119106093181816712396440261313&o=&hp=1"],
+        price: 5000,
+        images: ["/stay/varkala-cliffresort.webp"],
         amenities: ["Beach Access", "Wifi", "Restaurant"],
-        ratingAvg: 4.4,
+        ratingAvg: 5.0,
         rooms: [
             { roomType: "Cliff View Room", price: 5000, maxGuests: 2, availableCount: 4 }
         ]
@@ -123,17 +123,17 @@ const staysData = [
         type: "restaurant",
         description: "A themed restaurant offering wide varieties of Malabar cuisine.",
         district: "Kannur",
-        averagePrice: 550,
-        images: ["https://media-cdn.tripadvisor.com/media/photo-s/0d/16/e0/8c/interior.jpg"],
+        price: 550,
+        images: ["/stay/thakkaramrestaurant.jpg"],
         amenities: ["Themed Decor", "AC"],
-        ratingAvg: 4.2
+        ratingAvg: 5.0
     }
 ];
 
 const seedStays = async () => {
     let connection;
     try {
-        const mongoUri = "mongodb://127.0.0.1:27017/heykerala_dev"; // Force local IP to match mongod bind
+        const mongoUri = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/heykerala_dev"; // Use env if available
         console.log("Connecting to:", mongoUri);
 
         connection = await mongoose.connect(mongoUri);

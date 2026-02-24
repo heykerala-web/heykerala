@@ -16,6 +16,7 @@ export interface Place {
     tags: string[];
     latitude: number;
     longitude: number;
+    openingHours?: string;
     createdAt: string;
 }
 

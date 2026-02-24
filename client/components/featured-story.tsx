@@ -14,7 +14,7 @@ export function FeaturedStory() {
                         <div className="absolute -inset-4 bg-gradient-to-r from-accent to-purple-600 rounded-[2.5rem] rotate-3 opacity-20 blur-xl transition-all duration-700 group-hover:rotate-2 group-hover:opacity-30" />
                         <div className="relative rounded-[2rem] overflow-hidden aspect-[4/3] shadow-2xl">
                             <img
-                                src="https://images.unsplash.com/photo-1629205626079-a794017f8a78"
+                                src="/places/wayanadrainforest.jpg"
                                 alt="Wayanad Rainforest"
                                 className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
                             />
