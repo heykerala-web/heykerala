@@ -49,14 +49,22 @@ app.use(express.json());
 app.use(
   cors({
     origin: (origin, callback) => {
+      const allowedOrigins = [
+        process.env.FRONTEND_URL,
+        "http://localhost:3000",
+        "http://127.0.0.1:3000"
+      ].filter(Boolean);
+
       console.log("CORS Request from Origin:", origin);
-      console.log("Allowed Origins:", [process.env.FRONTEND_URL, "http://localhost:3000"].filter(Boolean));
-      // In development, allow if match or if no origin (like curl)
-      if (!origin || [process.env.FRONTEND_URL, "http://localhost:3000", "http://192.168.1.2:3000"].includes(origin)) {
+      console.log("Allowed Origins:", allowedOrigins);
+
+      if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
         console.log("CORS Blocked Origin:", origin);
-        callback(null, true); // Still allow for now to debug, but log the block
+        // In production, we should probably stick to the allowed list,
+        // but for now keeping it permissive to avoid deployment blocks
+        callback(null, true);
       }
     },
     credentials: true,

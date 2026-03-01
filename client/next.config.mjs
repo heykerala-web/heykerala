@@ -153,14 +153,15 @@ const nextConfig = {
   },
 
   async rewrites() {
+    const backendUrl = process.env.BACKEND_URL || "http://localhost:5000";
     return [
       {
         source: "/api/:path*",
-        destination: "http://localhost:5000/api/:path*", // Backend URL
+        destination: `${backendUrl}/api/:path*`,
       },
       {
         source: "/uploads/:path*",
-        destination: "http://localhost:5000/uploads/:path*", // Serve uploaded images
+        destination: `${backendUrl}/uploads/:path*`,
       },
     ];
   },
