@@ -40,8 +40,25 @@ export default function ContributeStayPage() {
         latitude: "",
         longitude: "",
         price: "",
+        minStay: 1,
         amenities: [] as string[],
         images: [] as string[],
+        // Restaurant specific
+        openingTime: "",
+        closingTime: "",
+        avgDuration: "60",
+        totalCapacity: "",
+        // Room types for stays
+        roomTypes: [] as any[],
+    });
+
+    const [newRoom, setNewRoom] = useState({
+        name: "",
+        description: "",
+        basePrice: "",
+        capacity: "2",
+        count: "1",
+        amenities: [] as string[],
     });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -109,8 +126,11 @@ export default function ContributeStayPage() {
             const payload = {
                 ...formData,
                 price: parseFloat(formData.price) || 0,
+                minStay: formData.minStay ? parseInt(formData.minStay.toString()) : 1,
                 latitude: formData.latitude ? parseFloat(formData.latitude) : undefined,
                 longitude: formData.longitude ? parseFloat(formData.longitude) : undefined,
+                avgDuration: formData.avgDuration ? parseInt(formData.avgDuration) : undefined,
+                totalCapacity: formData.totalCapacity ? parseInt(formData.totalCapacity) : undefined,
             };
 
             await api.post("/stays/user/submission", payload);
@@ -193,6 +213,19 @@ export default function ContributeStayPage() {
                                             className="h-14 rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-emerald-500/20 font-bold text-emerald-600"
                                         />
                                     </div>
+                                    {formData.type !== 'restaurant' && formData.type !== 'cafe' && (
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Minimum Stay (Nights)</Label>
+                                            <Input
+                                                name="minStay"
+                                                type="number"
+                                                min={1}
+                                                value={formData.minStay}
+                                                onChange={(e) => setFormData({ ...formData, minStay: parseInt(e.target.value) || 1 })}
+                                                className="h-14 rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-emerald-500/20 font-bold text-emerald-600"
+                                            />
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="space-y-2">
                                     <Label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Description</Label>
@@ -206,6 +239,73 @@ export default function ContributeStayPage() {
                                 </div>
                             </div>
                         </Card>
+
+                        {/* Property Specific Details */}
+                        {formData.type === 'restaurant' || formData.type === 'cafe' ? (
+                            <Card className="p-8 rounded-[2rem] border-none shadow-sm bg-white">
+                                <h2 className="text-lg font-bold mb-8 flex items-center gap-3">
+                                    <div className="w-1.5 h-6 bg-orange-500 rounded-full" />
+                                    Restaurant Details
+                                </h2>
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <Label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Opening Time</Label>
+                                        <Input type="time" name="openingTime" value={formData.openingTime} onChange={handleChange} className="h-14 rounded-2xl bg-gray-50 border-none px-4" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Closing Time</Label>
+                                        <Input type="time" name="closingTime" value={formData.closingTime} onChange={handleChange} className="h-14 rounded-2xl bg-gray-50 border-none px-4" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Avg. Dining Duration (mins)</Label>
+                                        <Input type="number" name="avgDuration" value={formData.avgDuration} onChange={handleChange} className="h-14 rounded-2xl bg-gray-50 border-none px-4" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Total Table Capacity</Label>
+                                        <Input type="number" name="totalCapacity" value={formData.totalCapacity} onChange={handleChange} className="h-14 rounded-2xl bg-gray-50 border-none px-4" />
+                                    </div>
+                                </div>
+                            </Card>
+                        ) : (
+                            <Card className="p-8 rounded-[2rem] border-none shadow-sm bg-white">
+                                <h2 className="text-lg font-bold mb-8 flex items-center gap-3">
+                                    <div className="w-1.5 h-6 bg-blue-500 rounded-full" />
+                                    Room Categories
+                                </h2>
+                                <div className="space-y-6">
+                                    {formData.roomTypes.map((room, idx) => (
+                                        <div key={idx} className="p-4 rounded-2xl bg-gray-50 flex justify-between items-center">
+                                            <div>
+                                                <p className="font-bold">{room.name}</p>
+                                                <p className="text-xs text-gray-500">₹{room.basePrice} - Capacity: {room.capacity}</p>
+                                            </div>
+                                            <Button variant="ghost" size="icon" onClick={() => setFormData(prev => ({ ...prev, roomTypes: prev.roomTypes.filter((_, i) => i !== idx) }))}>
+                                                <X className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    ))}
+
+                                    <div className="p-6 rounded-2xl border-2 border-dashed border-gray-100 space-y-4">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <Input placeholder="Room Name (e.g. Deluxe Suite)" value={newRoom.name} onChange={(e) => setNewRoom({ ...newRoom, name: e.target.value })} className="h-12 rounded-xl bg-white" />
+                                            <Input type="number" placeholder="Base Price" value={newRoom.basePrice} onChange={(e) => setNewRoom({ ...newRoom, basePrice: e.target.value })} className="h-12 rounded-xl bg-white" />
+                                        </div>
+                                        <Button
+                                            type="button"
+                                            variant="secondary"
+                                            className="w-full"
+                                            onClick={() => {
+                                                if (!newRoom.name || !newRoom.basePrice) return;
+                                                setFormData(prev => ({ ...prev, roomTypes: [...prev.roomTypes, { ...newRoom, basePrice: parseFloat(newRoom.basePrice) }] }));
+                                                setNewRoom({ name: "", description: "", basePrice: "", capacity: "2", count: "1", amenities: [] });
+                                            }}
+                                        >
+                                            Add Room Category
+                                        </Button>
+                                    </div>
+                                </div>
+                            </Card>
+                        )}
 
                         {/* Amenities */}
                         <Card className="p-8 rounded-[2rem] border-none shadow-sm bg-white">

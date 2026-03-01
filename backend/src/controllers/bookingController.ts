@@ -2,6 +2,7 @@
 import Booking from "../models/Booking";
 import Joi from "joi";
 import { Request, Response, NextFunction } from "express";
+import mongoose from "mongoose";
 
 const bookingSchema = Joi.object({
   name: Joi.string().required(),
@@ -48,7 +49,37 @@ export const createStayBooking = async (req: Request, res: Response, next: NextF
     const { error } = stayBookingSchema.validate(req.body);
     if (error) return res.status(400).json({ message: error.details[0].message });
 
-    const { stayId, roomType, checkIn, checkOut, guests } = req.body;
+    const { stayId, roomType, checkIn, checkOut, guests, totalPrice } = req.body;
+
+    const stay = await mongoose.model('Stay').findById(stayId);
+    if (!stay) return res.status(404).json({ message: "Stay not found" });
+
+    // Minimum Stay Validation
+    const minStay = stay.minStay || 1;
+    const checkInDate = new Date(checkIn);
+    const checkOutDate = new Date(checkOut);
+    const nights = Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (nights < minStay) {
+      return res.status(400).json({ message: `Minimum stay is ${minStay} night(s).` });
+    }
+
+    // Real-time Availability Check
+    const selectedRoom = stay.roomTypes?.find((r: any) => r.name === roomType);
+    const totalRoomsOfType = selectedRoom ? selectedRoom.count : 1; // Default to 1 if no specific room type
+
+    const overlappingBookings = await Booking.countDocuments({
+      stayId,
+      roomType,
+      status: { $in: ['confirmed', 'completed', 'pending'] }, // Consider pending as blocked temporarily
+      $or: [
+        { checkIn: { $lt: checkOutDate }, checkOut: { $gt: checkInDate } }
+      ]
+    });
+
+    if (overlappingBookings >= totalRoomsOfType) {
+      return res.status(400).json({ message: "No rooms available for the selected dates." });
+    }
 
     const booking = await Booking.create({
       userId,
@@ -57,10 +88,61 @@ export const createStayBooking = async (req: Request, res: Response, next: NextF
       checkIn,
       checkOut,
       guests,
-      status: 'pending'
+      totalPrice,
+      status: 'pending',
+      paymentStatus: 'pending'
     });
 
-    res.status(201).json({ message: "Stay booking request sent", booking });
+    res.status(201).json({
+      success: true,
+      message: "Booking initiated. Please complete payment.",
+      booking
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const restaurantBookingSchema = Joi.object({
+  restaurantId: Joi.string().required(),
+  bookingDate: Joi.date().min('now').required(),
+  bookingTime: Joi.string().required(), // HH:MM
+  numberOfGuests: Joi.number().min(1).required(),
+  tableType: Joi.string().optional()
+});
+
+export const createRestaurantBooking = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = (req as any).user?._id;
+    const { error } = restaurantBookingSchema.validate(req.body);
+    if (error) return res.status(400).json({ message: error.details[0].message });
+
+    const { restaurantId, bookingDate, bookingTime, numberOfGuests, tableType } = req.body;
+
+    // Validation: Capacity and Hours
+    const restaurant = await mongoose.model('Stay').findById(restaurantId);
+    if (!restaurant) return res.status(404).json({ message: "Restaurant not found" });
+
+    // Simple capacity check (in a real app, we'd check current aggregate bookings for that slot)
+    if (restaurant.totalCapacity && numberOfGuests > restaurant.totalCapacity) {
+      return res.status(400).json({ message: "Group size exceeds restaurant capacity" });
+    }
+
+    const booking = await Booking.create({
+      userId,
+      restaurantId,
+      bookingDate,
+      bookingTime,
+      numberOfGuests,
+      tableType,
+      status: 'pending' // Usually needs approval
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Table reservation request sent",
+      booking
+    });
   } catch (err) {
     next(err);
   }
@@ -102,6 +184,27 @@ export const updateBookingStatus = async (req: Request, res: Response, next: Nex
     );
     if (!booking) return res.status(404).json({ message: "Booking not found" });
     res.status(200).json(booking);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getContributorBookings = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const contributorId = (req as any).user?._id;
+
+    // Find stays/restaurants created by this contributor
+    const myProperties = await mongoose.model('Stay').find({ createdBy: contributorId }).select('_id');
+    const propertyIds = myProperties.map(p => p._id);
+
+    const bookings = await Booking.find({
+      $or: [
+        { stayId: { $in: propertyIds } },
+        { restaurantId: { $in: propertyIds } }
+      ]
+    }).populate('stayId').populate('restaurantId').populate('userId', 'name email');
+
+    res.status(200).json(bookings);
   } catch (err) {
     next(err);
   }

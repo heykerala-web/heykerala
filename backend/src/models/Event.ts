@@ -14,7 +14,16 @@ export interface IEvent extends Document {
     longitude?: number;
     ratingAvg?: number;
     ratingCount?: number;
+    // Approval workflow status (existing)
     status: 'pending' | 'approved' | 'rejected';
+    // Auto-computed event lifecycle status
+    eventStatus: 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
+    // Trending & Popularity tracking
+    viewCount: number;
+    reminderCount: number;
+    // Admin control
+    isFeatured: boolean;
+    ticketUrl?: string;
     createdBy?: string;
     createdAt: Date;
     updatedAt: Date;
@@ -39,7 +48,21 @@ const EventSchema: Schema = new Schema({
         enum: ['pending', 'approved', 'rejected'],
         default: 'pending'
     },
+    eventStatus: {
+        type: String,
+        enum: ['upcoming', 'ongoing', 'completed', 'cancelled'],
+        default: 'upcoming'
+    },
+    viewCount: { type: Number, default: 0 },
+    reminderCount: { type: Number, default: 0 },
+    isFeatured: { type: Boolean, default: false },
+    ticketUrl: { type: String },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
+
+// Index for fast trending queries
+EventSchema.index({ viewCount: -1, reminderCount: -1 });
+EventSchema.index({ startDate: 1, endDate: 1 });
+EventSchema.index({ district: 1, eventStatus: 1 });
 
 export default mongoose.models.Event || mongoose.model<IEvent>('Event', EventSchema);

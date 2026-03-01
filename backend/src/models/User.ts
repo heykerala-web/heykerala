@@ -21,6 +21,12 @@ export interface IUser extends Document {
   contributionCount?: number;
   savedCount?: number;
   bookingCount?: number;
+  bankDetails?: {
+    accountNumber?: string;
+    ifscCode?: string;
+    accountHolderName?: string;
+    bankName?: string;
+  };
   resetPasswordToken?: string;
   resetPasswordExpire?: Date;
 }
@@ -65,6 +71,12 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
     contributionCount: { type: Number, default: 0 },
     savedCount: { type: Number, default: 0 },
     bookingCount: { type: Number, default: 0 },
+    bankDetails: {
+      accountNumber: { type: String },
+      ifscCode: { type: String },
+      accountHolderName: { type: String },
+      bankName: { type: String }
+    },
     resetPasswordToken: { type: String },
     resetPasswordExpire: { type: Date },
   },

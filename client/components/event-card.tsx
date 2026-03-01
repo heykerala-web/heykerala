@@ -1,27 +1,61 @@
 "use client"
 
-import { Calendar, MapPin, Clock } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Calendar, MapPin, Eye, Bookmark, BookmarkCheck } from "lucide-react"
 import { getFullImageUrl } from "@/lib/images"
+import { EventStatusBadge } from "@/components/events/EventStatusBadge"
+import { useState } from "react"
 
 export interface EventCardProps {
   id: string
   name: string
   date: string
-  time: string
+  time?: string
   location: string
   image: string
   description: string
   category: string
+  eventStatus?: 'upcoming' | 'ongoing' | 'completed' | 'cancelled'
+  viewCount?: number
+  isFeatured?: boolean
+  isBookmarked?: boolean
 }
 
-export function EventCard({ name, date, time, location, image, description, category }: EventCardProps) {
+export function EventCard({
+  id, name, date, time, location, image, description, category,
+  eventStatus = 'upcoming', viewCount = 0, isFeatured = false, isBookmarked = false
+}: EventCardProps) {
+  const [bookmarked, setBookmarked] = useState(isBookmarked)
+
+  const toggleBookmark = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const token = localStorage.getItem('token')
+    if (!token) return
+    try {
+      const method = bookmarked ? 'DELETE' : 'POST'
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/users/save/event/${id}`, {
+        method,
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      setBookmarked(b => !b)
+    } catch { /* silent */ }
+  }
+
   return (
     <article className="group relative h-full flex flex-col rounded-[2.5rem] bg-white border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.12)] transition-all duration-700 overflow-hidden hover:-translate-y-3 cursor-pointer">
-      {/* Elite Shimmer Effect */}
+      {/* Shimmer */}
       <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none z-20">
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_2s_infinite]" />
       </div>
+
+      {/* Featured ribbon */}
+      {isFeatured && (
+        <div className="absolute top-0 right-0 z-30">
+          <div className="bg-amber-400 text-amber-900 text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-bl-2xl rounded-tr-[2.5rem]">
+            ⭐ Featured
+          </div>
+        </div>
+      )}
 
       <div className="relative h-56 overflow-hidden">
         <img
@@ -31,15 +65,35 @@ export function EventCard({ name, date, time, location, image, description, cate
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-700" />
 
-        <span className="absolute left-6 top-6 inline-flex items-center rounded-full bg-white/95 backdrop-blur-md px-4 py-1.5 text-[10px] font-outfit font-black uppercase tracking-[0.2em] text-gray-900 shadow-sm border border-black/5 z-10">
+        {/* Category badge */}
+        <span className="absolute left-5 top-5 inline-flex items-center rounded-full bg-white/95 backdrop-blur-md px-3 py-1.5 text-[9px] font-outfit font-black uppercase tracking-[0.2em] text-gray-900 shadow-sm border border-black/5 z-10">
           {category}
         </span>
 
-        {date && (
-          <div className="absolute bottom-6 left-6 z-10">
-            <div className="bg-emerald-600 text-white px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-900/20">
-              {date}
-            </div>
+        {/* Status badge */}
+        {eventStatus && (
+          <div className="absolute left-5 bottom-5 z-10">
+            <EventStatusBadge status={eventStatus} />
+          </div>
+        )}
+
+        {/* Bookmark button */}
+        <button
+          aria-label={bookmarked ? "Remove bookmark" : "Bookmark event"}
+          onClick={toggleBookmark}
+          className="absolute top-5 right-5 p-2 rounded-full bg-black/30 backdrop-blur-md border border-white/20 text-white hover:bg-white hover:text-primary transition-all z-30"
+        >
+          {bookmarked
+            ? <BookmarkCheck className="h-4 w-4 fill-primary text-primary" />
+            : <Bookmark className="h-4 w-4" />
+          }
+        </button>
+
+        {/* View count */}
+        {viewCount > 0 && (
+          <div className="absolute right-5 bottom-5 flex items-center gap-1 bg-black/30 backdrop-blur-md text-white text-[10px] font-bold px-2 py-1 rounded-full z-10">
+            <Eye className="h-3 w-3" />
+            {viewCount > 999 ? `${(viewCount / 1000).toFixed(1)}k` : viewCount}
           </div>
         )}
       </div>
@@ -49,10 +103,11 @@ export function EventCard({ name, date, time, location, image, description, cate
           {name}
         </h3>
 
-        <div className="space-y-2 mb-4">
+        <div className="space-y-1.5 mb-4">
           <div className="flex items-center text-muted-foreground text-sm font-medium">
             <Calendar className="mr-2 h-4 w-4 text-primary" />
             <span>{date}</span>
+            {time && <span className="ml-2 text-xs text-gray-400">· {time}</span>}
           </div>
           <div className="flex items-center text-muted-foreground text-sm font-medium">
             <MapPin className="mr-2 h-4 w-4 text-primary" />

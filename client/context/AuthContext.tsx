@@ -21,6 +21,12 @@ interface User {
     // ...
     savedStays?: any[];
     savedEvents?: any[];
+    bankDetails?: {
+        accountNumber?: string;
+        ifscCode?: string;
+        accountHolderName?: string;
+        bankName?: string;
+    };
     stats?: {
         bookings: number;
         contributions: number;

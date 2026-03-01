@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "react-hot-toast";
-import { Loader2, Calendar, MapPin, Users, Ban } from "lucide-react";
+import { Loader2, Calendar, MapPin, Users, Ban, Clock } from "lucide-react";
 import { format } from "date-fns";
 
 export default function MyBookings() {
@@ -67,101 +67,147 @@ export default function MyBookings() {
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div>
                 <h2 className="text-2xl font-bold">My Bookings</h2>
-                <p className="text-muted-foreground">Manage your stay reservations and travel history.</p>
+                <p className="text-muted-foreground">Manage your stay reservations and restaurant bookings.</p>
             </div>
 
             <div className="grid gap-8">
-                {bookings.map((booking) => (
-                    <div key={booking._id} className="group relative bg-white border border-gray-100 rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] transition-all duration-500 hover:-translate-y-1">
-                        <div className="flex flex-col md:flex-row h-full">
-                            {/* Visual Side */}
-                            <div className="md:w-80 relative h-64 md:h-auto overflow-hidden">
-                                <img
-                                    src={booking.stayId?.image || '/placeholder-stay.jpg'}
-                                    alt={booking.stayId?.name}
-                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                                <div className="absolute top-4 left-4">
-                                    <Badge className={cn(
-                                        "rounded-lg px-3 py-1.5 backdrop-blur-md border border-white/10 shadow-lg text-xs font-bold uppercase tracking-widest",
-                                        booking.status === 'confirmed' ? 'bg-emerald-500/90 text-white' :
-                                            booking.status === 'pending' ? 'bg-amber-500/90 text-white' :
-                                                'bg-red-500/90 text-white'
-                                    )}>
-                                        {booking.status}
-                                    </Badge>
-                                </div>
-                                <div className="absolute bottom-4 left-4 text-white">
-                                    <p className="font-bold text-lg leading-tight">{booking.stayId?.name}</p>
-                                    <p className="text-white/80 text-xs flex items-center gap-1 mt-1">
-                                        <MapPin className="w-3 h-3" /> {booking.stayId?.district}, Kerala
-                                    </p>
-                                </div>
-                            </div>
+                {bookings.map((booking) => {
+                    const isStay = !!booking.stayId;
+                    const place = isStay ? booking.stayId : booking.restaurantId;
+                    const bookingDate = isStay ? booking.checkIn : booking.bookingDate;
 
-                            {/* Ticket Details Side */}
-                            <div className="flex-1 p-8 flex flex-col justify-between relative bg-[url('/subtle-pattern.png')]">
-                                {/* Perforated Line Effect for Mobile */}
-                                <div className="md:hidden absolute top-0 left-0 right-0 h-4 bg-white -mt-2 rounded-b-xl border-b border-dashed border-gray-200" />
-
-                                <div className="grid grid-cols-2 gap-8 mb-8">
-                                    <div>
-                                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2">Check In</p>
-                                        <div className="flex items-center gap-3">
-                                            <div className="bg-emerald-50 text-emerald-600 p-2 rounded-xl">
-                                                <Calendar className="w-5 h-5" />
-                                            </div>
-                                            <div>
-                                                <p className="font-bold text-gray-900 leading-none">{format(new Date(booking.checkIn), "MMM dd")}</p>
-                                                <p className="text-xs text-gray-500 mt-0.5">{format(new Date(booking.checkIn), "yyyy")}</p>
-                                            </div>
+                    return (
+                        <div key={booking._id} className="group relative bg-white border border-gray-100 rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] transition-all duration-500 hover:-translate-y-1">
+                            <div className="flex flex-col md:flex-row h-full">
+                                {/* Visual Side */}
+                                <div className="md:w-80 relative h-64 md:h-auto overflow-hidden">
+                                    <img
+                                        src={place?.images?.[0] || '/placeholder-stay.jpg'}
+                                        alt={place?.name}
+                                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                                    <div className="absolute top-4 left-4">
+                                        <div className="flex flex-col gap-2">
+                                            <Badge className={cn(
+                                                "rounded-lg px-3 py-1.5 backdrop-blur-md border border-white/10 shadow-lg text-xs font-bold uppercase tracking-widest",
+                                                booking.status === 'confirmed' ? 'bg-emerald-500/90 text-white' :
+                                                    booking.status === 'pending' ? 'bg-amber-500/90 text-white' :
+                                                        booking.status === 'cancelled' && booking.paymentStatus === 'refunded' ? 'bg-blue-500/90 text-white' :
+                                                            'bg-red-500/90 text-white'
+                                            )}>
+                                                {booking.status === 'cancelled' && booking.paymentStatus === 'refunded' ? 'REFUNDED' : booking.status}
+                                            </Badge>
+                                            <Badge variant="secondary" className="bg-white/20 backdrop-blur-md text-white border-none text-[10px]">
+                                                {isStay ? 'STAY' : 'RESTAURANT'}
+                                            </Badge>
                                         </div>
                                     </div>
-                                    <div>
-                                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2">Check Out</p>
-                                        <div className="flex items-center gap-3">
-                                            <div className="bg-rose-50 text-rose-600 p-2 rounded-xl">
-                                                <Calendar className="w-5 h-5" />
-                                            </div>
-                                            <div>
-                                                <p className="font-bold text-gray-900 leading-none">{format(new Date(booking.checkOut), "MMM dd")}</p>
-                                                <p className="text-xs text-gray-500 mt-0.5">{format(new Date(booking.checkOut), "yyyy")}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center gap-8 border-t border-dashed border-gray-200 pt-6">
-                                    <div>
-                                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1">Guests</p>
-                                        <p className="font-bold text-gray-900 flex items-center gap-2">
-                                            <Users className="w-4 h-4 text-gray-400" />
-                                            {booking.guests?.adults + (booking.guests?.children || 0)} <span className="text-xs font-normal text-gray-500">Person(s)</span>
+                                    <div className="absolute bottom-4 left-4 text-white">
+                                        <p className="font-bold text-lg leading-tight">{place?.name}</p>
+                                        <p className="text-white/80 text-xs flex items-center gap-1 mt-1">
+                                            <MapPin className="w-3 h-3" /> {place?.district}, Kerala
                                         </p>
                                     </div>
-                                    <div>
-                                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1">Room</p>
-                                        <p className="font-bold text-gray-900 capitalize">{booking.roomType}</p>
-                                    </div>
                                 </div>
 
-                                {booking.status === 'pending' && (
-                                    <div className="absolute top-8 right-8">
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl"
-                                            onClick={() => cancelBooking(booking._id)}
-                                        >
-                                            <Ban className="w-4 h-4 mr-2" /> Cancel
-                                        </Button>
+                                {/* Ticket Details Side */}
+                                <div className="flex-1 p-8 flex flex-col justify-between relative bg-[url('/subtle-pattern.png')]">
+                                    <div className="md:hidden absolute top-0 left-0 right-0 h-4 bg-white -mt-2 rounded-b-xl border-b border-dashed border-gray-200" />
+
+                                    {isStay ? (
+                                        <div className="grid grid-cols-2 gap-8 mb-8">
+                                            <div>
+                                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2">Check In</p>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="bg-emerald-50 text-emerald-600 p-2 rounded-xl">
+                                                        <Calendar className="w-5 h-5" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold text-gray-900 leading-none">{format(new Date(booking.checkIn), "MMM dd")}</p>
+                                                        <p className="text-xs text-gray-500 mt-0.5">{format(new Date(booking.checkIn), "yyyy")}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2">Check Out</p>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="bg-rose-50 text-rose-600 p-2 rounded-xl">
+                                                        <Calendar className="w-5 h-5" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold text-gray-900 leading-none">{format(new Date(booking.checkOut), "MMM dd")}</p>
+                                                        <p className="text-xs text-gray-500 mt-0.5">{format(new Date(booking.checkOut), "yyyy")}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-2 gap-8 mb-8">
+                                            <div>
+                                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2">Booking Date</p>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="bg-blue-50 text-blue-600 p-2 rounded-xl">
+                                                        <Calendar className="w-5 h-5" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold text-gray-900 leading-none">{format(new Date(booking.bookingDate), "MMM dd")}</p>
+                                                        <p className="text-xs text-gray-500 mt-0.5">{format(new Date(booking.bookingDate), "yyyy")}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2">Time Slot</p>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="bg-amber-50 text-amber-600 p-2 rounded-xl">
+                                                        <Clock className="w-5 h-5" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold text-gray-900 leading-none">{booking.bookingTime}</p>
+                                                        <p className="text-xs text-gray-500 mt-0.5 lowercase">Reservation</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="flex items-center gap-8 border-t border-dashed border-gray-200 pt-6">
+                                        <div>
+                                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1">Guests</p>
+                                            <p className="font-bold text-gray-900 flex items-center gap-2">
+                                                <Users className="w-4 h-4 text-gray-400" />
+                                                {isStay ? (booking.guests?.adults + (booking.guests?.children || 0)) : booking.numberOfGuests} <span className="text-xs font-normal text-gray-500">Person(s)</span>
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1">{isStay ? 'Room' : 'Table'}</p>
+                                            <p className="font-bold text-gray-900 capitalize">{isStay ? booking.roomType : (booking.tableType || 'General')}</p>
+                                        </div>
+                                        {booking.totalPrice && (
+                                            <div>
+                                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1">Total Paid</p>
+                                                <p className="font-black text-emerald-600">₹{booking.totalPrice}</p>
+                                            </div>
+                                        )}
                                     </div>
-                                )}
+
+                                    {booking.status === 'pending' && (
+                                        <div className="absolute top-8 right-8">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl"
+                                                onClick={() => cancelBooking(booking._id)}
+                                            >
+                                                <Ban className="w-4 h-4 mr-2" /> Cancel
+                                            </Button>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
         </div>
     );

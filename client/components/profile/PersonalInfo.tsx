@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "react-hot-toast";
-import { Loader2, Camera, MapPin, Phone, User as UserIcon, ShieldCheck, RefreshCcw } from "lucide-react";
+import { Loader2, Camera, MapPin, Phone, User as UserIcon, ShieldCheck, RefreshCcw, Landmark } from "lucide-react";
 import api from "@/services/api";
 import { getAvatarUrl } from "@/lib/api";
 
@@ -22,6 +22,12 @@ export default function PersonalInfo() {
         bio: user?.bio || "",
         phone: user?.phone || "",
         location: user?.location || "",
+        bankDetails: user?.bankDetails || {
+            accountNumber: "",
+            ifscCode: "",
+            accountHolderName: "",
+            bankName: ""
+        }
     });
 
     const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -263,6 +269,60 @@ export default function PersonalInfo() {
                         placeholder="Tell the world about your Kerala adventures..."
                     />
                 </div>
+
+                {user?.role === "Contributor" && (
+                    <div className="bg-white border border-gray-100 p-8 rounded-[2rem] shadow-sm space-y-6 mt-8">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-3 bg-amber-50 text-amber-600 rounded-2xl">
+                                <Landmark className="w-6 h-6" />
+                            </div>
+                            <div>
+                                <h4 className="text-xl font-bold text-gray-900">Bank Details for Payouts</h4>
+                                <p className="text-sm text-gray-500">Securely receive your earnings from bookings</p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                            <div className="space-y-3">
+                                <Label className="text-xs font-bold uppercase tracking-wider text-gray-500 ml-1">Account Holder Name</Label>
+                                <Input
+                                    value={formData.bankDetails.accountHolderName}
+                                    onChange={(e) => setFormData({ ...formData, bankDetails: { ...formData.bankDetails, accountHolderName: e.target.value } })}
+                                    className="h-12 rounded-2xl bg-gray-50/50"
+                                    placeholder="Jane Doe"
+                                />
+                            </div>
+                            <div className="space-y-3">
+                                <Label className="text-xs font-bold uppercase tracking-wider text-gray-500 ml-1">Account Number</Label>
+                                <Input
+                                    value={formData.bankDetails.accountNumber}
+                                    onChange={(e) => setFormData({ ...formData, bankDetails: { ...formData.bankDetails, accountNumber: e.target.value } })}
+                                    className="h-12 rounded-2xl bg-gray-50/50"
+                                    placeholder="1234567890"
+                                    type="password"
+                                />
+                            </div>
+                            <div className="space-y-3">
+                                <Label className="text-xs font-bold uppercase tracking-wider text-gray-500 ml-1">IFSC Code</Label>
+                                <Input
+                                    value={formData.bankDetails.ifscCode}
+                                    onChange={(e) => setFormData({ ...formData, bankDetails: { ...formData.bankDetails, ifscCode: e.target.value } })}
+                                    className="h-12 rounded-2xl bg-gray-50/50 uppercase"
+                                    placeholder="SBIN0001234"
+                                />
+                            </div>
+                            <div className="space-y-3">
+                                <Label className="text-xs font-bold uppercase tracking-wider text-gray-500 ml-1">Bank Name</Label>
+                                <Input
+                                    value={formData.bankDetails.bankName}
+                                    onChange={(e) => setFormData({ ...formData, bankDetails: { ...formData.bankDetails, bankName: e.target.value } })}
+                                    className="h-12 rounded-2xl bg-gray-50/50"
+                                    placeholder="State Bank of India"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 <div className="pt-4 flex justify-end">
                     <Button

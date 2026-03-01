@@ -1,14 +1,27 @@
 import mongoose from "mongoose";
 const bookingSchema = new mongoose.Schema({
-    // Existing fields (kept for compatibility or different modules)
+    // General / Package Booking (Legacy/Other)
     name: String,
     phone: String,
     email: String,
     packageId: { type: mongoose.Schema.Types.ObjectId, ref: "Package" },
     date: Date,
 
-    // New Stay Booking fields
+    // Common fields
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    status: {
+        type: String,
+        enum: ["pending", "confirmed", "rejected", "cancelled", "completed"],
+        default: "pending"
+    },
+    paymentStatus: {
+        type: String,
+        enum: ["pending", "paid", "failed"],
+        default: "pending"
+    },
+    totalPrice: { type: Number },
+
+    // Stay Booking fields
     stayId: { type: mongoose.Schema.Types.ObjectId, ref: "Stay" },
     roomType: String,
     checkIn: Date,
@@ -17,11 +30,18 @@ const bookingSchema = new mongoose.Schema({
         adults: { type: Number, default: 1 },
         children: { type: Number, default: 0 }
     },
-    status: {
-        type: String,
-        enum: ["pending", "confirmed", "rejected", "cancelled"],
-        default: "pending"
-    },
+
+    // Restaurant/Cafe Booking fields
+    restaurantId: { type: mongoose.Schema.Types.ObjectId, ref: "Stay" }, // Using Stay model for restaurants
+    bookingDate: Date,
+    bookingTime: String,
+    numberOfGuests: Number,
+    tableType: String,
+
+    // Razorpay Fields
+    razorpayOrderId: String,
+    razorpayPaymentId: String,
+    razorpaySignature: String,
 
 }, { timestamps: true });
 

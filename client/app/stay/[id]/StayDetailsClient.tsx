@@ -25,6 +25,7 @@ import StickyMiniHeader from "@/app/components/places/StickyMiniHeader";
 import QuickInfoPanel from "@/app/components/places/QuickInfoPanel";
 
 import { getFullImageUrl } from "@/lib/images";
+import { queueBooking } from "@/lib/offline-db";
 
 export default function StayDetailsClient({ id, initialStay }: { id: string, initialStay?: Stay | null }) {
     const router = useRouter();
@@ -47,8 +48,24 @@ export default function StayDetailsClient({ id, initialStay }: { id: string, ini
     const [checkIn, setCheckIn] = useState("");
     const [checkOut, setCheckOut] = useState("");
     const [guests, setGuests] = useState(1);
+    const [selectedRoom, setSelectedRoom] = useState<any>(null);
+    const [bookingTime, setBookingTime] = useState("");
+    const [razorpayLoaded, setRazorpayLoaded] = useState(false);
 
     const { user, updateUser } = useAuth();
+
+    // Load Razorpay Script
+    useEffect(() => {
+        const script = document.createElement("script");
+        script.src = "https://checkout.razorpay.com/v1/checkout.js";
+        script.async = true;
+        script.onload = () => setRazorpayLoaded(true);
+        document.body.appendChild(script);
+
+        return () => {
+            document.body.removeChild(script);
+        }
+    }, []);
 
     // Check if favorite
     useEffect(() => {
@@ -56,6 +73,30 @@ export default function StayDetailsClient({ id, initialStay }: { id: string, ini
             const savedStays = (user as any).savedStays || [];
             setIsFavorite(savedStays.some((s: any) => (typeof s === 'string' ? s : s._id) === id));
         }
+
+        const handleOnline = async () => {
+            const { getQueuedBookings, clearQueuedBooking } = await import("@/lib/offline-db");
+            const queued = await getQueuedBookings();
+            if (queued.length > 0) {
+                toast({ title: "Back online!", description: "Processing your queued bookings..." });
+                for (const booking of queued) {
+                    try {
+                        if (booking.type === 'stay') {
+                            await stayService.createBooking(booking.data);
+                        } else {
+                            await stayService.createRestaurantBooking(booking.data);
+                        }
+                        await clearQueuedBooking(booking.id!);
+                    } catch (e) {
+                        console.error("Sync failed for booking", booking.id, e);
+                    }
+                }
+                toast({ title: "Sync Complete", description: "Offline bookings have been processed." });
+            }
+        };
+
+        window.addEventListener('online', handleOnline);
+        return () => window.removeEventListener('online', handleOnline);
     }, [user, id]);
 
     const handleToggleSave = async () => {
@@ -167,11 +208,69 @@ export default function StayDetailsClient({ id, initialStay }: { id: string, ini
         fetchStay();
     }, [id, initialStay]);
 
+    const initiatePayment = async (booking: any) => {
+        try {
+            const amount = booking.totalPrice || 500; // Default or calculated
+            const orderRes = await stayService.createPaymentOrder(amount, booking._id);
+
+            if (orderRes.success) {
+                const options = {
+                    key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_placeholder",
+                    amount: orderRes.order.amount,
+                    currency: "INR",
+                    name: "Hey Kerala",
+                    description: `Booking for ${stay?.name}`,
+                    order_id: orderRes.order.id,
+                    handler: async (response: any) => {
+                        const verifyRes = await stayService.verifyPayment(response);
+                        if (verifyRes.success) {
+                            toast({ title: "Booking Confirmed!", description: "Payment successful and booking confirmed." });
+                            router.push(`/dashboard/bookings?id=${booking._id}`);
+                        } else {
+                            toast({ title: "Payment Failed", description: "Verification failed. Please contact support.", variant: "destructive" });
+                        }
+                    },
+                    prefill: {
+                        name: user?.name,
+                        email: (user as any)?.email,
+                        contact: (user as any)?.phone || "",
+                    },
+                    theme: {
+                        color: "#00c8ff",
+                    },
+                };
+
+                const rzp = new (window as any).Razorpay(options);
+                rzp.open();
+            }
+        } catch (error: any) {
+            toast({ title: "Payment Error", description: "Failed to initiate payment. Please try again.", variant: "destructive" });
+        }
+    };
+
     const handleBooking = async () => {
         if (!stay) return;
-        if (!checkIn || (isStayType() && !checkOut)) {
-            toast({ title: "Please select dates", variant: "destructive" });
-            return;
+
+        if (isStayType()) {
+            if (!checkIn || !checkOut) {
+                toast({ title: "Please select dates", variant: "destructive" });
+                return;
+            }
+            if (stay.roomTypes && stay.roomTypes.length > 0 && !selectedRoom) {
+                toast({ title: "Please select a room type", variant: "destructive" });
+                return;
+            }
+            const nights = Math.ceil((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24));
+            const minStay = stay.minStay || 1;
+            if (nights < minStay) {
+                toast({ title: `Minimum stay is ${minStay} night(s).`, variant: "destructive" });
+                return;
+            }
+        } else {
+            if (!checkIn || !bookingTime) {
+                toast({ title: "Please select date and time", variant: "destructive" });
+                return;
+            }
         }
 
         if (!user) {
@@ -182,16 +281,68 @@ export default function StayDetailsClient({ id, initialStay }: { id: string, ini
 
         setBookingLoading(true);
         try {
-            const data: BookingData = {
-                stayId: stay._id,
-                userId: user.id || (user as any)._id,
-                checkIn,
-                checkOut: isStayType() ? checkOut : checkIn,
-                guests: { adults: guests, children: 0 },
-            };
+            if (!navigator.onLine) {
+                if (isStayType()) {
+                    const nights = Math.ceil((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24));
+                    const pricePerNight = selectedRoom?.basePrice || stay.price;
+                    const totalPrice = nights * pricePerNight;
+                    const data: any = {
+                        stayId: stay._id,
+                        userId: user.id || (user as any)._id,
+                        checkIn,
+                        checkOut,
+                        roomType: selectedRoom?.name || "Standard",
+                        guests: { adults: guests, children: 0 },
+                        totalPrice
+                    };
+                    await queueBooking('stay', data);
+                } else {
+                    const data: any = {
+                        restaurantId: stay._id,
+                        userId: user.id || (user as any)._id,
+                        bookingDate: checkIn,
+                        bookingTime,
+                        numberOfGuests: guests,
+                    };
+                    await queueBooking('restaurant', data);
+                }
+                toast({ title: "Offline Mode", description: "Booking queued and will be processed when you are back online." });
+                setCheckIn("");
+                setCheckOut("");
+                setBookingLoading(false);
+                return;
+            }
 
-            await stayService.createBooking(data);
-            toast({ title: "Booking Request Sent!", description: "We will confirm your booking shortly." });
+            if (isStayType()) {
+                const nights = Math.ceil((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24));
+                const pricePerNight = selectedRoom?.basePrice || stay.price;
+                const totalPrice = nights * pricePerNight;
+
+                const data: any = {
+                    stayId: stay._id,
+                    userId: user.id || (user as any)._id,
+                    checkIn,
+                    checkOut,
+                    roomType: selectedRoom?.name || "Standard",
+                    guests: { adults: guests, children: 0 },
+                    totalPrice
+                };
+
+                const res = await stayService.createBooking(data);
+                toast({ title: "Booking Initiated", description: "Redirecting to payment..." });
+                await initiatePayment(res.booking);
+            } else {
+                const data: any = {
+                    restaurantId: stay._id,
+                    userId: user.id || (user as any)._id,
+                    bookingDate: checkIn,
+                    bookingTime,
+                    numberOfGuests: guests,
+                };
+                await stayService.createRestaurantBooking(data);
+                toast({ title: "Request Sent!", description: "Your table reservation request is being processed." });
+            }
+
             setCheckIn("");
             setCheckOut("");
         } catch (error: any) {
@@ -431,7 +582,41 @@ export default function StayDetailsClient({ id, initialStay }: { id: string, ini
                                 <p className="text-primary font-black text-xs uppercase tracking-[0.2em] mt-2">Premium Member Rate</p>
                             </div>
 
-                            <div className="relative z-10 space-y-6">
+                            <div className="space-y-6">
+                                {isStayType() && stay.roomTypes && stay.roomTypes.length > 0 && (
+                                    <div className="space-y-2">
+                                        <Label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">Room Category</Label>
+                                        <div className="grid grid-cols-1 gap-2">
+                                            {stay.roomTypes.map((room, idx) => (
+                                                <button
+                                                    key={idx}
+                                                    onClick={() => setSelectedRoom(room)}
+                                                    className={`p-4 rounded-xl border text-left transition-all ${selectedRoom?.name === room.name ? "bg-primary border-primary text-white" : "bg-white/5 border-white/10 text-white/80 hover:bg-white/10"}`}
+                                                >
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="font-bold">{room.name}</span>
+                                                        <span className="text-xs font-black">₹{room.basePrice}</span>
+                                                    </div>
+                                                    <p className="text-[10px] opacity-60 mt-1 line-clamp-1">{room.description}</p>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {!isStayType() && (
+                                    <div className="space-y-2">
+                                        <Label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">Booking Time</Label>
+                                        <Input
+                                            type="time"
+                                            value={bookingTime}
+                                            step="1800" // 30 min increments
+                                            onChange={(e) => setBookingTime(e.target.value)}
+                                            className="h-14 bg-white/5 border-white/10 rounded-xl text-white focus:bg-white/10 transition-all font-bold"
+                                        />
+                                    </div>
+                                )}
+
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <Label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">{isStayType() ? "Check-In" : "Date"}</Label>
@@ -457,7 +642,7 @@ export default function StayDetailsClient({ id, initialStay }: { id: string, ini
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">Guests</Label>
+                                    <Label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">{isStayType() ? "Guests" : "Table For"}</Label>
                                     <Input
                                         type="number"
                                         min={1}
@@ -477,7 +662,7 @@ export default function StayDetailsClient({ id, initialStay }: { id: string, ini
                                 </Button>
 
                                 <p className="text-center text-[10px] text-white/20 uppercase tracking-[0.2em] font-black mt-2">
-                                    Secure Payment & Flexible Cancellation
+                                    {isStayType() ? "Secure Payment & Flexible Cancellation" : "No pre-payment required for table booking"}
                                 </p>
                             </div>
                         </div>

@@ -2,7 +2,9 @@ import express from "express";
 import {
     createBooking,
     createStayBooking,
+    createRestaurantBooking,
     getUserBookings,
+    getContributorBookings,
     getAllBookings,
     updateBookingStatus
 } from "../controllers/bookingController";
@@ -17,10 +19,14 @@ router.use(protect);
 
 router.post("/", createBooking);
 router.post("/stay", createStayBooking);
+router.post("/restaurant", createRestaurantBooking);
 router.get("/user/:userId", getUserBookings);
+
+// Contributor routes
+router.get("/contributor", authorize("Contributor", "Admin"), getContributorBookings);
+router.put("/:id/status", authorize("Contributor", "Admin"), updateBookingStatus);
 
 // Admin only routes
 router.get("/admin", authorize("Admin"), getAllBookings);
-router.put("/:id/status", authorize("Admin"), updateBookingStatus);
 
 export default router;

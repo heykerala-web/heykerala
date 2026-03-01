@@ -27,6 +27,7 @@ import itineraryRoutes from "./routes/itineraryRoutes";
 import itinerariesRoutes from "./routes/itinerariesRoutes";
 import packageRoutes from "./routes/packageRoutes";
 import bookingRoutes from "./routes/bookingRoutes";
+import paymentRoutes from "./routes/paymentRoutes";
 import aiRoutes from "./routes/aiRoutes";
 
 const app = express();
@@ -47,7 +48,17 @@ app.use("/api/", limiter);
 app.use(express.json());
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL,
+    origin: (origin, callback) => {
+      console.log("CORS Request from Origin:", origin);
+      console.log("Allowed Origins:", [process.env.FRONTEND_URL, "http://localhost:3000"].filter(Boolean));
+      // In development, allow if match or if no origin (like curl)
+      if (!origin || [process.env.FRONTEND_URL, "http://localhost:3000", "http://192.168.1.2:3000"].includes(origin)) {
+        callback(null, true);
+      } else {
+        console.log("CORS Blocked Origin:", origin);
+        callback(null, true); // Still allow for now to debug, but log the block
+      }
+    },
     credentials: true,
   })
 );
@@ -72,6 +83,7 @@ app.use("/api/itinerary", itineraryRoutes);
 app.use("/api/itineraries", itinerariesRoutes);
 app.use("/api/packages", packageRoutes);
 app.use("/api/bookings", bookingRoutes);
+app.use("/api/payments", paymentRoutes);
 app.use("/api/ai", aiRoutes);
 
 // ⭐ Places & Weather Routes
@@ -101,6 +113,41 @@ app.use((err: any, req: Request, res: Response, next: any) => {
   res.status(500).json({ message: "Server error", error: err.message });
 });
 
+// ── Cron: Auto-expire events every hour ───────────────────────
+import { processDueReminders } from './controllers/eventReminderController';
+
+function startCronJobs() {
+  // Run auto-expire every hour
+  setInterval(async () => {
+    try {
+      const now = new Date();
+      const Event = (await import('./models/Event')).default;
+      await Event.updateMany(
+        { startDate: { $lte: now }, endDate: { $gte: now }, eventStatus: { $ne: 'cancelled' } },
+        { $set: { eventStatus: 'ongoing' } }
+      );
+      await Event.updateMany(
+        { endDate: { $lt: now }, eventStatus: { $nin: ['cancelled', 'completed'] } },
+        { $set: { eventStatus: 'completed' } }
+      );
+      console.log('[Cron] Auto-expired events updated');
+    } catch (e) {
+      console.error('[Cron] Auto-expire error:', e);
+    }
+  }, 60 * 60 * 1000); // every hour
+
+  // Run reminder processing every 15 minutes
+  setInterval(async () => {
+    try {
+      await processDueReminders();
+    } catch (e) {
+      console.error('[Cron] Reminder processing error:', e);
+    }
+  }, 15 * 60 * 1000); // every 15 minutes
+
+  console.log('⏰ Cron jobs started: auto-expire (1h), reminders (15min)');
+}
+
 // Start Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, async () => {
@@ -115,6 +162,9 @@ app.listen(PORT, async () => {
 
     // Migrate old data
     await migrateStays();
+
+    // Start background cron jobs
+    startCronJobs();
 
   } catch (err: any) {
     console.error("MongoDB Connection Error:", err.message);

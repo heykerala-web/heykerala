@@ -12,7 +12,7 @@ import { getModelByType, updateTargetRating } from "../utils/reviewUtils";
 // Update Profile (Name, Bio, Phone, Location)
 export const updateProfile = async (req: any, res: Response): Promise<void> => {
     try {
-        const { name, bio, phone, location } = req.body;
+        const { name, bio, phone, location, bankDetails } = req.body;
         const userId = req.user.id;
 
         const user = await User.findById(userId);
@@ -25,6 +25,7 @@ export const updateProfile = async (req: any, res: Response): Promise<void> => {
         if (bio !== undefined) user.bio = bio;
         if (phone !== undefined) user.phone = phone;
         if (location !== undefined) user.location = location;
+        if (bankDetails !== undefined) user.bankDetails = bankDetails;
 
         await user.save();
 
@@ -40,7 +41,8 @@ export const updateProfile = async (req: any, res: Response): Promise<void> => {
                 role: user.role,
                 avatar: user.avatar,
                 savedPlaces: user.savedPlaces,
-                travelBadge: user.travelBadge
+                travelBadge: user.travelBadge,
+                bankDetails: user.bankDetails
             },
         });
     } catch (err: any) {
@@ -333,7 +335,8 @@ export const getUserBookings = async (req: any, res: Response): Promise<void> =>
     try {
         const userId = req.user.id;
         const bookings = await Booking.find({ userId })
-            .populate("stayId", "name image location")
+            .populate("stayId", "name images district")
+            .populate("restaurantId", "name images district")
             .sort({ createdAt: -1 });
 
         res.json({ success: true, bookings });
@@ -355,14 +358,25 @@ export const cancelBooking = async (req: any, res: Response): Promise<void> => {
         }
 
         if (booking.status !== "pending") {
-            res.status(400).json({ message: "Only pending bookings can be cancelled" });
-            return;
+            // Note: In a real system, confirmed bookings might also be cancellable with separate logic.
+            // For this scope, let's allow cancelling confirmed bookings too to test refunds, but block already cancelled/completed.
+            if (booking.status === "cancelled" || booking.status === "completed") {
+                res.status(400).json({ message: "Booking cannot be cancelled from its current state" });
+                return;
+            }
         }
 
         booking.status = "cancelled";
+
+        // Refund Simulation
+        if (booking.paymentStatus === "paid") {
+            booking.paymentStatus = "refunded";
+            // Here you would normally call the Razorpay reversal API
+        }
+
         await booking.save();
 
-        res.json({ success: true, message: "Booking cancelled successfully" });
+        res.json({ success: true, message: booking.paymentStatus === "refunded" ? "Booking cancelled and refund initiated." : "Booking cancelled successfully" });
     } catch (err: any) {
         res.status(500).json({ message: err.message });
     }

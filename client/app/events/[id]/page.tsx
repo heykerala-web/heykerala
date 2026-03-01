@@ -15,6 +15,8 @@ import ReviewSummary from "@/components/reviews/ReviewSummary";
 import { ReviewSummary as AIReviewSummary } from "@/components/ai/ReviewSummary";
 import { reviewService } from "@/services/reviewService";
 import { Review } from "@/types/review";
+import { NotifyMeButton } from "@/components/events/NotifyMeButton";
+import { EventStatusBadge } from "@/components/events/EventStatusBadge";
 
 // Premium Components
 import PlaceGallery from "@/app/components/places/PlaceGallery";
@@ -253,6 +255,9 @@ export default function EventDetailsPage({ params }: { params: { id: string } })
                 <span className="px-6 py-2 bg-emerald-600 text-white text-xs font-black rounded-full uppercase tracking-[0.3em]">
                   {event.category}
                 </span>
+                {(event as any).eventStatus && (
+                  <EventStatusBadge status={(event as any).eventStatus} size="md" />
+                )}
                 <div className="flex items-center gap-2 bg-white/10 backdrop-blur-xl px-5 py-2 rounded-full border border-white/10 text-sm font-black text-white">
                   <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
                   {event.ratingAvg || 0} <span className="text-white/40 ml-1 font-medium">({totalReviews} Reviews)</span>
@@ -452,6 +457,13 @@ export default function EventDetailsPage({ params }: { params: { id: string } })
               </div>
 
               <div className="relative z-10 space-y-4">
+                <div className="flex justify-center">
+                  <NotifyMeButton
+                    eventId={event._id}
+                    eventTitle={event.title}
+                    initialHasReminder={(event as any).hasReminder || false}
+                  />
+                </div>
                 <Button className="w-full h-16 text-lg font-black bg-emerald-600 hover:bg-emerald-700 rounded-2xl shadow-[0_0_30px_rgba(16,185,129,0.3)] hover:scale-[1.02] transition-all" onClick={() => toast({ title: "Added to calendar!" })}>
                   <Calendar className="h-6 w-6 mr-3" /> Add to Itinerary
                 </Button>

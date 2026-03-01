@@ -1,5 +1,14 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
+export interface IRoomType {
+    name: string;
+    description?: string;
+    basePrice: number;
+    capacity: number;
+    amenities: string[];
+    count: number; // For availability checking
+}
+
 export interface IStay extends Document {
     name: string;
     type: 'hotel' | 'resort' | 'homestay' | 'restaurant' | 'cafe';
@@ -8,12 +17,19 @@ export interface IStay extends Document {
     latitude?: number;
     longitude?: number;
     images: string[];
-    price: number;
+    price: number; // Base or starting price
+    roomTypes?: IRoomType[];
+    minStay?: number;
     amenities: string[];
     ratingAvg: number;
     ratingCount: number;
     status: 'pending' | 'approved' | 'rejected';
     createdBy?: string;
+    // For Restaurants/Cafes
+    openingTime?: string; // HH:MM
+    closingTime?: string; // HH:MM
+    avgDuration?: number; // In minutes
+    totalCapacity?: number;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -31,6 +47,15 @@ const StaySchema: Schema = new Schema({
     longitude: { type: Number },
     images: [{ type: String }],
     price: { type: Number, required: true },
+    roomTypes: [{
+        name: { type: String },
+        description: { type: String },
+        basePrice: { type: Number },
+        capacity: { type: Number },
+        amenities: [{ type: String }],
+        count: { type: Number, default: 1 }
+    }],
+    minStay: { type: Number, default: 1 },
     amenities: [{ type: String }],
     ratingAvg: { type: Number, default: 5.0 },
     ratingCount: { type: Number, default: 0 },
@@ -39,6 +64,10 @@ const StaySchema: Schema = new Schema({
         enum: ['pending', 'approved', 'rejected'],
         default: 'pending'
     },
+    openingTime: { type: String },
+    closingTime: { type: String },
+    avgDuration: { type: Number, default: 60 },
+    totalCapacity: { type: Number },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
 

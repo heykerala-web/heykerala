@@ -9,6 +9,15 @@ export interface Room {
     availableCount: number;
 }
 
+export interface RoomType {
+    name: string;
+    description?: string;
+    basePrice: number;
+    capacity: number;
+    amenities: string[];
+    count: number;
+}
+
 export interface Stay {
     _id: string;
     name: string;
@@ -19,8 +28,15 @@ export interface Stay {
     longitude?: number;
     images: string[];
     price: number;
+    roomTypes?: RoomType[];
+    minStay?: number;
     amenities: string[];
     ratingAvg: number;
+    ratingCount: number;
+    openingTime?: string;
+    closingTime?: string;
+    avgDuration?: number;
+    totalCapacity?: number;
     createdAt: string;
 }
 
@@ -41,6 +57,16 @@ export interface BookingData {
         adults: number;
         children: number;
     };
+    userId: string;
+    totalPrice?: number;
+}
+
+export interface RestaurantBookingData {
+    restaurantId: string;
+    bookingDate: string;
+    bookingTime: string;
+    numberOfGuests: number;
+    tableType?: string;
     userId: string;
 }
 
@@ -80,6 +106,21 @@ export const stayService = {
 
     createBooking: async (data: BookingData) => {
         const response = await api.post('/bookings/stay', data);
+        return response.data;
+    },
+
+    createRestaurantBooking: async (data: RestaurantBookingData) => {
+        const response = await api.post('/bookings/restaurant', data);
+        return response.data;
+    },
+
+    createPaymentOrder: async (amount: number, bookingId: string) => {
+        const response = await api.post('/payments/order', { amount, bookingId });
+        return response.data;
+    },
+
+    verifyPayment: async (paymentData: any) => {
+        const response = await api.post('/payments/verify', paymentData);
         return response.data;
     },
 
