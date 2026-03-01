@@ -147,7 +147,7 @@ export function Chatbot() {
     }
 
     return (
-        <div className="fixed bottom-6 right-6 z-[100] flex flex-col items-end">
+        <div className="fixed bottom-24 right-6 md:bottom-6 z-[100] flex flex-col items-end">
             {/* Chat Window */}
             {isOpen && (
                 <div className={cn(
@@ -247,7 +247,7 @@ export function Chatbot() {
                                 type="submit"
                                 size="icon"
                                 disabled={!message.trim() || isLoading}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl bg-accent hover:bg-accent/90 disabled:bg-slate-300 shadow-lg transition-transform active:scale-90"
+                                className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 shadow-lg transition-transform active:scale-90"
                             >
                                 {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
                             </Button>
@@ -262,7 +262,7 @@ export function Chatbot() {
                 size="icon"
                 className={cn(
                     "w-16 h-16 rounded-[2rem] shadow-2xl transition-all duration-500 hover:scale-110 active:scale-95 z-[100] group relative overflow-hidden",
-                    isOpen ? "bg-slate-800 dark:bg-white text-white dark:text-slate-900" : "bg-accent text-white"
+                    isOpen ? "bg-slate-800 dark:bg-white text-white dark:text-slate-900" : "bg-emerald-600 text-white"
                 )}
             >
                 <div className="absolute inset-0 bg-white/10 group-hover:bg-transparent transition-colors" />
