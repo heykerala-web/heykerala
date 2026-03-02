@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface PlaceDetailPanelProps {
     place: any;
@@ -13,6 +14,7 @@ interface PlaceDetailPanelProps {
 }
 
 export function PlaceDetailPanel({ place, isFavorite, onToggleSave, onClose }: PlaceDetailPanelProps) {
+    const { t } = useLanguage();
     if (!place) return null;
 
     const handleShare = () => {
@@ -40,7 +42,7 @@ export function PlaceDetailPanel({ place, isFavorite, onToggleSave, onClose }: P
                         size="icon"
                         onClick={onClose}
                         className="bg-white/20 hover:bg-white/30 text-white rounded-full backdrop-blur-md h-12 w-12 border border-white/20"
-                        title="Back to results"
+                        title={t("back_to_results")}
                     >
                         <X className="h-6 w-6" />
                     </Button>
@@ -52,7 +54,7 @@ export function PlaceDetailPanel({ place, isFavorite, onToggleSave, onClose }: P
                         size="icon"
                         onClick={handleShare}
                         className="bg-white/20 hover:bg-white/30 text-white rounded-full backdrop-blur-md h-12 w-12 border border-white/30 active:scale-95 transition-all"
-                        title="Share this place"
+                        title={t("share_this_place")}
                     >
                         <Share2 className="h-5 w-5" />
                     </Button>
@@ -83,7 +85,7 @@ export function PlaceDetailPanel({ place, isFavorite, onToggleSave, onClose }: P
                     {/* Action Buttons */}
                     <div className="flex gap-4 sticky bottom-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-4 -mx-6 border-t z-10">
                         <Button className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 h-12 rounded-xl font-bold text-sm shadow-md shadow-primary/20 transition-all active:scale-95">
-                            Plan This Trip
+                            {t("plan_this_trip")}
                         </Button>
                         <Button
                             variant="outline"
@@ -100,7 +102,7 @@ export function PlaceDetailPanel({ place, isFavorite, onToggleSave, onClose }: P
 
                     {/* Description */}
                     <div className="space-y-4">
-                        <h3 className="text-lg font-bold">The Experience</h3>
+                        <h3 className="text-lg font-bold">{t("the_experience")}</h3>
                         <p className="text-muted-foreground leading-relaxed text-sm">
                             {place.description}
                         </p>
@@ -112,7 +114,7 @@ export function PlaceDetailPanel({ place, isFavorite, onToggleSave, onClose }: P
                                     <Sparkles className="h-4 w-4 text-white" />
                                 </div>
                                 <div className="space-y-1">
-                                    <h4 className="text-[10px] font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-wider">AI Local Insight</h4>
+                                    <h4 className="text-[10px] font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-wider">{t("ai_local_insight")}</h4>
                                     <p className="text-xs text-emerald-700 dark:text-emerald-300 leading-relaxed italic">
                                         "{place.category === 'Hill Station' ?
                                             `Best visited during early morning for the mist. Don't forget to try the local tea varieties nearby!` :
@@ -139,7 +141,7 @@ export function PlaceDetailPanel({ place, isFavorite, onToggleSave, onClose }: P
                     {/* Gallery (Small preview) */}
                     {place.images && place.images.length > 1 && (
                         <div>
-                            <h3 className="font-bold text-sm mb-3">Gallery</h3>
+                            <h3 className="font-bold text-sm mb-3">{t("gallery")}</h3>
                             <div className="grid grid-cols-3 gap-2">
                                 {place.images.slice(1, 4).map((img: string, i: number) => (
                                     <div key={i} className="aspect-square rounded-xl overflow-hidden bg-gray-100 border border-slate-100">
@@ -152,7 +154,7 @@ export function PlaceDetailPanel({ place, isFavorite, onToggleSave, onClose }: P
 
                     <Link href={`/places/${place._id}`} target="_blank" className="block pb-6">
                         <Button variant="outline" className="w-full rounded-2xl h-14 border-slate-200 text-slate-600 hover:text-black hover:border-slate-800 transition-all font-bold">
-                            View More Details <ExternalLink className="ml-2 h-4 w-4" />
+                            {t("view_more_details")} <ExternalLink className="ml-2 h-4 w-4" />
                         </Button>
                     </Link>
                 </div>

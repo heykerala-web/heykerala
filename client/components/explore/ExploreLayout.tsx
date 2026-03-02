@@ -14,6 +14,7 @@ import { API_URL } from "@/lib/api";
 import api from "@/services/api";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { toast } from "react-hot-toast";
 
 import { ExploreRecommendations } from "./ExploreRecommendations";
@@ -26,6 +27,7 @@ const ExploreMap = dynamic(() => import("./ExploreMap"), {
 
 export default function ExploreLayout() {
     const { user, updateUser } = useAuth();
+    const { t } = useLanguage();
     const [places, setPlaces] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedPlace, setSelectedPlace] = useState<any>(null);
@@ -144,7 +146,7 @@ export default function ExploreLayout() {
                                     <div className="flex-1">
                                         <FilterInput
                                             icon={<Search className="h-5 w-5" />}
-                                            placeholder={isSmartSearch ? "Ask AI: 'Best place for kids'..." : "Search destinations..."}
+                                            placeholder={isSmartSearch ? t("smart_search_placeholder") : t("search_placeholder")}
                                             value={filters.search}
                                             onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
                                             className={`h-14 bg-muted/50 border-transparent transition-all ${isSmartSearch ? 'ring-2 ring-primary/20 border-primary bg-primary/5' : 'focus:bg-white focus:border-emerald-500/20'}`}
@@ -158,7 +160,7 @@ export default function ExploreLayout() {
                                             "h-14 w-14 rounded-2xl shrink-0 transition-all",
                                             isSmartSearch ? "bg-primary shadow-lg shadow-primary/20 scale-105" : "bg-muted/30 border-transparent hover:bg-muted"
                                         )}
-                                        title={isSmartSearch ? "Smart Search Active" : "Enable AI Smart Search"}
+                                        title={isSmartSearch ? t("smart_search_active") : t("enable_smart_search")}
                                     >
                                         <Sparkles className={cn("h-6 w-6", isSmartSearch ? "text-primary-foreground animate-pulse" : "text-muted-foreground")} />
                                     </Button>
@@ -172,21 +174,21 @@ export default function ExploreLayout() {
                                         onChange={(e) => setFilters(prev => ({ ...prev, district: e.target.value }))}
                                         className="h-12 bg-muted/50 border-transparent text-sm"
                                     >
-                                        <option value="all">District (All)</option>
-                                        <option value="Idukki">Idukki</option>
-                                        <option value="Alappuzha">Alappuzha</option>
-                                        <option value="Wayanad">Wayanad</option>
-                                        <option value="Thiruvananthapuram">Thiruvananthapuram</option>
-                                        <option value="Ernakulam">Ernakulam</option>
-                                        <option value="Kozhikode">Kozhikode</option>
-                                        <option value="Kannur">Kannur</option>
-                                        <option value="Kottayam">Kottayam</option>
-                                        <option value="Thrissur">Thrissur</option>
-                                        <option value="Palakkad">Palakkad</option>
-                                        <option value="Malappuram">Malappuram</option>
-                                        <option value="Kollam">Kollam</option>
-                                        <option value="Pathanamthitta">Pathanamthitta</option>
-                                        <option value="Kasaragod">Kasaragod</option>
+                                        <option value="all">{t("district_all")}</option>
+                                        <option value="Idukki">{t("Idukki")}</option>
+                                        <option value="Alappuzha">{t("Alappuzha")}</option>
+                                        <option value="Wayanad">{t("Wayanad")}</option>
+                                        <option value="Thiruvananthapuram">{t("Thiruvananthapuram")}</option>
+                                        <option value="Ernakulam">{t("Ernakulam")}</option>
+                                        <option value="Kozhikode">{t("Kozhikode")}</option>
+                                        <option value="Kannur">{t("Kannur")}</option>
+                                        <option value="Kottayam">{t("Kottayam")}</option>
+                                        <option value="Thrissur">{t("Thrissur")}</option>
+                                        <option value="Palakkad">{t("Palakkad")}</option>
+                                        <option value="Malappuram">{t("Malappuram")}</option>
+                                        <option value="Kollam">{t("Kollam")}</option>
+                                        <option value="Pathanamthitta">{t("Pathanamthitta")}</option>
+                                        <option value="Kasaragod">{t("Kasaragod")}</option>
                                     </FilterSelect>
 
                                     <FilterSelect
@@ -194,10 +196,10 @@ export default function ExploreLayout() {
                                         onChange={(e) => setFilters(prev => ({ ...prev, budget: e.target.value }))}
                                         className="h-12 bg-muted/50 border-transparent text-sm px-4"
                                     >
-                                        <option value="all">Budget (Any)</option>
-                                        <option value="Low">Low / Free</option>
-                                        <option value="Mid">Mid-Range</option>
-                                        <option value="High">Luxury</option>
+                                        <option value="all">{t("budget_any")}</option>
+                                        <option value="Low">{t("low_free")}</option>
+                                        <option value="Mid">{t("mid_range")}</option>
+                                        <option value="High">{t("luxury")}</option>
                                     </FilterSelect>
                                 </div>
 
@@ -207,10 +209,10 @@ export default function ExploreLayout() {
                                     onChange={(e) => setFilters(prev => ({ ...prev, minRating: e.target.value }))}
                                     className="h-12 bg-muted/50 border-transparent text-sm px-4"
                                 >
-                                    <option value="all">Rating (Any)</option>
-                                    <option value="3">3+ Stars</option>
-                                    <option value="4">4+ Stars</option>
-                                    <option value="4.5">4.5+ Stars</option>
+                                    <option value="all">{t("rating_any")}</option>
+                                    <option value="3">{t("stars_3")}</option>
+                                    <option value="4">{t("stars_4")}</option>
+                                    <option value="4.5">{t("stars_4_5")}</option>
                                 </FilterSelect>
                             </div>
 
@@ -222,7 +224,10 @@ export default function ExploreLayout() {
                                             value={tab}
                                             className="rounded-full border border-muted px-6 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary transition-all whitespace-nowrap text-xs font-semibold uppercase tracking-wider"
                                         >
-                                            {tab === "ThingsToDo" ? "Things to do" : tab}
+                                            {tab === "ThingsToDo" ? t("things_to_do") :
+                                                tab === "Locations" ? t("locations") :
+                                                    tab === "Restaurants" ? t("restaurants") :
+                                                        tab === "Stays" ? t("stays") : tab}
                                         </TabsTrigger>
                                     ))}
                                 </TabsList>
@@ -236,8 +241,8 @@ export default function ExploreLayout() {
                             />
 
                             <div className="px-2 mb-2 flex items-center justify-between">
-                                <h3 className="font-outfit font-bold text-sm tracking-tight text-slate-400 uppercase">Results</h3>
-                                <span className="text-[10px] bg-slate-100 px-2 py-0.5 rounded-full font-bold text-slate-500">{places.length} Places Found</span>
+                                <h3 className="font-outfit font-bold text-sm tracking-tight text-slate-400 uppercase">{t("results")}</h3>
+                                <span className="text-[10px] bg-slate-100 px-2 py-0.5 rounded-full font-bold text-slate-500">{places.length} {t("places_found")}</span>
                             </div>
 
                             <ExploreList
@@ -285,7 +290,7 @@ export default function ExploreLayout() {
                         onClick={() => setView(view === "map" ? "list" : "map")}
                         className="rounded-full shadow-xl px-6 bg-black text-white hover:bg-gray-800"
                     >
-                        {view === "map" ? <><List className="mr-2 h-4 w-4" /> Show List</> : <><MapIcon className="mr-2 h-4 w-4" /> Show Map</>}
+                        {view === "map" ? <><List className="mr-2 h-4 w-4" /> {t("show_list")}</> : <><MapIcon className="mr-2 h-4 w-4" /> {t("show_map")}</>}
                     </Button>
                 </div>
             </div>

@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { getAvatarUrl } from "@/lib/api";
 
 /* --------------------- Data --------------------- */
@@ -67,6 +68,7 @@ import { AddListingButton } from "./AddListingButton";
 export function Navbar() {
   const pathname = usePathname();
   const { user, loading, logout } = useAuth();
+  const { t } = useLanguage();
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -123,7 +125,7 @@ export function Navbar() {
             <div className="relative w-full group">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
               <Input
-                placeholder="Search destinations, stays, events..."
+                placeholder={t("nav_search_placeholder")}
                 className={`w-full h-11 pl-11 pr-4 rounded-full border-transparent focus:ring-2 focus:ring-primary/20 transition-all text-base shadow-sm ${isScrolled
                   ? 'bg-muted/50 focus:bg-white focus:border-primary/20'
                   : 'bg-white/90 backdrop-blur-md focus:bg-white border-white/40' // More distinct on hero
@@ -149,13 +151,13 @@ export function Navbar() {
           {/* Desktop Links */}
           <nav className="hidden lg:flex items-center gap-8">
             <Link href="/" className={`text-sm font-bold tracking-wide transition-all duration-300 relative group py-2 ${(!isScrolled && pathname === '/') ? 'text-white/90 hover:text-white' : 'text-muted-foreground hover:text-primary'}`}>
-              HOME
+              {t("nav_home").toUpperCase()}
               <span className={`absolute bottom-0 left-0 w-0 h-0.5 bg-current transition-all duration-300 group-hover:w-full ${pathname === "/" ? "w-full" : ""}`} />
             </Link>
 
             <div className="flex items-center gap-1 group relative">
               <Link href="/where-to-go" className={`text-sm font-bold tracking-wide transition-all duration-300 py-2 flex items-center gap-1 ${(!isScrolled && pathname === '/') ? 'text-white/90 hover:text-white' : 'text-muted-foreground hover:text-primary'}`}>
-                WHERE TO GO
+                {t("nav_where_to_go").toUpperCase()}
                 <ChevronDown className="h-3 w-3 opacity-50 group-hover:opacity-100 transition-opacity" />
               </Link>
 
@@ -164,7 +166,14 @@ export function Navbar() {
                   {exploreCategories.map((c) => (
                     <Link key={c.name} href={c.href} className="flex items-center gap-3 p-3 rounded-xl hover:bg-primary/10 hover:text-primary transition-colors cursor-pointer group/item">
                       <span className="text-xl group-hover/item:scale-110 transition-transform">{c.icon}</span>
-                      <span className="font-medium text-sm text-foreground group-hover/item:text-primary">{c.name}</span>
+                      <span className="font-medium text-sm text-foreground group-hover/item:text-primary">
+                        {c.name === "Attractions" ? t("cat_attractions") :
+                          c.name === "Art & Culture" ? t("cat_culture") :
+                            c.name === "Picnic Spots" ? t("cat_picnic") :
+                              c.name === "Regions" ? t("cat_regions") :
+                                c.name === "Spirituality" ? t("cat_spirituality") :
+                                  c.name === "Untold" ? t("cat_untold") : c.name}
+                      </span>
                     </Link>
                   ))}
                 </div>
@@ -173,9 +182,13 @@ export function Navbar() {
 
             {navLinks.map((link) => {
               const active = pathname === link.href;
+              const translatedLabel = link.label === "Explore" ? t("nav_explore") :
+                link.label === "Plan your trip" ? t("nav_plan") :
+                  link.label === "Stay" ? t("nav_stay") :
+                    link.label === "Events" ? t("nav_events") : link.label;
               return (
                 <Link key={link.href} href={link.href} className={`text-sm font-bold tracking-wide transition-all duration-300 relative group py-2 ${active ? "text-primary" : ((!isScrolled && pathname === '/') ? 'text-white/90 hover:text-white' : 'text-muted-foreground hover:text-primary')}`}>
-                  {link.label.toUpperCase()}
+                  {translatedLabel.toUpperCase()}
                   <span className={`absolute bottom-0 left-0 w-0 h-0.5 bg-current transition-all duration-300 group-hover:w-full ${active ? "w-full" : ""}`} />
                 </Link>
               );
@@ -209,7 +222,7 @@ export function Navbar() {
                     )}
                   </div>
                   <span className={`text-[11px] font-bold uppercase tracking-widest ${(!isScrolled && pathname === '/') ? 'text-white' : 'text-foreground'}`}>
-                    {!loading && user ? user.name.split(' ')[0] : "Account"}
+                    {!loading && user ? user.name.split(' ')[0] : t("nav_account")}
                   </span>
                   <ChevronDown className={`h-3 w-3 ${(!isScrolled && pathname === '/') ? 'text-white/70' : 'text-muted-foreground'}`} />
                 </Button>
@@ -231,20 +244,20 @@ export function Navbar() {
                       <p className="text-[10px] text-muted-foreground truncate">{user.email}</p>
                     </div>
                     <DropdownMenuItem asChild>
-                      <Link href="/profile" className="rounded-lg cursor-pointer">My Profile</Link>
+                      <Link href="/profile" className="rounded-lg cursor-pointer">{t("nav_my_profile")}</Link>
                     </DropdownMenuItem>
                     {user.role === "Admin" && (
                       <DropdownMenuItem asChild>
-                        <Link href="/admin" className="text-emerald-600 font-bold rounded-lg cursor-pointer bg-emerald-50/50">Admin Panel</Link>
+                        <Link href="/admin" className="text-emerald-600 font-bold rounded-lg cursor-pointer bg-emerald-50/50">{t("nav_admin_panel")}</Link>
                       </DropdownMenuItem>
                     )}
                     <DropdownMenuItem asChild>
-                      <Link href="/profile?tab=overview" className="rounded-lg cursor-pointer">Dashboard</Link>
+                      <Link href="/profile?tab=overview" className="rounded-lg cursor-pointer">{t("nav_dashboard")}</Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator className="bg-border/50" />
                     <DropdownMenuItem asChild>
                       <Link href="/help" className="flex items-center gap-2 rounded-lg cursor-pointer">
-                        <HelpCircle className="h-4 w-4" /> Help & Support
+                        <HelpCircle className="h-4 w-4" /> {t("nav_help")}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator className="bg-border/50" />
@@ -252,7 +265,7 @@ export function Navbar() {
                       onClick={handleLogout}
                       className="text-red-600 focus:text-red-700 focus:bg-red-50 cursor-pointer font-medium rounded-lg"
                     >
-                      Logout
+                      {t("nav_logout")}
                     </DropdownMenuItem>
                   </>
                 )}
@@ -260,10 +273,10 @@ export function Navbar() {
                 {!loading && !user && (
                   <>
                     <DropdownMenuItem asChild>
-                      <Link href="/login" className="font-bold cursor-pointer rounded-lg">Sign in</Link>
+                      <Link href="/login" className="font-bold cursor-pointer rounded-lg">{t("nav_sign_in")}</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href="/register" className="cursor-pointer rounded-lg">Create account</Link>
+                      <Link href="/register" className="cursor-pointer rounded-lg">{t("nav_create_account")}</Link>
                     </DropdownMenuItem>
                   </>
                 )}
@@ -291,7 +304,7 @@ export function Navbar() {
                         <div className="relative flex-1">
                           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input
-                            placeholder="Search..."
+                            placeholder={t("search_placeholder")}
                             className="pl-10 h-10 bg-muted/50 border-transparent rounded-lg"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
@@ -307,7 +320,10 @@ export function Navbar() {
                         <SheetClose asChild key={link.href}>
                           <Link href={link.href} className="flex items-center gap-4 p-3 rounded-xl hover:bg-primary/5 hover:text-primary transition-colors font-medium">
                             <link.icon className="h-5 w-5 text-muted-foreground" />
-                            {link.label}
+                            {link.label === "Explore" ? t("nav_explore") :
+                              link.label === "Plan your trip" ? t("nav_plan") :
+                                link.label === "Stay" ? t("nav_stay") :
+                                  link.label === "Events" ? t("nav_events") : link.label}
                           </Link>
                         </SheetClose>
                       ))}
@@ -315,7 +331,7 @@ export function Navbar() {
 
                     {/* Add Sidebar items to mobile sheet for parity */}
                     <div className="pt-6 border-t border-border/40 space-y-1">
-                      <p className="px-3 text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">My Account</p>
+                      <p className="px-3 text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">{t("nav_account")}</p>
                       <Link href="/chats" className="flex items-center gap-4 p-3 rounded-xl hover:bg-primary/5 hover:text-primary transition-colors font-medium">
                         <MessageSquare className="h-5 w-5 text-muted-foreground" />
                         Chats
@@ -341,11 +357,11 @@ export function Navbar() {
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-white/20 shadow-[0_-5px_20px_rgba(0,0,0,0.05)] z-40 pb-safe">
         <div className="grid grid-cols-5 text-center px-2">
           {[
-            { href: "/", icon: "🏠", label: "Home" },
-            { href: "/explore", icon: "🔍", label: "Explore" },
-            { href: "/plan-trip", icon: "📋", label: "Plan" },
-            { href: "/profile", icon: "👤", label: "Profile" },
-            { href: "/emergency", icon: "🚨", label: "Help" },
+            { href: "/", icon: "🏠", label: t("nav_home") },
+            { href: "/explore", icon: "🔍", label: t("nav_explore") },
+            { href: "/plan-trip", icon: "📋", label: t("nav_plan").split(' ')[0] },
+            { href: "/profile", icon: "👤", label: t("nav_profile") },
+            { href: "/emergency", icon: "🚨", label: t("nav_help").split(' ')[0] },
           ].map((item) => {
             const active = pathname === item.href;
             return (
