@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Star, MapPin, Heart, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -17,6 +17,10 @@ export interface PlaceCardProps {
 
 import Link from "next/link"
 import { getFullImageUrl } from "@/lib/images"
+import { useAuth } from "@/context/AuthContext"
+import api from "@/services/api"
+import { toast } from "react-hot-toast"
+import { useRouter } from "next/navigation"
 
 export function PlaceCard({
   id,
@@ -28,7 +32,53 @@ export function PlaceCard({
   category,
   isBookmarked = false,
 }: PlaceCardProps) {
-  const [bookmarked, setBookmarked] = useState(isBookmarked)
+  const { user, updateUser } = useAuth()
+  const router = useRouter()
+
+  // Use user state to determine if bookmarked if available
+  const isSaved = user?.savedPlaces?.some((p: any) => {
+    const savedId = typeof p === 'string' ? p : p._id;
+    return savedId === id;
+  }) ?? isBookmarked;
+
+  const [bookmarked, setBookmarked] = useState(isSaved)
+
+  // Sync with user state if it changes
+  useEffect(() => {
+    setBookmarked(isSaved);
+  }, [isSaved]);
+
+  const handleToggleSave = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    if (!user) {
+      toast.error("Please login to save places");
+      router.push("/login");
+      return;
+    }
+
+    try {
+      if (bookmarked) {
+        await api.delete(`/users/save/place/${id}`);
+        toast.success("Removed from saved places");
+        const newSaved = user.savedPlaces?.filter((p: any) => {
+          const savedId = typeof p === 'string' ? p : p._id;
+          return savedId !== id;
+        });
+        updateUser({ savedPlaces: newSaved });
+      } else {
+        await api.post(`/users/save/place/${id}`);
+        toast.success("Added to saved places");
+        const newSaved = [...(user.savedPlaces || []), id];
+        updateUser({ savedPlaces: newSaved });
+      }
+      setBookmarked(!bookmarked)
+    } catch (error) {
+      console.error("Failed to update saved places:", error);
+      toast.error("Failed to update saved places");
+    }
+  }
 
   return (
     <Link href={`/places/${id}`} className="block group h-full">
@@ -51,11 +101,7 @@ export function PlaceCard({
 
           <button
             aria-label={`${bookmarked ? "Remove from" : "Add to"} bookmarks`}
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              setBookmarked((b) => !b)
-            }}
+            onClick={handleToggleSave}
             className="absolute top-3 right-3 p-2.5 rounded-full bg-white/20 backdrop-blur-md border border-white/20 text-white hover:bg-white hover:text-red-500 transition-all z-20 group/heart"
           >
             <Heart className={`h-4 w-4 ${bookmarked ? "fill-red-500 text-red-500" : "fill-transparent"}`} />

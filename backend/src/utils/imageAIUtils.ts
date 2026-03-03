@@ -1,6 +1,4 @@
-import dotenv from "dotenv";
 
-dotenv.config();
 
 /**
  * Generates a tourism-style AI image for a given place name using direct fetch to OpenAI API.

@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Star, MapPin, ArrowRight, Heart } from "lucide-react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -20,6 +21,7 @@ interface StayCardProps {
     amenities: string[]
     isSaved?: boolean
 }
+import { useAuth } from "@/context/AuthContext"
 
 export function StayCard({
     id,
@@ -32,30 +34,52 @@ export function StayCard({
     amenities,
     isSaved = false,
 }: StayCardProps) {
-    const [saved, setSaved] = useState(isSaved)
+    const { user, updateUser } = useAuth()
+    const router = useRouter()
+
+    const isActuallySaved = user?.savedStays?.some((s: any) => {
+        const savedId = typeof s === 'string' ? s : s._id;
+        return savedId === id;
+    }) ?? isSaved;
+
+    const [saved, setSaved] = useState(isActuallySaved)
     const [saving, setSaving] = useState(false)
+
+    useEffect(() => {
+        setSaved(isActuallySaved);
+    }, [isActuallySaved]);
 
     const handleSave = async (e: React.MouseEvent) => {
         e.preventDefault()
         e.stopPropagation()
+
+        if (!user) {
+            toast.error("Please log in to save stays")
+            router.push("/login")
+            return
+        }
+
         if (saving) return
         setSaving(true)
         try {
             if (saved) {
                 await api.delete(`/users/save/stay/${id}`)
+                const newSaved = user.savedStays?.filter((s: any) => {
+                    const savedId = typeof s === 'string' ? s : s._id;
+                    return savedId !== id;
+                });
+                updateUser({ savedStays: newSaved });
                 setSaved(false)
                 toast.success("Removed from wishlist")
             } else {
                 await api.post(`/users/save/stay/${id}`)
+                const newSaved = [...(user.savedStays || []), id];
+                updateUser({ savedStays: newSaved });
                 setSaved(true)
                 toast.success("Saved to wishlist!")
             }
         } catch (err: any) {
-            if (err?.response?.status === 401) {
-                toast.error("Please log in to save stays")
-            } else {
-                toast.error("Something went wrong")
-            }
+            toast.error("Failed to update wishlist")
         } finally {
             setSaving(false)
         }

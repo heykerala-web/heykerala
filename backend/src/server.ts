@@ -11,7 +11,6 @@ import { migrateStays } from "./seed/migrateStays";
 // Load Env
 dotenv.config();
 console.log("ENV loaded");
-console.log("Forcing restart to apply RBAC changes...");
 
 // DB + Passport Config
 import connectDB from "./config/db";
@@ -156,25 +155,44 @@ function startCronJobs() {
   console.log('⏰ Cron jobs started: auto-expire (1h), reminders (15min)');
 }
 
+// Handle unhandled promise rejections
+process.on("unhandledRejection", (err: any) => {
+  console.error("🔥 Unhandled Rejection:", err.message);
+  // In dev, we might not want to exit, but it helps identify the cause
+  // process.exit(1);
+});
+
+// Handle uncaught exceptions
+process.on("uncaughtException", (err: any) => {
+  console.error("🔥 Uncaught Exception:", err.message);
+  process.exit(1);
+});
+
 // Start Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, async () => {
   console.log(`🚀 Server running on port ${PORT}`);
 
   try {
+    console.log("⏳ Connecting to MongoDB...");
     await connectDB();
-    console.log("MongoDB Connected");
+    console.log("✅ MongoDB Connected");
 
     // Seed Stays if needed
+    console.log("⏳ Checking if Stays need seeding...");
     await seedStays();
 
     // Migrate old data
+    console.log("⏳ Checking if Stays need migration...");
     await migrateStays();
 
     // Start background cron jobs
+    console.log("⏳ Starting cron jobs...");
     startCronJobs();
+    console.log("✨ All startup tasks complete");
 
   } catch (err: any) {
-    console.error("MongoDB Connection Error:", err.message);
+    console.error("❌ Critical Startup Error:", err.message);
+    if (err.stack) console.error(err.stack);
   }
 });

@@ -51,6 +51,10 @@ export default function StayDetailsClient({ id, initialStay }: { id: string, ini
     const [selectedRoom, setSelectedRoom] = useState<any>(null);
     const [bookingTime, setBookingTime] = useState("");
     const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+    const [paymentMethod, setPaymentMethod] = useState<'razorpay' | 'manual_upi'>('razorpay');
+    const [showManualPaymentDialog, setShowManualPaymentDialog] = useState(false);
+    const [tempBookingId, setTempBookingId] = useState("");
+    const [transactionId, setTransactionId] = useState("");
 
     const { user, updateUser } = useAuth();
 
@@ -209,6 +213,12 @@ export default function StayDetailsClient({ id, initialStay }: { id: string, ini
     }, [id, initialStay]);
 
     const initiatePayment = async (booking: any) => {
+        if (paymentMethod === 'manual_upi') {
+            setTempBookingId(booking._id);
+            setShowManualPaymentDialog(true);
+            return;
+        }
+
         try {
             const amount = booking.totalPrice || 500; // Default or calculated
             const orderRes = await stayService.createPaymentOrder(amount, booking._id);
@@ -245,6 +255,27 @@ export default function StayDetailsClient({ id, initialStay }: { id: string, ini
             }
         } catch (error: any) {
             toast({ title: "Payment Error", description: "Failed to initiate payment. Please try again.", variant: "destructive" });
+        }
+    };
+
+    const handleManualPaymentSubmit = async () => {
+        if (!transactionId) {
+            toast({ title: "Transaction ID Required", variant: "destructive" });
+            return;
+        }
+
+        setBookingLoading(true);
+        try {
+            const res = await stayService.submitManualPayment(tempBookingId, transactionId);
+            if (res.success) {
+                toast({ title: "Submit Successful", description: "Payment details submitted for verification." });
+                setShowManualPaymentDialog(false);
+                router.push(`/dashboard/bookings?id=${tempBookingId}`);
+            }
+        } catch (error: any) {
+            toast({ title: "Submission Failed", description: "Failed to submit payment details.", variant: "destructive" });
+        } finally {
+            setBookingLoading(false);
         }
     };
 
@@ -652,6 +683,27 @@ export default function StayDetailsClient({ id, initialStay }: { id: string, ini
                                     />
                                 </div>
 
+                                {/* Payment Method Selection */}
+                                <div className="space-y-4 pt-4">
+                                    <Label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">Select Payment Method</Label>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <button
+                                            onClick={() => setPaymentMethod('razorpay')}
+                                            className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${paymentMethod === 'razorpay' ? "bg-primary/20 border-primary text-white" : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10"}`}
+                                        >
+                                            <span className="text-xs font-black uppercase tracking-tighter">Razorpay</span>
+                                            <div className="h-1 w-12 bg-primary/40 rounded-full" />
+                                        </button>
+                                        <button
+                                            onClick={() => setPaymentMethod('manual_upi')}
+                                            className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${paymentMethod === 'manual_upi' ? "bg-primary/20 border-primary text-white" : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10"}`}
+                                        >
+                                            <span className="text-xs font-black uppercase tracking-tighter">Manual UPI</span>
+                                            <div className="h-1 w-12 bg-primary/40 rounded-full" />
+                                        </button>
+                                    </div>
+                                </div>
+
                                 <Button
                                     className="w-full h-20 text-xl font-black rounded-2xl bg-primary text-primary-foreground shadow-[0_0_30px_rgba(var(--primary),0.3)] hover:scale-[1.02] transition-all"
                                     onClick={handleBooking}
@@ -669,6 +721,59 @@ export default function StayDetailsClient({ id, initialStay }: { id: string, ini
                     </div>
                 </div>
             </div>
+
+            {/* Manual Payment Dialog */}
+            {showManualPaymentDialog && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-gray-900 border border-white/10 rounded-[2.5rem] p-10 max-w-md w-full space-y-8 animate-in zoom-in-95 duration-300">
+                        <div className="text-center space-y-4">
+                            <h2 className="text-3xl font-black text-white">Manual UPI Payment</h2>
+                            <p className="text-white/60">Please pay ₹{stay.price} to the VR Code or VPA below and enter the Transaction ID.</p>
+                        </div>
+
+                        <div className="flex flex-col items-center gap-6 py-4">
+                            {/* Dummy QR Code Image */}
+                            <div className="w-48 h-48 bg-white p-4 rounded-3xl overflow-hidden">
+                                <img
+                                    src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=heykerala@upi&pn=HeyKerala&am=500&cu=INR"
+                                    alt="UPI QR Code"
+                                    className="w-full h-full object-contain"
+                                />
+                            </div>
+                            <p className="text-primary font-bold text-lg select-all">heykerala@upi</p>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">UTR / Transaction ID</Label>
+                            <Input
+                                type="text"
+                                placeholder="Enter 12-digit Transaction ID"
+                                value={transactionId}
+                                onChange={(e) => setTransactionId(e.target.value)}
+                                className="h-14 bg-white/5 border-white/10 rounded-xl text-white focus:bg-white/10 transition-all font-bold placeholder:text-white/20"
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4 pt-4">
+                            <Button
+                                variant="outline"
+                                className="h-16 rounded-2xl border-white/10 text-white hover:bg-white/5"
+                                onClick={() => setShowManualPaymentDialog(false)}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                className="h-16 rounded-2xl bg-primary text-primary-foreground font-black"
+                                onClick={handleManualPaymentSubmit}
+                                disabled={bookingLoading}
+                            >
+                                {bookingLoading ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
+                                Submit
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

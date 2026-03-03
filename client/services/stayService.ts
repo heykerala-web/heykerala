@@ -124,6 +124,11 @@ export const stayService = {
         return response.data;
     },
 
+    submitManualPayment: async (bookingId: string, transactionId: string) => {
+        const response = await api.post('/payments/manual-submit', { bookingId, transactionId });
+        return response.data;
+    },
+
     // User Submission
     submit: async (data: Partial<Stay>) => {
         const response = await api.post('/stays/user/submission', data);

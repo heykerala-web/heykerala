@@ -43,6 +43,19 @@ const bookingSchema = new mongoose.Schema({
     razorpayPaymentId: String,
     razorpaySignature: String,
 
+    // Manual Payment Fields
+    paymentMethod: {
+        type: String,
+        enum: ["razorpay", "manual_upi"],
+        default: "razorpay"
+    },
+    manualPaymentRef: String, // Transaction ID from user
+    manualPaymentStatus: {
+        type: String,
+        enum: ["none", "pending_verification", "verified", "rejected"],
+        default: "none"
+    }
+
 }, { timestamps: true });
 
 export default mongoose.models.Booking || mongoose.model("Booking", bookingSchema);

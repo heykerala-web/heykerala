@@ -1,9 +1,12 @@
 "use client"
-
+import { useState, useEffect } from "react"
 import { Calendar, MapPin, Eye, Bookmark, BookmarkCheck } from "lucide-react"
 import { getFullImageUrl } from "@/lib/images"
 import { EventStatusBadge } from "@/components/events/EventStatusBadge"
-import { useState } from "react"
+import { useAuth } from "@/context/AuthContext"
+import api from "@/services/api"
+import { toast } from "react-hot-toast"
+import { useRouter } from "next/navigation"
 
 export interface EventCardProps {
   id: string
@@ -24,21 +27,49 @@ export function EventCard({
   id, name, date, time, location, image, description, category,
   eventStatus = 'upcoming', viewCount = 0, isFeatured = false, isBookmarked = false
 }: EventCardProps) {
-  const [bookmarked, setBookmarked] = useState(isBookmarked)
+  const { user, updateUser } = useAuth()
+  const router = useRouter()
+
+  const isActuallySaved = user?.savedEvents?.some((e: any) => {
+    const savedId = typeof e === 'string' ? e : e._id;
+    return savedId === id;
+  }) ?? isBookmarked;
+
+  const [bookmarked, setBookmarked] = useState(isActuallySaved)
+
+  useEffect(() => {
+    setBookmarked(isActuallySaved);
+  }, [isActuallySaved]);
 
   const toggleBookmark = async (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    const token = localStorage.getItem('token')
-    if (!token) return
+
+    if (!user) {
+      toast.error("Please login to save events")
+      router.push("/login")
+      return
+    }
+
     try {
-      const method = bookmarked ? 'DELETE' : 'POST'
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/users/save/event/${id}`, {
-        method,
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      if (bookmarked) {
+        await api.delete(`/users/save/event/${id}`)
+        const newSaved = user.savedEvents?.filter((e: any) => {
+          const savedId = typeof e === 'string' ? e : e._id;
+          return savedId !== id;
+        });
+        updateUser({ savedEvents: newSaved });
+        toast.success("Removed from wishlist")
+      } else {
+        await api.post(`/users/save/event/${id}`)
+        const newSaved = [...(user.savedEvents || []), id];
+        updateUser({ savedEvents: newSaved });
+        toast.success("Saved to wishlist!")
+      }
       setBookmarked(b => !b)
-    } catch { /* silent */ }
+    } catch {
+      toast.error("Failed to update wishlist")
+    }
   }
 
   return (

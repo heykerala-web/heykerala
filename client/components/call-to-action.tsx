@@ -11,7 +11,7 @@ export function CallToAction() {
           <img
             src="/places/alappuzhabackwaters.webp"
             alt="Cinematic Kerala"
-            className="w-full h-full object-cover opacity-40 group-hover:scale-105 transition-transform duration-[3s]"
+            className="w-full h-full object-cover opacity-40 group-hover:scale-105 transition-transform duration-[3000ms]"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/80 to-transparent" />
         </div>
