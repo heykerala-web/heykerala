@@ -71,14 +71,57 @@ const withPWA = withPWAInit({
       },
     },
     {
+      urlPattern: /\/api\/users\/saved/i,
+      handler: "StaleWhileRevalidate",
+      options: {
+        cacheName: "api-wishlist",
+        expiration: {
+          maxEntries: 1,
+          maxAgeSeconds: 24 * 60 * 60, // 24 hours
+        },
+      },
+    },
+    {
+      urlPattern: /\/api\/users\/me/i,
+      handler: "NetworkFirst",
+      options: {
+        cacheName: "user-data",
+        networkTimeoutSeconds: 5,
+      },
+    },
+    {
+      urlPattern: /\/api\/places\/[a-f0-9]{24}$/i,
+      handler: "NetworkFirst",
+      options: {
+        cacheName: "place-details",
+        networkTimeoutSeconds: 5,
+        expiration: {
+          maxEntries: 20,
+          maxAgeSeconds: 7 * 24 * 60 * 60, // 7 days
+        },
+      },
+    },
+    {
       urlPattern: /\/api\/places.*/i,
       handler: "NetworkFirst",
       options: {
         cacheName: "api-places",
         networkTimeoutSeconds: 10,
         expiration: {
-          maxEntries: 50,
+          maxEntries: 100,
           maxAgeSeconds: 24 * 60 * 60, // 24 hours
+        },
+      },
+    },
+    {
+      urlPattern: /\/api\/stays\/[a-f0-9]{24}$/i,
+      handler: "NetworkFirst",
+      options: {
+        cacheName: "stay-details",
+        networkTimeoutSeconds: 5,
+        expiration: {
+          maxEntries: 20,
+          maxAgeSeconds: 7 * 24 * 60 * 60, // 7 days
         },
       },
     },
@@ -89,8 +132,20 @@ const withPWA = withPWAInit({
         cacheName: "api-stays",
         networkTimeoutSeconds: 10,
         expiration: {
-          maxEntries: 50,
+          maxEntries: 100,
           maxAgeSeconds: 24 * 60 * 60, // 24 hours
+        },
+      },
+    },
+    {
+      urlPattern: /\/api\/events\/[a-f0-9]{24}$/i,
+      handler: "NetworkFirst",
+      options: {
+        cacheName: "event-details",
+        networkTimeoutSeconds: 5,
+        expiration: {
+          maxEntries: 20,
+          maxAgeSeconds: 7 * 24 * 60 * 60, // 7 days
         },
       },
     },
@@ -101,7 +156,7 @@ const withPWA = withPWAInit({
         cacheName: "api-events",
         networkTimeoutSeconds: 10,
         expiration: {
-          maxEntries: 50,
+          maxEntries: 100,
           maxAgeSeconds: 24 * 60 * 60, // 24 hours
         },
       },
@@ -113,7 +168,7 @@ const withPWA = withPWAInit({
         cacheName: "others",
         networkTimeoutSeconds: 10,
         expiration: {
-          maxEntries: 32,
+          maxEntries: 64,
           maxAgeSeconds: 24 * 60 * 60, // 24 hours
         },
       },
@@ -121,9 +176,17 @@ const withPWA = withPWAInit({
   ],
 });
 
-/** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: "standalone",
   reactStrictMode: true,
+  swcMinify: true,
+
+  // Memory optimization for build process
+  onDemandEntries: {
+    maxInactiveAge: 25 * 1000,
+    pagesBufferLength: 2,
+  },
+
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -147,9 +210,14 @@ const nextConfig = {
   },
 
   compress: true,
+  productionBrowserSourceMaps: false, // Disable source maps in production to save memory
 
   experimental: {
     optimizePackageImports: ["lucide-react", "date-fns", "lodash", "recharts"],
+    // Lower memory consumption during build
+    webpackBuildWorker: true,
+    parallelServerCompiles: false,
+    parallelServerBuildTraces: false,
   },
 
   async rewrites() {
