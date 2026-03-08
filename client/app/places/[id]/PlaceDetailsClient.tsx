@@ -1,24 +1,18 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { placeService } from "@/services/placeService"
-import { reviewService } from "@/services/reviewService"
 import { Button } from "@/components/ui/button"
 import api from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
-import { Card, CardContent } from "@/components/ui/card"
 import {
     MapPin,
     Star,
-    Calendar,
     Share2,
     Heart,
     ChevronLeft,
-    ChevronRight,
-    Wind,
-    Droplets
 } from "lucide-react"
 import dynamic from "next/dynamic";
 const LeafletMap = dynamic(() => import("@/app/components/Map/LeafletMap"), {
@@ -26,12 +20,7 @@ const LeafletMap = dynamic(() => import("@/app/components/Map/LeafletMap"), {
     loading: () => <div className="h-[400px] w-full bg-muted animate-pulse rounded-3xl" />
 });
 import toast from "react-hot-toast"
-import PlaceCard from "@/components/places/PlaceCard"
-import ReviewList from "@/components/reviews/ReviewList"
-import ReviewForm from "@/components/reviews/ReviewForm"
-import ReviewSummary from "@/components/reviews/ReviewSummary"
-import { ReviewSummary as AIReviewSummary } from "@/components/ai/ReviewSummary"
-import { Review } from "@/types/review"
+import ReviewSection from "@/components/reviews/ReviewSection"
 
 // New Premium Components
 import PlaceWeather from "@/app/components/places/PlaceWeather"
@@ -41,98 +30,21 @@ import StickyMiniHeader from "@/app/components/places/StickyMiniHeader"
 import PlacePhotoGallery from "@/components/places/PlacePhotoGallery";
 import { Container } from "@/components/ui/container";
 import { getFullImageUrl } from "@/lib/images";
+import { trackPlaceView, trackBookmark } from "@/lib/interactionTracker";
 
 export default function PlaceDetailsClient({ placeId, initialPlace }: { placeId: string, initialPlace?: any }) {
     const router = useRouter()
+    const { user, updateUser } = useAuth()
 
     const [place, setPlace] = useState<any>(initialPlace || null);
     const [nearbyPlaces, setNearbyPlaces] = useState<any[]>([]);
-    const [reviews, setReviews] = useState<Review[]>([]);
-    const [totalReviews, setTotalReviews] = useState(0);
-    const [hasMoreReviews, setHasMoreReviews] = useState(false);
-    const [reviewPage, setReviewPage] = useState(1);
-    const [isFetchingReviews, setIsFetchingReviews] = useState(false);
-    const [reviewBreakdown, setReviewBreakdown] = useState<any>(null);
     const [loading, setLoading] = useState(!initialPlace);
     const [weather, setWeather] = useState<any>(null)
     const [userPhotos, setUserPhotos] = useState<any[]>([]);
-
-    const [currentImageIndex, setCurrentImageIndex] = useState(0)
-    const [addedToItinerary, setAddedToItinerary] = useState(false)
     const [isFavorite, setIsFavorite] = useState(false);
+    const [addedToItinerary, setAddedToItinerary] = useState(false)
 
-    const { user, updateUser } = useAuth()
-
-    // Fetch Place, Reviews & Nearby
-    useEffect(() => {
-        if (!placeId) return;
-
-        const fetchData = async () => {
-            try {
-                if (!initialPlace) setLoading(true);
-                console.log("Fetching place with ID:", placeId);
-
-                // Fetch User Photos
-                fetchUserPhotos();
-
-                if (!initialPlace) {
-                    const placeData = await placeService.getById(placeId);
-                    if (placeData && placeData.success) {
-                        setPlace(placeData.data);
-                    } else {
-                        toast.error("Place not found");
-                    }
-                }
-
-                // Fetch Reviews & Breakdown
-                fetchReviews(1, true);
-                fetchBreakdown();
-
-                // Fetch Nearby
-                try {
-                    const nearbyData = await placeService.getNearby(placeId);
-                    if (nearbyData.success) setNearbyPlaces(nearbyData.data);
-                } catch (e) { console.error("Nearby fetch failed", e); }
-
-            } catch (error) {
-                console.error("Critical error loading place:", error);
-                toast.error("Failed to load place details");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, [placeId, initialPlace]);
-
-    const fetchReviews = async (page = 1, reset = false) => {
-        try {
-            setIsFetchingReviews(true);
-            const res = await reviewService.getReviews(placeId, page, 5);
-            if (res.success) {
-                if (reset) {
-                    setReviews(res.data);
-                } else {
-                    setReviews(prev => [...prev, ...res.data]);
-                }
-                setTotalReviews(res.pagination.total);
-                setHasMoreReviews(page < res.pagination.pages);
-                setReviewPage(page);
-            }
-        } catch (e) {
-            console.error("Reviews fetch failed", e);
-        } finally {
-            setIsFetchingReviews(false);
-        }
-    };
-
-    const fetchBreakdown = async () => {
-        try {
-            const res = await reviewService.getRatingBreakdown(placeId);
-            if (res.success) setReviewBreakdown(res.data.breakdown);
-        } catch (e) { console.error("Breakdown fetch failed", e); }
-    }
-
+    // Helper functions
     const fetchUserPhotos = async () => {
         try {
             const res = await api.get(`/place-photos/${placeId}`);
@@ -143,33 +55,6 @@ export default function PlaceDetailsClient({ placeId, initialPlace }: { placeId:
             console.error("User photos fetch failed", e);
         }
     };
-
-    // Check Favorite Status
-    const isPlaceSaved = user?.savedPlaces?.some((p: any) => {
-        const savedId = typeof p === 'string' ? p : p._id;
-        return savedId === placeId;
-    });
-    useEffect(() => {
-        setIsFavorite(!!isPlaceSaved);
-    }, [user, placeId, isPlaceSaved]);
-
-    // Weather Fetch
-    useEffect(() => {
-        if (place?.latitude && place?.longitude) {
-            async function fetchWeather() {
-                try {
-                    const res = await fetch(
-                        `https://api.open-meteo.com/v1/forecast?latitude=${place.latitude}&longitude=${place.longitude}&current_weather=true`
-                    )
-                    const data = await res.json()
-                    setWeather(data.current_weather)
-                } catch (err) {
-                    console.error("Weather fetch failed:", err)
-                }
-            }
-            fetchWeather()
-        }
-    }, [place]);
 
     const handleToggleSave = async () => {
         if (!user) {
@@ -192,6 +77,7 @@ export default function PlaceDetailsClient({ placeId, initialPlace }: { placeId:
                 toast.success("Added to saved places");
                 const newSaved = [...(user.savedPlaces || []), placeId];
                 updateUser({ savedPlaces: newSaved });
+                trackBookmark(placeId, place?.category || '', place?.district || '');
             }
             setIsFavorite(!isFavorite);
         } catch (error) {
@@ -202,8 +88,8 @@ export default function PlaceDetailsClient({ placeId, initialPlace }: { placeId:
     const handleShare = () => {
         if (navigator.share) {
             navigator.share({
-                title: place.name,
-                text: place.description,
+                title: place?.name,
+                text: place?.description,
                 url: window.location.href,
             })
         } else {
@@ -218,19 +104,75 @@ export default function PlaceDetailsClient({ placeId, initialPlace }: { placeId:
         setTimeout(() => router.push("/plan-trip"), 1000)
     }
 
-    const handleReviewChanged = (updatedReview: any) => {
-        fetchReviews(1, true);
-        fetchBreakdown();
+    // Effects
+    useEffect(() => {
+        if (!placeId) return;
 
-        // Update place rating visually
-        if (updatedReview.ratingInfo) {
-            setPlace((prev: any) => ({
-                ...prev,
-                ratingAvg: updatedReview.ratingInfo.ratingAvg,
-                ratingCount: updatedReview.ratingInfo.ratingCount
-            }));
+        const fetchData = async () => {
+            try {
+                if (!initialPlace) setLoading(true);
+
+                // Concurrent fetches
+                fetchUserPhotos();
+
+                if (!initialPlace) {
+                    const placeData = await placeService.getById(placeId);
+                    if (placeData && placeData.success) {
+                        setPlace(placeData.data);
+                    } else {
+                        toast.error("Place not found");
+                    }
+                }
+
+                try {
+                    const nearbyData = await placeService.getNearby(placeId);
+                    if (nearbyData.success) setNearbyPlaces(nearbyData.data);
+                } catch (e) { console.error("Nearby fetch failed", e); }
+
+            } catch (error) {
+                console.error("Critical error loading place:", error);
+                toast.error("Failed to load place details");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, [placeId, initialPlace]);
+
+    // Tracking effect
+    useEffect(() => {
+        if (place?._id) {
+            trackPlaceView(place._id, place.category, place.district, place.tags || []);
         }
-    }
+    }, [place?._id]);
+
+    // Favorite status effect
+    useEffect(() => {
+        const isPlaceSaved = user?.savedPlaces?.some((p: any) => {
+            const savedId = typeof p === 'string' ? p : p._id;
+            return savedId === placeId;
+        });
+        setIsFavorite(!!isPlaceSaved);
+    }, [user, placeId]);
+
+    // Weather effect
+    useEffect(() => {
+        if (place?.latitude && place?.longitude) {
+            async function fetchWeather() {
+                try {
+                    const res = await fetch(
+                        `https://api.open-meteo.com/v1/forecast?latitude=${place.latitude}&longitude=${place.longitude}&current_weather=true`
+                    )
+                    const data = await res.json()
+                    setWeather(data.current_weather)
+                } catch (err) {
+                    console.error("Weather fetch failed:", err)
+                }
+            }
+            fetchWeather()
+        }
+    }, [place?.latitude, place?.longitude]);
 
     if (loading) {
         return (
@@ -247,13 +189,11 @@ export default function PlaceDetailsClient({ placeId, initialPlace }: { placeId:
         return (
             <div className="flex h-screen flex-col items-center justify-center bg-background">
                 <div className="text-6xl mb-6">🏜️</div>
-                <h1 className="text-h2 font-semibold">Location Not Found</h1>
-                <p className="text-muted-foreground mt-2 mb-8 max-w-sm text-center">We couldn't locate this destination in our database. It might have been moved or removed.</p>
-                <div className="flex gap-4">
-                    <Link href="/explore">
-                        <Button className="bg-primary text-primary-foreground px-8 rounded-full">Explore All Destinations</Button>
-                    </Link>
-                </div>
+                <h1 className="text-4xl font-black">Location Not Found</h1>
+                <p className="text-muted-foreground mt-2 mb-8 max-w-sm text-center">We couldn't locate this destination in our database.</p>
+                <Link href="/explore">
+                    <Button className="bg-primary text-primary-foreground px-8 rounded-full">Explore All Destinations</Button>
+                </Link>
             </div>
         )
     }
@@ -270,7 +210,7 @@ export default function PlaceDetailsClient({ placeId, initialPlace }: { placeId:
                 onShare={handleShare}
             />
 
-            {/* CINEMATIC HERO SECTION */}
+            {/* HERO SECTION */}
             <div className="relative h-[95vh] w-full overflow-hidden bg-gray-900">
                 <div className="absolute inset-0">
                     <img
@@ -278,12 +218,9 @@ export default function PlaceDetailsClient({ placeId, initialPlace }: { placeId:
                         alt={place.name}
                         className="w-full h-full object-cover scale-105 animate-slow-zoom"
                     />
-                    {/* Deep Cinematic Gradient Overlay */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-black/20" />
                 </div>
 
-                {/* Action Bar */}
                 <div className="absolute top-0 left-0 right-0 p-8 flex justify-between items-center z-30">
                     <Link href="/explore">
                         <Button variant="ghost" className="text-white hover:bg-white/20 rounded-full h-14 w-14 p-0 backdrop-blur-md border border-white/10">
@@ -293,7 +230,7 @@ export default function PlaceDetailsClient({ placeId, initialPlace }: { placeId:
                     <div className="flex gap-4">
                         <Button
                             onClick={handleToggleSave}
-                            className={`h-14 w-14 p-0 rounded-full transition-all backdrop-blur-md border border-white/10 ${isFavorite ? "bg-white text-destructive shadow-[0_0_20px_rgba(255,255,255,0.4)]" : "bg-white/10 text-white hover:bg-white/20"}`}
+                            className={`h-14 w-14 p-0 rounded-full transition-all backdrop-blur-md border border-white/10 ${isFavorite ? "bg-white text-destructive" : "bg-white/10 text-white hover:bg-white/20"}`}
                         >
                             <Heart className={`h-7 w-7 ${isFavorite ? "fill-current" : ""}`} />
                         </Button>
@@ -306,18 +243,17 @@ export default function PlaceDetailsClient({ placeId, initialPlace }: { placeId:
                     </div>
                 </div>
 
-                {/* Place Info Header Overlay */}
                 <div className="absolute bottom-0 left-0 right-0 py-20 px-8 md:px-16 lg:px-24 z-20">
                     <div className="container mx-auto">
                         <div className="grid lg:grid-cols-2 gap-12 items-end">
                             <div className="space-y-8 animate-fade-in-up">
                                 <div className="flex flex-wrap items-center gap-4">
-                                    <span className="px-6 py-2 bg-primary text-primary-foreground text-xs font-black rounded-full uppercase tracking-[0.3em] shadow-[0_0_30px_rgba(var(--primary),0.3)]">
+                                    <span className="px-6 py-2 bg-primary text-primary-foreground text-xs font-black rounded-full uppercase tracking-[0.3em]">
                                         {place.category}
                                     </span>
                                     <div className="flex items-center gap-2 bg-white/10 backdrop-blur-xl px-5 py-2 rounded-full border border-white/10 text-sm font-black text-white">
                                         <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-                                        {place.ratingAvg} <span className="text-white/40 ml-1 font-medium">({totalReviews} Reviews)</span>
+                                        {place.ratingAvg} <span className="text-white/40 ml-1 font-medium">({place.ratingCount || 0} Reviews)</span>
                                     </div>
                                 </div>
 
@@ -333,7 +269,6 @@ export default function PlaceDetailsClient({ placeId, initialPlace }: { placeId:
                                 </div>
                             </div>
 
-                            {/* Weather Overlay */}
                             <div className="hidden lg:flex justify-end animate-fade-in-up delay-200">
                                 {weather && <PlaceWeather weather={weather} />}
                             </div>
@@ -344,22 +279,15 @@ export default function PlaceDetailsClient({ placeId, initialPlace }: { placeId:
 
             <Container size="xl" className="py-24 lg:py-32">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-20 lg:gap-32">
-
-                    {/* LEFT: Main Content */}
                     <div className="lg:col-span-8 space-y-24">
-
-                        {/* Image Gallery */}
                         <section className="space-y-8">
-                            <div className="flex items-end justify-between">
-                                <div>
-                                    <h2 className="text-4xl font-black text-gray-900 tracking-tight">Visual Journey</h2>
-                                    <p className="text-gray-400 font-medium mt-1 uppercase tracking-widest text-xs">Exquisite captures from {place.name}</p>
-                                </div>
+                            <div>
+                                <h2 className="text-4xl font-black text-gray-900 tracking-tight">Visual Journey</h2>
+                                <p className="text-gray-400 font-medium mt-1 uppercase tracking-widest text-xs">Exquisite captures from around {place.name}</p>
                             </div>
                             <PlaceGallery images={images} name={place.name} />
                         </section>
 
-                        {/* About Section - Story Layout */}
                         <section className="grid md:grid-cols-2 gap-12 items-start">
                             <div className="space-y-8">
                                 <h2 className="text-5xl font-black text-gray-900 leading-[0.9] tracking-tighter">
@@ -385,19 +313,14 @@ export default function PlaceDetailsClient({ placeId, initialPlace }: { placeId:
                                         </li>
                                     ))}
                                 </ul>
-                                <div className="pt-8 border-t border-gray-200">
-                                    <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Safety & Care</p>
-                                    <p className="text-gray-500 font-medium leading-relaxed">Please respect local customs and help maintain the cleanliness of this beautiful destination.</p>
-                                </div>
                             </div>
                         </section>
 
-                        {/* Map Section */}
                         <section className="space-y-10">
                             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                                 <div>
                                     <h2 className="text-4xl font-black text-gray-900 tracking-tight">Getting There</h2>
-                                    <p className="text-gray-400 font-medium mt-1 uppercase tracking-widest text-xs">{place.location}</p>
+                                    <p className="text-gray-400 font-medium mt-1 uppercase tracking-widest text-xs">{place.district}</p>
                                 </div>
                                 <Button
                                     onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${place.latitude},${place.longitude}`, '_blank')}
@@ -407,7 +330,7 @@ export default function PlaceDetailsClient({ placeId, initialPlace }: { placeId:
                                     Open in Google Maps
                                 </Button>
                             </div>
-                            <div className="h-[600px] w-full rounded-[3rem] overflow-hidden border-8 border-white shadow-[0_32px_80px_-16px_rgba(0,0,0,0.1)] relative">
+                            <div className="h-[600px] w-full rounded-[3rem] overflow-hidden border-8 border-white shadow-xl relative">
                                 <LeafletMap
                                     center={[place.latitude || 10, place.longitude || 76]}
                                     zoom={13}
@@ -417,126 +340,55 @@ export default function PlaceDetailsClient({ placeId, initialPlace }: { placeId:
                             </div>
                         </section>
 
-                        {/* Community Photos Section */}
                         <PlacePhotoGallery
-                            placeId={place._id}
-                            placeName={place.name}
+                            targetId={place._id}
+                            targetName={place.name}
                             externalPhotos={userPhotos}
                             onUpdate={fetchUserPhotos}
                         />
 
-                        {/* Reviews Section */}
-                        <section id="reviews" className="space-y-12">
-                            <div className="flex items-baseline justify-between">
-                                <h2 className="text-5xl font-black text-gray-900 tracking-tighter">Guest Stories</h2>
-                                <div className="text-xl font-bold text-primary">
-                                    {totalReviews} Experiences
-                                </div>
-                            </div>
-
-                            <ReviewSummary
-                                ratingAvg={place.ratingAvg}
-                                ratingCount={totalReviews}
-                                breakdown={reviewBreakdown}
-                            />
-
-                            <AIReviewSummary targetId={placeId} />
-
-                            {user ? (
-                                <ReviewForm
-                                    targetId={placeId}
-                                    targetType="place"
-                                    onReviewAdded={handleReviewChanged}
-                                />
-                            ) : (
-                                <div className="bg-muted/50 p-12 rounded-[2rem] border-2 border-dashed border-muted-foreground/10 text-center mb-12">
-                                    <p className="text-xl text-muted-foreground mb-8">Have you visited {place.name}? Share your thoughts with the community.</p>
-                                    <Link href="/login">
-                                        <Button className="bg-primary text-primary-foreground px-12 h-16 rounded-2xl font-bold text-lg shadow-xl shadow-primary/20">Sign in to Review</Button>
-                                    </Link>
-                                </div>
-                            )}
-
-                            <ReviewList
-                                reviews={reviews}
-                                totalReviews={totalReviews}
-                                hasMore={hasMoreReviews}
-                                onLoadMore={() => fetchReviews(reviewPage + 1)}
-                                onReviewDeleted={(id) => {
-                                    setReviews(prev => prev.filter(r => r._id !== id));
-                                    setTotalReviews(prev => prev - 1);
-                                    fetchBreakdown();
-                                }}
-                                onReviewUpdated={handleReviewChanged}
-                                isLoadingMore={isFetchingReviews}
-                            />
-                        </section>
+                        <ReviewSection
+                            targetId={placeId}
+                            targetType="place"
+                            initialRatingAvg={place.ratingAvg}
+                            initialRatingCount={place.ratingCount}
+                        />
                     </div>
 
-                </div>
+                    <div className="lg:col-span-4 space-y-12">
+                        <QuickInfoPanel place={place} />
 
-                {/* RIGHT: Sidebar */}
-                <div className="lg:col-span-4 space-y-12">
-
-                    <QuickInfoPanel place={place} />
-
-                    {/* Action Card */}
-                    <div className="bg-gray-900 rounded-[2.5rem] p-10 text-white space-y-8 shadow-[0_32px_80px_-16px_rgba(0,0,0,0.3)] sticky top-32 overflow-hidden border border-white/10 group">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-primary/20 transition-colors" />
-
-                        <div className="relative z-10 space-y-2">
+                        <div className="bg-gray-900 rounded-[2.5rem] p-10 text-white space-y-8 sticky top-32 border border-white/10">
                             <h3 className="text-3xl font-black tracking-tight">Plan Your Journey</h3>
-                            <p className="text-white/60 font-medium leading-relaxed">Let us help you create an unforgettable experience at {place.name}.</p>
-                        </div>
-
-                        <div className="relative z-10 space-y-4">
-                            <Button onClick={handleAddToItinerary} className="w-full h-20 bg-primary text-primary-foreground rounded-2xl font-black text-xl hover:scale-105 transition-transform shadow-[0_0_30px_rgba(var(--primary),0.4)]">
+                            <Button onClick={handleAddToItinerary} className="w-full h-20 bg-primary text-primary-foreground rounded-2xl font-black text-xl shadow-lg">
                                 {addedToItinerary ? "Saved to Plan" : "Add to Itinerary"}
                             </Button>
-                            <Button variant="outline" className="w-full h-20 rounded-2xl border-white/10 bg-white/5 hover:bg-white/10 text-white font-black text-xl transition-all">
-                                Book Private Tour
-                            </Button>
                         </div>
 
-                        <div className="relative z-10 pt-4 text-center">
-                            <p className="text-[10px] text-white/40 uppercase tracking-[0.2em] font-black">Secure Booking & Expert Guides</p>
-                        </div>
-                    </div>
-
-                    {/* Nearby Places Sidebar (Desktop) */}
-                    <div className="space-y-8">
-                        <div className="flex items-center gap-4 px-2">
-                            <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                            <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter">Explore Beyond</h3>
-                        </div>
-                        <div className="grid gap-6">
-                            {nearbyPlaces.length > 0 ? nearbyPlaces.map(np => (
-                                <Link key={np._id} href={`/places/${np._id}`} className="group block">
-                                    <div className="bg-white hover:bg-white rounded-3xl p-5 transition-all hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)] border border-transparent hover:border-gray-100 flex gap-6">
-                                        <div className="h-24 w-24 rounded-[1.5rem] overflow-hidden shrink-0 shadow-lg relative">
-                                            <img src={getFullImageUrl(np.image, np.name, np.category)} className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-700" alt={np.name} />
-                                            <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors" />
-                                        </div>
-                                        <div className="flex flex-col justify-center gap-1.5">
-                                            <h4 className="font-black text-gray-900 group-hover:text-primary transition-colors text-lg line-clamp-1">{np.name}</h4>
-                                            <div className="flex items-center gap-3">
-                                                <div className="flex items-center gap-1 text-yellow-400">
-                                                    <Star className="h-3.5 w-3.5 fill-current" />
+                        <div className="space-y-8">
+                            <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter px-2">Explore Beyond</h3>
+                            <div className="grid gap-6">
+                                {nearbyPlaces.map(np => (
+                                    <Link key={np._id} href={`/places/${np._id}`} className="group block">
+                                        <div className="bg-white hover:bg-gray-50 rounded-3xl p-5 transition-all border border-gray-100 flex gap-6">
+                                            <div className="h-24 w-24 rounded-[1.5rem] overflow-hidden shrink-0 shadow-lg relative">
+                                                <img src={getFullImageUrl(np.image, np.name, np.category)} className="h-full w-full object-cover" alt={np.name} />
+                                            </div>
+                                            <div className="flex flex-col justify-center gap-1.5">
+                                                <h4 className="font-black text-gray-900 text-lg line-clamp-1">{np.name}</h4>
+                                                <div className="flex items-center gap-3">
+                                                    <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
                                                     <span className="text-xs font-black">{np.ratingAvg}</span>
+                                                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{np.category}</span>
                                                 </div>
-                                                <div className="h-1 w-1 rounded-full bg-gray-200" />
-                                                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{np.category}</span>
                                             </div>
                                         </div>
-                                    </div>
-                                </Link>
-                            )) : (
-                                <p className="text-muted-foreground text-sm italic px-2">No other places nearby found.</p>
-                            )}
+                                    </Link>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
-
             </Container>
         </main>
     )

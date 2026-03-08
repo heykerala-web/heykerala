@@ -6,8 +6,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "react-hot-toast";
-import { Loader2, Calendar, MapPin, Users, Ban, Clock } from "lucide-react";
+import { Loader2, Calendar, MapPin, Users, Ban, Clock, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
+import Link from "next/link";
 
 export default function MyBookings() {
     const [bookings, setBookings] = useState<any[]>([]);
@@ -104,6 +105,7 @@ export default function MyBookings() {
                                         </div>
                                     </div>
                                     <div className="absolute bottom-4 left-4 text-white">
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-white/60 mb-1">ID: {booking.bookingId || booking._id}</p>
                                         <p className="font-bold text-lg leading-tight">{place?.name}</p>
                                         <p className="text-white/80 text-xs flex items-center gap-1 mt-1">
                                             <MapPin className="w-3 h-3" /> {place?.district}, Kerala
@@ -112,7 +114,7 @@ export default function MyBookings() {
                                 </div>
 
                                 {/* Ticket Details Side */}
-                                <div className="flex-1 p-8 flex flex-col justify-between relative bg-[url('/subtle-pattern.png')]">
+                                <div className="flex-1 p-8 flex flex-col justify-between relative bg-white">
                                     <div className="md:hidden absolute top-0 left-0 right-0 h-4 bg-white -mt-2 rounded-b-xl border-b border-dashed border-gray-200" />
 
                                     {isStay ? (
@@ -187,22 +189,34 @@ export default function MyBookings() {
                                             <div>
                                                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1">Total Paid</p>
                                                 <p className="font-black text-emerald-600">₹{booking.totalPrice}</p>
+                                                <p className="text-[8px] text-gray-400 uppercase tracking-widest mt-1">
+                                                    {booking.paymentMethod === 'paypal' ? 'PayPal Sandbox' : 'Razorpay'}
+                                                </p>
                                             </div>
                                         )}
                                     </div>
 
-                                    {booking.status === 'pending' && (
-                                        <div className="absolute top-8 right-8">
+                                    <div className="absolute top-8 right-8 flex flex-col gap-2 items-end">
+                                        <Link href={`/booking/confirmation/${booking._id}`}>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="rounded-xl border-gray-200 hover:bg-gray-50 bg-white shadow-sm font-bold text-primary"
+                                            >
+                                                <ExternalLink className="w-4 h-4 mr-2" /> View Details
+                                            </Button>
+                                        </Link>
+                                        {booking.status === 'pending' && (
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl"
+                                                className="text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl font-bold"
                                                 onClick={() => cancelBooking(booking._id)}
                                             >
                                                 <Ban className="w-4 h-4 mr-2" /> Cancel
                                             </Button>
-                                        </div>
-                                    )}
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </div>

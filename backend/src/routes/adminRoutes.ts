@@ -13,7 +13,9 @@ import {
     approveSubmission,
     rejectSubmission,
     deleteSubmission,
-    getActivityLogs
+    getActivityLogs,
+    getManualPayments,
+    verifyManualPayment
 } from "../controllers/adminController";
 import { createPlace, updatePlace } from "../controllers/placeController"; // Reuse standard place logic
 import multer from "multer";
@@ -66,5 +68,9 @@ router.get("/submissions", getPendingSubmissions);
 router.put("/submissions/:type/:id/approve", approveSubmission);
 router.put("/submissions/:type/:id/reject", rejectSubmission);
 router.delete("/submissions/:type/:id", deleteSubmission);
+
+// Payments
+router.get("/payments/manual", getManualPayments);
+router.post("/payments/manual/verify", verifyManualPayment);
 
 export default router;

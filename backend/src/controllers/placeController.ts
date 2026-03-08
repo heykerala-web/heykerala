@@ -400,3 +400,90 @@ export const deletePlace = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: "Error deleting place", error: error.message });
   }
 };
+
+// --- Dynamic Trending System Functions ---
+
+/**
+ * Get Top 5 Trending Places based on engagement score
+ * score = (views * 1) + (bookmarks * 3) + (totalReviews * 5) + (searchClicks * 2)
+ */
+export const getTrendingPlaces = async (req: Request, res: Response) => {
+  try {
+    // Optimization: Fetch only top 50 places by views as candidates for trending
+    // This avoids loading thousands of documents into memory.
+    const places = await Place.find({
+      $or: [{ status: 'approved' }, { status: { $exists: false } }]
+    })
+      .sort({ views: -1 })
+      .limit(50);
+
+    const trendingPlaces = places.map((place: any) => {
+      const score =
+        (place.views || 0) * 1 +
+        (place.bookmarks || 0) * 3 +
+        (place.totalReviews || 0) * 5 +
+        (place.searchClicks || 0) * 2;
+
+      return {
+        ...place.toObject(),
+        trendingScore: score
+      };
+    });
+
+    // Sort by score descending and take top 5
+    const sortedPlaces = trendingPlaces
+      .sort((a, b) => b.trendingScore - a.trendingScore)
+      .slice(0, 5);
+
+    res.json({
+      success: true,
+      data: sortedPlaces
+    });
+  } catch (error: any) {
+    console.error("Error fetching trending places:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching trending places",
+      error: error.message
+    });
+  }
+};
+
+/**
+ * Increment Place view count
+ */
+export const incrementPlaceView = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    await Place.findByIdAndUpdate(id, { $inc: { views: 1 } });
+    res.json({ success: true });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+/**
+ * Increment Search Click count
+ */
+export const incrementSearchClick = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    await Place.findByIdAndUpdate(id, { $inc: { searchClicks: 1 } });
+    res.json({ success: true });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+/**
+ * Increment Bookmark count
+ */
+export const incrementBookmarkClick = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    await Place.findByIdAndUpdate(id, { $inc: { bookmarks: 1 } });
+    res.json({ success: true });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};

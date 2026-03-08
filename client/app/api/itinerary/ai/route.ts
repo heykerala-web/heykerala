@@ -1,97 +1,32 @@
-
-import { createOpenAI } from "@ai-sdk/openai";
-import { generateObject } from "ai";
-import { z } from "zod";
-
-// Create an OpenAI provider instance pointing to OpenRouter
-const openrouter = createOpenAI({
-    baseURL: 'https://openrouter.ai/api/v1',
-    apiKey: process.env.OPENROUTER_API_KEY,
-});
+import { NextResponse } from "next/server";
 
 export const maxDuration = 60; // Allow longer generation times
 
-// Clean schema
-const itinerarySchema = z.object({
-    id: z.string(),
-    title: z.string(),
-    duration: z.string(),
-    travelers: z.string(),
-    budgetEstimate: z.object({
-        min: z.number(),
-        max: z.number(),
-    }),
-    heroImage: z.string(),
-    aiReason: z.string(),
-    budgetBreakdown: z.object({
-        stay: z.number(),
-        food: z.number(),
-        travel: z.number(),
-        tickets: z.number(),
-        extras: z.number(),
-    }),
-    days: z.array(
-        z.object({
-            day: z.number(),
-            theme: z.string(),
-            activities: z.array(
-                z.object({
-                    time: z.string(),
-                    name: z.string(),
-                    desc: z.string(),
-                    image: z.string(),
-                    duration: z.string(),
-                    cost: z.number(),
-                    lat: z.number(),
-                    lng: z.number(),
-                })
-            ),
-            mapPolyline: z.array(z.array(z.number())), // [[lat, lng], [lat, lng]]
-        })
-    ),
-    hotels: z.array(
-        z.object({
-            id: z.string(),
-            name: z.string(),
-            price: z.number(),
-            rating: z.number(),
-            distanceKm: z.number(),
-            image: z.string(),
-        })
-    ),
-});
-
 export async function POST(req: Request) {
     try {
-        const { duration, budget, interests, travelers } = await req.json();
+        const body = await req.json();
+        const rawBackendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+        const backendBase = rawBackendUrl.replace(/\/api\/?$/, '');
 
-        // 1-shot generation for better consistency
-        const result = await generateObject({
-            model: openrouter("google/gemini-2.0-flash-001"),
-            schema: itinerarySchema,
-            prompt: `Generate a detailed day-by-day travel itinerary for Kerala, India.
-      
-      User Preferences:
-      - Duration: ${duration}
-      - Budget Level: ${budget}
-      - Group Type: ${travelers}
-      - Interests: ${interests.join(", ")}
-
-      Requirements:
-      1. Create a title based on the interests.
-      2. Provide a realistic budget estimate in INR.
-      3. For "mapPolyline", provide strictly [lat, lng] arrays for the route of that day.
-      4. Suggest 3 hotels that match the budget.
-      5. Include "aiReason" explaining why this plan fits their specific interests.
-      6. Use real place names and realistic coordinates for Kerala.
-      7. images should be relevant Unsplash URLs (source.unsplash.com/...)
-      `,
+        const response = await fetch(`${backendBase}/api/itinerary/ai`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(body),
+            cache: "no-store",
         });
 
-        return Response.json(result.object);
-    } catch (error) {
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Backend error: ${response.status} ${errorText}`);
+        }
+
+        const data = await response.json();
+        return NextResponse.json(data);
+    } catch (error: any) {
         console.error("AI Itinerary Error:", error);
-        return new Response(JSON.stringify({ error: "Failed to generate plan" }), {
+        return new NextResponse(JSON.stringify({ error: error.message || "Failed to generate plan" }), {
             status: 500,
         });
     }

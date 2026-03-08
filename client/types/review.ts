@@ -6,7 +6,7 @@ export interface Review {
         avatar?: string;
     };
     targetId: string;
-    targetType: "place" | "stay" | "event";
+    targetType: "place" | "stay" | "event" | "app";
     rating: number;
     title?: string;
     comment: string;
@@ -16,7 +16,7 @@ export interface Review {
 
 export interface CreateReviewData {
     targetId: string;
-    targetType: "place" | "stay" | "event";
+    targetType: "place" | "stay" | "event" | "app";
     rating: number;
     title?: string;
     comment: string;

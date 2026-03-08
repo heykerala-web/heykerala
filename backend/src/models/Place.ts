@@ -42,6 +42,9 @@ const placeSchema = new mongoose.Schema(
     },
     isUntold: { type: Boolean, default: false },
     untoldStory: { type: String },
+    views: { type: Number, default: 0 },
+    bookmarks: { type: Number, default: 0 },
+    searchClicks: { type: Number, default: 0 },
   },
   {
     timestamps: true,

@@ -6,7 +6,8 @@ import {
     getUserBookings,
     getContributorBookings,
     getAllBookings,
-    updateBookingStatus
+    updateBookingStatus,
+    getSingleBooking
 } from "../controllers/bookingController";
 import { protect, authorize } from "../middleware/authMiddleware";
 
@@ -21,6 +22,7 @@ router.post("/", createBooking);
 router.post("/stay", createStayBooking);
 router.post("/restaurant", createRestaurantBooking);
 router.get("/user/:userId", getUserBookings);
+router.get("/user-booking/:id", getSingleBooking);
 
 // Contributor routes
 router.get("/contributor", authorize("Contributor", "Admin"), getContributorBookings);

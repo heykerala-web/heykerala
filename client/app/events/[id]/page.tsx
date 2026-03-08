@@ -9,9 +9,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import api from "@/services/api";
 import Link from "next/link";
-import ReviewList from "@/components/reviews/ReviewList";
-import ReviewForm from "@/components/reviews/ReviewForm";
-import ReviewSummary from "@/components/reviews/ReviewSummary";
+import ReviewSection from "@/components/reviews/ReviewSection";
 import { ReviewSummary as AIReviewSummary } from "@/components/ai/ReviewSummary";
 import { reviewService } from "@/services/reviewService";
 import { Review } from "@/types/review";
@@ -37,14 +35,6 @@ export default function EventDetailsPage({ params }: { params: { id: string } })
   const [loading, setLoading] = useState(true);
   const [isFavorite, setIsFavorite] = useState(false);
   const [userPhotos, setUserPhotos] = useState<any[]>([]);
-
-  // Review States
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [totalReviews, setTotalReviews] = useState(0);
-  const [hasMoreReviews, setHasMoreReviews] = useState(false);
-  const [reviewPage, setReviewPage] = useState(1);
-  const [reviewBreakdown, setReviewBreakdown] = useState<any>(null);
-  const [isFetchingReviews, setIsFetchingReviews] = useState(false);
 
   // Check if favorite
   useEffect(() => {
@@ -92,38 +82,7 @@ export default function EventDetailsPage({ params }: { params: { id: string } })
     }
   };
 
-  const fetchReviews = async (page = 1, reset = false) => {
-    try {
-      setIsFetchingReviews(true);
-      const res = await reviewService.getReviews(id, page, 5);
-      if (res.success) {
-        if (reset) {
-          setReviews(res.data);
-        } else {
-          setReviews(prev => [...prev, ...res.data]);
-        }
-        setTotalReviews(res.pagination.total);
-        setHasMoreReviews(page < res.pagination.pages);
-        setReviewPage(page);
-      }
-    } catch (e) {
-      console.error("Reviews fetch failed", e);
-    } finally {
-      setIsFetchingReviews(false);
-    }
-  };
-
-  const fetchReviewBreakdown = async () => {
-    try {
-      const res = await reviewService.getRatingBreakdown(id);
-      if (res.success) setReviewBreakdown(res.data.breakdown);
-    } catch (e) { console.error("Breakdown fetch failed", e); }
-  }
-
   const handleReviewChanged = (updatedReview: any) => {
-    fetchReviews(1, true);
-    fetchReviewBreakdown();
-
     if (updatedReview.ratingInfo) {
       setEvent(prev => prev ? {
         ...prev,
@@ -147,8 +106,6 @@ export default function EventDetailsPage({ params }: { params: { id: string } })
 
         if (response && response.success) {
           setEvent(response.data);
-          fetchReviews(1, true);
-          fetchReviewBreakdown();
         } else {
           console.error("Event fetch failed:", response);
           setEvent(null);
@@ -260,7 +217,7 @@ export default function EventDetailsPage({ params }: { params: { id: string } })
                 )}
                 <div className="flex items-center gap-2 bg-white/10 backdrop-blur-xl px-5 py-2 rounded-full border border-white/10 text-sm font-black text-white">
                   <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-                  {event.ratingAvg || 0} <span className="text-white/40 ml-1 font-medium">({totalReviews} Reviews)</span>
+                  {event.ratingAvg || 0} <span className="text-white/40 ml-1 font-medium">({event.ratingCount || 0} Reviews)</span>
                 </div>
               </div>
 
@@ -392,48 +349,11 @@ export default function EventDetailsPage({ params }: { params: { id: string } })
 
             {/* Reviews Section */}
             <section id="reviews" className="space-y-12">
-              <div className="flex items-baseline justify-between">
-                <h2 className="text-5xl font-black text-gray-900 tracking-tighter">Community Voice</h2>
-                <div className="text-xl font-bold text-emerald-600">
-                  {totalReviews} Reviews
-                </div>
-              </div>
-
-              <ReviewSummary
-                ratingAvg={event.ratingAvg || 0}
-                ratingCount={totalReviews}
-                breakdown={reviewBreakdown}
-              />
-
-              <AIReviewSummary targetId={id} />
-
-              {user ? (
-                <ReviewForm
-                  targetId={id}
-                  targetType="event"
-                  onReviewAdded={handleReviewChanged}
-                />
-              ) : (
-                <div className="bg-gray-50 p-12 rounded-[2rem] border-2 border-dashed border-emerald-100 text-center mb-12">
-                  <p className="text-xl text-gray-500 mb-8 font-medium">Did you attend this event? Share your thoughts!</p>
-                  <Link href={`/login?redirect=/events/${id}`}>
-                    <Button className="bg-emerald-600 hover:bg-emerald-700 px-12 h-16 rounded-2xl font-bold text-lg shadow-xl shadow-emerald-100">Sign in to Review</Button>
-                  </Link>
-                </div>
-              )}
-
-              <ReviewList
-                reviews={reviews}
-                totalReviews={totalReviews}
-                hasMore={hasMoreReviews}
-                onLoadMore={() => fetchReviews(reviewPage + 1)}
-                onReviewDeleted={(id) => {
-                  setReviews(prev => prev.filter(r => r._id !== id));
-                  setTotalReviews(prev => prev - 1);
-                  fetchReviewBreakdown();
-                }}
-                onReviewUpdated={handleReviewChanged}
-                isLoadingMore={isFetchingReviews}
+              <ReviewSection
+                targetId={id}
+                targetType="event"
+                initialRatingAvg={event.ratingAvg}
+                initialRatingCount={event.ratingCount}
               />
             </section>
           </div>

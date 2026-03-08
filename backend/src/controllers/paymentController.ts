@@ -2,6 +2,9 @@ import { Request, Response, NextFunction } from 'express';
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
 import Booking from '../models/Booking';
+import { sendBookingConfirmationEmail } from '../services/emailService';
+import User from '../models/User';
+import Stay from '../models/Stay';
 
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder',
@@ -50,15 +53,31 @@ export const verifyPayment = async (req: Request, res: Response, next: NextFunct
 
         if (isAuthentic) {
             // Database operations
-            await Booking.findOneAndUpdate(
+            const updatedBooking = await Booking.findOneAndUpdate(
                 { razorpayOrderId: razorpay_order_id },
                 {
                     razorpayPaymentId: razorpay_payment_id,
                     razorpaySignature: razorpay_signature,
                     paymentStatus: 'paid',
                     status: 'confirmed'
-                }
+                },
+                { new: true }
             );
+
+            // Send Email
+            if (updatedBooking) {
+                const user = await User.findById(updatedBooking.userId);
+                const stay = await Stay.findById(updatedBooking.stayId);
+                if (user && user.email) {
+                    await sendBookingConfirmationEmail(user.email, user.name || 'Valued Guest', {
+                        id: updatedBooking._id,
+                        stayName: stay?.name || 'Your Stay',
+                        checkIn: updatedBooking.checkIn,
+                        checkOut: updatedBooking.checkOut,
+                        totalPrice: updatedBooking.totalPrice
+                    });
+                }
+            }
 
             res.status(200).json({
                 success: true,
@@ -102,6 +121,55 @@ export const submitManualPayment = async (req: Request, res: Response, next: Nex
             message: "Payment details submitted for verification",
             booking
         });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// Verify Demo Payment (Bypass for college project demo)
+export const verifyDemoPayment = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { order_id } = req.body;
+
+        if (!order_id) {
+            return res.status(400).json({ success: false, message: "Order ID is required" });
+        }
+
+        const updatedBooking = await Booking.findOneAndUpdate(
+            { razorpayOrderId: order_id },
+            {
+                razorpayPaymentId: `pay_demo_${Date.now()}`,
+                razorpaySignature: "demo_mock_signature",
+                paymentStatus: 'paid',
+                status: 'confirmed'
+            },
+            { new: true }
+        );
+
+        if (updatedBooking) {
+            // Send Email
+            const user = await User.findById(updatedBooking.userId);
+            const stay = await Stay.findById(updatedBooking.stayId);
+            if (user && user.email) {
+                await sendBookingConfirmationEmail(user.email, user.name || 'Valued Guest', {
+                    id: updatedBooking._id,
+                    stayName: stay?.name || 'Your Stay',
+                    checkIn: updatedBooking.checkIn,
+                    checkOut: updatedBooking.checkOut,
+                    totalPrice: updatedBooking.totalPrice
+                });
+            }
+
+            return res.status(200).json({
+                success: true,
+                message: "Demo Payment verified successfully (Bypass Mode)"
+            });
+        } else {
+            return res.status(404).json({
+                success: false,
+                message: "Booking not found for this order"
+            });
+        }
     } catch (err) {
         next(err);
     }

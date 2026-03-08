@@ -16,7 +16,7 @@ export default function KeralaTourism() {
   useEffect(() => {
     const fetchTrending = async () => {
       try {
-        const response = await placeService.getAll({ limit: 4 });
+        const response = await placeService.getTrending();
         if (response && response.success) {
           setTrendingSpots(response.data);
         }

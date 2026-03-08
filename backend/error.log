@@ -42,3 +42,9 @@
     at async FindCursor.cursorInit (F:\heykerala\heykerala - Copy\backend\node_modules\mongodb\src\cursor\abstract_cursor.ts:949:21)
     at async FindCursor.fetchBatch (F:\heykerala\heykerala - Copy\backend\node_modules\mongodb\src\cursor\abstract_cursor.ts:987:7)
     at async FindCursor.next (F:\heykerala\heykerala - Copy\backend\node_modules\mongodb\src\cursor\abstract_cursor.ts:608:9)
+[2026-03-07T17:00:47.329Z] AI Chat Error: Error: Provider returned error
+    at chatWithAI (F:\heykerala\heykerala - Copy\backend\src\controllers\aiChatController.ts:93:19)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+[2026-03-07T17:42:37.858Z] AI PERSONA ERROR: Error: google/gemini-2.0-pro-exp-02-05:free is not a valid model ID
+    at generateUserPersona (F:\heykerala\heykerala - Copy\backend\src\controllers\aiUserController.ts:131:19)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)

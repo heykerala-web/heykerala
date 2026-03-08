@@ -43,12 +43,17 @@ const bookingSchema = new mongoose.Schema({
     razorpayPaymentId: String,
     razorpaySignature: String,
 
+    // PayPal Fields
+    paypalOrderId: String,
+    paypalPaymentId: String,
+
     // Manual Payment Fields
     paymentMethod: {
         type: String,
-        enum: ["razorpay", "manual_upi"],
+        enum: ["razorpay", "manual_upi", "paypal"],
         default: "razorpay"
     },
+    bookingId: { type: String, unique: true },
     manualPaymentRef: String, // Transaction ID from user
     manualPaymentStatus: {
         type: String,

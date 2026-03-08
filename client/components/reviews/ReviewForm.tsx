@@ -10,7 +10,7 @@ import toast from "react-hot-toast";
 
 interface ReviewFormProps {
     targetId: string;
-    targetType: "place" | "stay" | "event";
+    targetType: "place" | "stay" | "event" | "app";
     onReviewAdded: (newReview: any) => void;
     initialData?: {
         _id: string;

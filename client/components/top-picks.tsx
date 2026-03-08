@@ -6,11 +6,15 @@ import { Star, MapPin, Heart, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { placeService } from "@/services/placeService"
 import { getFullImageUrl } from "@/lib/images"
+import { useAuth } from "@/context/AuthContext"
+import api from "@/services/api"
+import { toast } from "react-hot-toast"
 
 export function TopPicks() {
+  const { user, updateUser } = useAuth()
   const [topPicks, setTopPicks] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [favorites, setFavorites] = useState<string[]>([])
+  const [savingId, setSavingId] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchTopPicks = async () => {
@@ -28,9 +32,41 @@ export function TopPicks() {
     fetchTopPicks();
   }, []);
 
-  const toggleFavorite = (id: string) => {
-    setFavorites((prev) => (prev.includes(id) ? prev.filter((fav) => fav !== id) : [...prev, id]))
-  }
+  const isSaved = (id: string) => {
+    return user?.savedPlaces?.some((p: any) => {
+      const savedId = typeof p === 'string' ? p : p._id;
+      return savedId === id;
+    }) ?? false;
+  };
+
+  const toggleFavorite = async (e: React.MouseEvent, placeId: string) => {
+    e.preventDefault();
+    if (!user) {
+      toast.error("Please login to save places");
+      return;
+    }
+    if (savingId) return;
+    setSavingId(placeId);
+    try {
+      if (isSaved(placeId)) {
+        await api.delete(`/users/save/place/${placeId}`);
+        toast.success("Removed from saved places");
+        const newSaved = user.savedPlaces?.filter((p: any) => {
+          const savedId = typeof p === 'string' ? p : p._id;
+          return savedId !== placeId;
+        });
+        updateUser({ savedPlaces: newSaved });
+      } else {
+        await api.post(`/users/save/place/${placeId}`);
+        toast.success("Saved!");
+        updateUser({ savedPlaces: [...(user.savedPlaces || []), placeId] });
+      }
+    } catch (error) {
+      toast.error("Failed to update saved places");
+    } finally {
+      setSavingId(null);
+    }
+  };
 
   return (
     <section>
@@ -72,11 +108,12 @@ export function TopPicks() {
                 </div>
 
                 <button
-                  onClick={(e) => { e.preventDefault(); toggleFavorite(place._id); }}
-                  className="absolute top-6 right-6 p-4 rounded-full bg-white/10 backdrop-blur-xl text-white border border-white/20 hover:bg-white hover:text-destructive transition-all duration-300 z-10"
+                  onClick={(e) => toggleFavorite(e, place._id)}
+                  disabled={savingId === place._id}
+                  className="absolute top-6 right-6 p-4 rounded-full bg-white/10 backdrop-blur-xl text-white border border-white/20 hover:bg-white hover:text-destructive transition-all duration-300 z-10 disabled:opacity-70"
                 >
                   <Heart
-                    className={`h-5 w-5 ${favorites.includes(place._id) ? "text-destructive fill-current" : ""}`}
+                    className={`h-5 w-5 transition-colors ${isSaved(place._id) ? "text-destructive fill-current" : ""}`}
                   />
                 </button>
 

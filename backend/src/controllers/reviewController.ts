@@ -13,14 +13,16 @@ export const createReview = async (req: Request, res: Response) => {
         const { targetId, targetType, rating, title, comment } = req.body;
         const userId = (req as any).user._id;
 
-        const TargetModel = getModelByType(targetType);
-        if (!TargetModel) {
-            return res.status(400).json({ success: false, message: "Invalid target type" });
-        }
+        if (targetType !== "app") {
+            const TargetModel = getModelByType(targetType);
+            if (!TargetModel) {
+                return res.status(400).json({ success: false, message: "Invalid target type" });
+            }
 
-        const target = await TargetModel.findById(targetId);
-        if (!target) {
-            return res.status(404).json({ success: false, message: `${targetType} not found` });
+            const target = await TargetModel.findById(targetId);
+            if (!target) {
+                return res.status(404).json({ success: false, message: `${targetType} not found` });
+            }
         }
 
         // Check if user already reviewed
@@ -215,6 +217,67 @@ export const getRatingBreakdown = async (req: Request, res: Response) => {
         res.status(500).json({
             success: false,
             message: "Error fetching rating breakdown",
+            error: error.message,
+        });
+    }
+};
+// Get latest reviews (for Home screen)
+export const getLatestReviews = async (req: Request, res: Response) => {
+    try {
+        const limit = parseInt(req.query.limit as string) || 6;
+        const targetType = req.query.targetType as string;
+
+        const query = targetType ? { targetType } : {};
+
+        const reviews = await Review.find(query)
+            .populate("user", "name avatar")
+            .sort({ createdAt: -1 })
+            .limit(limit);
+
+        res.json({
+            success: true,
+            data: reviews
+        });
+    } catch (error: any) {
+        res.status(500).json({
+            success: false,
+            message: "Error fetching latest reviews",
+            error: error.message,
+        });
+    }
+};
+
+// Get all reviews with filters
+export const getAllReviews = async (req: Request, res: Response) => {
+    try {
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 10;
+        const skip = (page - 1) * limit;
+        const targetType = req.query.targetType as string;
+
+        const query = targetType ? { targetType } : {};
+
+        const reviews = await Review.find(query)
+            .populate("user", "name avatar")
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        const total = await Review.countDocuments(query);
+
+        res.json({
+            success: true,
+            data: reviews,
+            pagination: {
+                total,
+                page,
+                pages: Math.ceil(total / limit)
+            }
+        });
+    } catch (error: any) {
+        res.status(500).json({
+            success: false,
+            message: "Error fetching all reviews",
             error: error.message,
         });
     }

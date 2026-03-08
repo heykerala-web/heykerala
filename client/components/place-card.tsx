@@ -12,6 +12,8 @@ export interface PlaceCardProps {
   rating: number
   description: string
   category: string
+  district?: string   // optional: used for interaction tracking
+  tags?: string[]     // optional: used for interaction tracking
   isBookmarked?: boolean
 }
 
@@ -21,6 +23,7 @@ import { useAuth } from "@/context/AuthContext"
 import api from "@/services/api"
 import { toast } from "react-hot-toast"
 import { useRouter } from "next/navigation"
+import { trackPlaceView } from "@/lib/interactionTracker"
 
 export function PlaceCard({
   id,
@@ -30,6 +33,8 @@ export function PlaceCard({
   rating,
   description,
   category,
+  district = "",
+  tags = [],
   isBookmarked = false,
 }: PlaceCardProps) {
   const { user, updateUser } = useAuth()
@@ -81,7 +86,12 @@ export function PlaceCard({
   }
 
   return (
-    <Link href={`/places/${id}`} className="block group h-full">
+    <Link
+      href={`/places/${id}`}
+      className="block group h-full"
+      // Track this place view for the recommendation engine (fire-and-forget)
+      onClick={() => trackPlaceView(id, category, district, tags)}
+    >
       <div className="relative h-full flex flex-col rounded-3xl overflow-hidden bg-white border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
 
         {/* Image Section */}
@@ -129,9 +139,9 @@ export function PlaceCard({
             {description}
           </p>
 
-          <Button className="w-full rounded-xl font-bold group-hover:bg-primary group-hover:text-white transition-all shadow-none group-hover:shadow-lg group-hover:shadow-primary/20">
+          <div className="w-full h-10 px-4 py-2 flex items-center justify-center rounded-xl text-sm font-bold bg-primary text-primary-foreground group-hover:bg-primary group-hover:text-white transition-all shadow-none group-hover:shadow-lg group-hover:shadow-primary/20">
             Explore Details <Eye className="ml-2 h-4 w-4" />
-          </Button>
+          </div>
         </div>
       </div>
     </Link>

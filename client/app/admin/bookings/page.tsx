@@ -5,15 +5,19 @@ import api from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import Link from "next/link";
+import { ExternalLink } from "lucide-react";
 
 interface Booking {
     _id: string;
+    bookingId?: string;
     stayId?: { name: string; type: string };
     userId?: { name: string; email: string };
     checkIn: string;
     checkOut: string;
     guests: { adults: number; children: number };
     status: string;
+    paymentMethod?: string;
     packageId?: any; // mixed usage
 }
 
@@ -57,10 +61,10 @@ export default function AdminBookingsPage() {
                 <table className="w-full text-sm text-left">
                     <thead className="bg-gray-50 text-gray-700 uppercase">
                         <tr>
+                            <th className="px-6 py-3">Booking ID</th>
                             <th className="px-6 py-3">Stay / Item</th>
                             <th className="px-6 py-3">User</th>
                             <th className="px-6 py-3">Dates</th>
-                            <th className="px-6 py-3">Guests</th>
                             <th className="px-6 py-3">Status</th>
                             <th className="px-6 py-3">Action</th>
                         </tr>
@@ -68,6 +72,14 @@ export default function AdminBookingsPage() {
                     <tbody className="divide-y">
                         {bookings.map((booking) => (
                             <tr key={booking._id} className="hover:bg-gray-50">
+                                <td className="px-6 py-4">
+                                    <div className="font-mono text-xs font-bold text-primary">
+                                        {booking.bookingId || booking._id}
+                                    </div>
+                                    <div className="text-[10px] text-gray-400 uppercase tracking-tighter">
+                                        {(booking as any).paymentMethod === 'paypal' ? 'PayPal Sandbox' : 'Razorpay'}
+                                    </div>
+                                </td>
                                 <td className="px-6 py-4">
                                     <div className="font-medium text-gray-900">
                                         {booking.stayId?.name || "Unknown Stay"}
@@ -100,6 +112,11 @@ export default function AdminBookingsPage() {
                                     </span>
                                 </td>
                                 <td className="px-6 py-4 flex gap-2">
+                                    <Link href={`/booking/confirmation/${booking._id}`}>
+                                        <Button size="sm" variant="outline" className="text-blue-600 border-blue-200 hover:bg-blue-50">
+                                            <ExternalLink className="w-3 h-3 mr-1" /> View
+                                        </Button>
+                                    </Link>
                                     <Button
                                         size="sm"
                                         variant="outline"

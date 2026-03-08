@@ -1,5 +1,16 @@
+"use client"
+
+/**
+ * category-grid.tsx
+ * ------------------
+ * Displays the category cards on the homepage.
+ * Tracks category clicks via interactionTracker so the recommendation
+ * engine learns the user's preference over time.
+ */
+
 import Link from "next/link"
 import { getFullImageUrl } from "@/lib/images"
+import { trackCategoryClick } from "@/lib/interactionTracker"
 
 const categories = [
   {
@@ -100,6 +111,8 @@ export function CategoryGrid() {
           <Link
             key={category.name}
             href={category.href}
+            // Track this category click for the recommendation engine
+            onClick={() => trackCategoryClick(category.name)}
             className="group relative h-[450px] rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-700 block"
           >
             {/* Background Image */}

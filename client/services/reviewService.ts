@@ -67,5 +67,33 @@ export const reviewService = {
     // Kept for backward compatibility if needed, but redirects to getReviews
     getReviewsByPlace: async (placeId: string) => {
         return reviewService.getReviews(placeId);
+    },
+
+    getLatestReviews: async (limit = 6, targetType?: string) => {
+        try {
+            const params: any = { limit };
+            if (targetType) params.targetType = targetType;
+            const response = await api.get("/reviews/latest", { params });
+            return { success: true, data: response.data.data };
+        } catch (error: any) {
+            return {
+                success: false,
+                message: error.response?.data?.message || "Failed to fetch latest reviews",
+            };
+        }
+    },
+
+    getAllReviews: async (page = 1, limit = 10, targetType?: string) => {
+        try {
+            const params: any = { page, limit };
+            if (targetType) params.targetType = targetType;
+            const response = await api.get("/reviews", { params });
+            return { success: true, ...response.data };
+        } catch (error: any) {
+            return {
+                success: false,
+                message: error.response?.data?.message || "Failed to fetch all reviews",
+            };
+        }
     }
 };

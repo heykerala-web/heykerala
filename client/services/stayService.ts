@@ -129,6 +129,16 @@ export const stayService = {
         return response.data;
     },
 
+    createPayPalOrder: async (bookingId: string) => {
+        const response = await api.post('/payments/paypal/create-order', { bookingId });
+        return response.data;
+    },
+
+    capturePayPalPayment: async (orderId: string, bookingId: string) => {
+        const response = await api.post('/payments/paypal/capture-payment', { orderId, bookingId });
+        return response.data;
+    },
+
     // User Submission
     submit: async (data: Partial<Stay>) => {
         const response = await api.post('/stays/user/submission', data);

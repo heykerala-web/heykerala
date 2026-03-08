@@ -12,9 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import api from "@/services/api";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import ReviewList from "@/components/reviews/ReviewList";
-import ReviewForm from "@/components/reviews/ReviewForm";
-import ReviewSummary from "@/components/reviews/ReviewSummary";
+import ReviewSection from "@/components/reviews/ReviewSection";
 import { ReviewSummary as AIReviewSummary } from "@/components/ai/ReviewSummary";
 import { reviewService } from "@/services/reviewService";
 import { Review } from "@/types/review";
@@ -26,6 +24,7 @@ import QuickInfoPanel from "@/app/components/places/QuickInfoPanel";
 
 import { getFullImageUrl } from "@/lib/images";
 import { queueBooking } from "@/lib/offline-db";
+import PayPalButtons from "@/app/components/payment/PayPalButtons";
 
 export default function StayDetailsClient({ id, initialStay }: { id: string, initialStay?: Stay | null }) {
     const router = useRouter();
@@ -36,14 +35,6 @@ export default function StayDetailsClient({ id, initialStay }: { id: string, ini
     const [bookingLoading, setBookingLoading] = useState(false);
     const [isFavorite, setIsFavorite] = useState(false);
 
-    // Review States
-    const [reviews, setReviews] = useState<Review[]>([]);
-    const [totalReviews, setTotalReviews] = useState(0);
-    const [hasMoreReviews, setHasMoreReviews] = useState(false);
-    const [reviewPage, setReviewPage] = useState(1);
-    const [reviewBreakdown, setReviewBreakdown] = useState<any>(null);
-    const [isFetchingReviews, setIsFetchingReviews] = useState(false);
-
     // Booking State
     const [checkIn, setCheckIn] = useState("");
     const [checkOut, setCheckOut] = useState("");
@@ -51,23 +42,38 @@ export default function StayDetailsClient({ id, initialStay }: { id: string, ini
     const [selectedRoom, setSelectedRoom] = useState<any>(null);
     const [bookingTime, setBookingTime] = useState("");
     const [razorpayLoaded, setRazorpayLoaded] = useState(false);
-    const [paymentMethod, setPaymentMethod] = useState<'razorpay' | 'manual_upi'>('razorpay');
+    const [paymentMethod, setPaymentMethod] = useState<'razorpay' | 'manual_upi' | 'paypal'>('paypal');
     const [showManualPaymentDialog, setShowManualPaymentDialog] = useState(false);
     const [tempBookingId, setTempBookingId] = useState("");
+    const [tempBookingAmount, setTempBookingAmount] = useState(0);
     const [transactionId, setTransactionId] = useState("");
+    const [paypalLoaded, setPaypalLoaded] = useState(false);
+    const [isDemoProcessing, setIsDemoProcessing] = useState(false);
 
     const { user, updateUser } = useAuth();
 
-    // Load Razorpay Script
+    // Load Payment Scripts
     useEffect(() => {
-        const script = document.createElement("script");
-        script.src = "https://checkout.razorpay.com/v1/checkout.js";
-        script.async = true;
-        script.onload = () => setRazorpayLoaded(true);
-        document.body.appendChild(script);
+        // Razorpay
+        const rzpScript = document.createElement("script");
+        rzpScript.src = "https://checkout.razorpay.com/v1/checkout.js";
+        rzpScript.async = true;
+        rzpScript.onload = () => setRazorpayLoaded(true);
+        document.body.appendChild(rzpScript);
+
+        // PayPal
+        const ppClientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || 'sb';
+        const ppScript = document.createElement("script");
+        ppScript.src = `https://www.paypal.com/sdk/js?client-id=${ppClientId}&currency=INR&intent=capture`;
+        ppScript.async = true;
+        ppScript.onload = () => setPaypalLoaded(true);
+        document.body.appendChild(ppScript);
 
         return () => {
-            document.body.removeChild(script);
+            document.body.removeChild(rzpScript);
+            if (document.body.contains(ppScript)) {
+                document.body.removeChild(ppScript);
+            }
         }
     }, []);
 
@@ -137,38 +143,7 @@ export default function StayDetailsClient({ id, initialStay }: { id: string, ini
         }
     };
 
-    const fetchReviews = async (page = 1, reset = false) => {
-        try {
-            setIsFetchingReviews(true);
-            const res = await reviewService.getReviews(id, page, 5);
-            if (res.success) {
-                if (reset) {
-                    setReviews(res.data);
-                } else {
-                    setReviews(prev => [...prev, ...res.data]);
-                }
-                setTotalReviews(res.pagination.total);
-                setHasMoreReviews(page < res.pagination.pages);
-                setReviewPage(page);
-            }
-        } catch (e) {
-            console.error("Reviews fetch failed", e);
-        } finally {
-            setIsFetchingReviews(false);
-        }
-    };
-
-    const fetchReviewBreakdown = async () => {
-        try {
-            const res = await reviewService.getRatingBreakdown(id);
-            if (res.success) setReviewBreakdown(res.data.breakdown);
-        } catch (e) { console.error("Breakdown fetch failed", e); }
-    }
-
     const handleReviewChanged = (updatedReview: any) => {
-        fetchReviews(1, true);
-        fetchReviewBreakdown();
-
         if (updatedReview.ratingInfo) {
             setStay(prev => prev ? {
                 ...prev,
@@ -181,8 +156,6 @@ export default function StayDetailsClient({ id, initialStay }: { id: string, ini
     useEffect(() => {
         const fetchStay = async () => {
             if (initialStay) {
-                fetchReviews(1, true);
-                fetchReviewBreakdown();
                 return;
             }
             if (!id) return;
@@ -194,8 +167,6 @@ export default function StayDetailsClient({ id, initialStay }: { id: string, ini
 
                 if (response && response.success) {
                     setStay(response.data);
-                    fetchReviews(1, true);
-                    fetchReviewBreakdown();
                 } else {
                     console.error("Stay fetch failed:", response);
                     setStay(null);
@@ -215,7 +186,16 @@ export default function StayDetailsClient({ id, initialStay }: { id: string, ini
     const initiatePayment = async (booking: any) => {
         if (paymentMethod === 'manual_upi') {
             setTempBookingId(booking._id);
+            setTempBookingAmount(booking.totalPrice || stay?.price || 0);
             setShowManualPaymentDialog(true);
+            return;
+        }
+
+        if (paymentMethod === 'paypal') {
+            // PayPal Buttons will be rendered by the SDK in the UI
+            // We'll set the tempBookingId and handle the callback
+            setTempBookingId(booking._id);
+            setTempBookingAmount(booking.totalPrice || stay?.price || 0);
             return;
         }
 
@@ -223,36 +203,63 @@ export default function StayDetailsClient({ id, initialStay }: { id: string, ini
             const amount = booking.totalPrice || 500; // Default or calculated
             const orderRes = await stayService.createPaymentOrder(amount, booking._id);
 
-            if (orderRes.success) {
-                const options = {
-                    key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_placeholder",
-                    amount: orderRes.order.amount,
-                    currency: "INR",
-                    name: "Hey Kerala",
-                    description: `Booking for ${stay?.name}`,
-                    order_id: orderRes.order.id,
-                    handler: async (response: any) => {
-                        const verifyRes = await stayService.verifyPayment(response);
-                        if (verifyRes.success) {
-                            toast({ title: "Booking Confirmed!", description: "Payment successful and booking confirmed." });
+            if (!orderRes.success) {
+                toast({ title: "Payment Error", description: "Failed to create order.", variant: "destructive" });
+                return;
+            }
+
+            // Check for placeholder key - Use Demo Mode
+            if (process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID === "rzp_test_placeholder" || !process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID) {
+                toast({ title: "Demo Mode Active", description: "Simulating secure payment process..." });
+
+                // Simulate processing time
+                setTimeout(async () => {
+                    try {
+                        const verifyRes = await api.post("/payment/demo-verify", { order_id: orderRes.order.id });
+                        if (verifyRes.data.success) {
+                            toast({ title: "Booking Confirmed!", description: "Demo payment successful." });
                             router.push(`/dashboard/bookings?id=${booking._id}`);
                         } else {
-                            toast({ title: "Payment Failed", description: "Verification failed. Please contact support.", variant: "destructive" });
+                            toast({ title: "Demo Payment Failed", variant: "destructive" });
+                            setBookingLoading(false);
                         }
-                    },
-                    prefill: {
-                        name: user?.name,
-                        email: (user as any)?.email,
-                        contact: (user as any)?.phone || "",
-                    },
-                    theme: {
-                        color: "#00c8ff",
-                    },
-                };
-
-                const rzp = new (window as any).Razorpay(options);
-                rzp.open();
+                    } catch (err) {
+                        console.error("Demo verification error:", err);
+                        toast({ title: "Error in Demo Flow", variant: "destructive" });
+                        setBookingLoading(false);
+                    }
+                }, 2500);
+                return;
             }
+
+            const options = {
+                key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+                amount: orderRes.order.amount,
+                currency: "INR",
+                name: "Hey Kerala",
+                description: `Booking for ${stay?.name}`,
+                order_id: orderRes.order.id,
+                handler: async (response: any) => {
+                    const verifyRes = await stayService.verifyPayment(response);
+                    if (verifyRes.success) {
+                        toast({ title: "Booking Confirmed!", description: "Payment successful and booking confirmed." });
+                        router.push(`/dashboard/bookings?id=${booking._id}`);
+                    } else {
+                        toast({ title: "Payment Failed", description: "Verification failed. Please contact support.", variant: "destructive" });
+                    }
+                },
+                prefill: {
+                    name: user?.name,
+                    email: (user as any)?.email,
+                    contact: (user as any)?.phone || "",
+                },
+                theme: {
+                    color: "#00c8ff",
+                },
+            };
+
+            const rzp = new (window as any).Razorpay(options);
+            rzp.open();
         } catch (error: any) {
             toast({ title: "Payment Error", description: "Failed to initiate payment. Please try again.", variant: "destructive" });
         }
@@ -280,36 +287,55 @@ export default function StayDetailsClient({ id, initialStay }: { id: string, ini
     };
 
     const handleBooking = async () => {
-        if (!stay) return;
+        console.log("🚀 Booking process started", {
+            stayType: stay?.type,
+            checkIn,
+            checkOut,
+            guests,
+            selectedRoom,
+            paymentMethod
+        });
+
+        if (!stay) {
+            console.error("❌ Stay is null");
+            return;
+        }
 
         if (isStayType()) {
             if (!checkIn || !checkOut) {
+                console.log("❌ Missing dates");
                 toast({ title: "Please select dates", variant: "destructive" });
                 return;
             }
             if (stay.roomTypes && stay.roomTypes.length > 0 && !selectedRoom) {
+                console.log("❌ Room not selected");
                 toast({ title: "Please select a room type", variant: "destructive" });
                 return;
             }
             const nights = Math.ceil((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24));
             const minStay = stay.minStay || 1;
+            console.log("📊 Night calculation:", { nights, minStay });
             if (nights < minStay) {
+                console.log("❌ Minimum stay error");
                 toast({ title: `Minimum stay is ${minStay} night(s).`, variant: "destructive" });
                 return;
             }
         } else {
             if (!checkIn || !bookingTime) {
+                console.log("❌ Missing time/date for non-stay");
                 toast({ title: "Please select date and time", variant: "destructive" });
                 return;
             }
         }
 
         if (!user) {
+            console.log("❌ User not logged in");
             toast({ title: "Please login to book", variant: "destructive" });
             router.push("/login?redirect=/stay/" + id);
             return;
         }
 
+        console.log("✅ Validation passed, proceeding with booking...");
         setBookingLoading(true);
         try {
             if (!navigator.onLine) {
@@ -319,7 +345,6 @@ export default function StayDetailsClient({ id, initialStay }: { id: string, ini
                     const totalPrice = nights * pricePerNight;
                     const data: any = {
                         stayId: stay._id,
-                        userId: user.id || (user as any)._id,
                         checkIn,
                         checkOut,
                         roomType: selectedRoom?.name || "Standard",
@@ -330,11 +355,11 @@ export default function StayDetailsClient({ id, initialStay }: { id: string, ini
                 } else {
                     const data: any = {
                         restaurantId: stay._id,
-                        userId: user.id || (user as any)._id,
                         bookingDate: checkIn,
                         bookingTime,
                         numberOfGuests: guests,
                     };
+                    console.log("📤 Queuing Restaurant Booking:", data);
                     await queueBooking('restaurant', data);
                 }
                 toast({ title: "Offline Mode", description: "Booking queued and will be processed when you are back online." });
@@ -351,25 +376,60 @@ export default function StayDetailsClient({ id, initialStay }: { id: string, ini
 
                 const data: any = {
                     stayId: stay._id,
-                    userId: user.id || (user as any)._id,
                     checkIn,
                     checkOut,
                     roomType: selectedRoom?.name || "Standard",
                     guests: { adults: guests, children: 0 },
-                    totalPrice
+                    totalPrice: totalPrice || 0
                 };
 
-                const res = await stayService.createBooking(data);
+                console.log("📤 Sending Stay Booking:", data);
+                const apiRes = await stayService.createBooking(data);
+                console.log("📥 Booking Response:", apiRes);
+
+                // Safety check for response structure
+                const booking = apiRes.booking || apiRes.data?.booking;
+                if (!booking) {
+                    throw new Error("Booking object missing from response");
+                }
+
+                if (paymentMethod === 'paypal') {
+                    console.log("💳 Starting PayPal Demo Simulation for Booking ID:", booking._id);
+                    setIsDemoProcessing(true);
+                    // Simulate PayPal Sandbox Processing
+                    setTimeout(async () => {
+                        try {
+                            console.log("🔍 Verifying Demo Payment for Booking:", booking._id);
+                            const verifyRes = await api.post("/payments/paypal/demo-verify", { bookingId: booking._id });
+                            console.log("✅ Demo Verify Response:", verifyRes.data);
+                            if (verifyRes.data.success) {
+                                toast({ title: "Payment Successful", description: "PayPal Sandbox demo payment verified." });
+                                router.push(`/booking/confirmation/${booking._id}`);
+                            } else {
+                                console.log("❌ Demo Verify Failed:", verifyRes.data);
+                                toast({ title: "Payment Failed", variant: "destructive" });
+                                setIsDemoProcessing(false);
+                            }
+                        } catch (err) {
+                            console.error("🔥 Demo verification error:", err);
+                            toast({ title: "Error in Payment Flow", variant: "destructive" });
+                            setIsDemoProcessing(false);
+                        }
+                    }, 3000);
+                    return;
+                }
+
+                console.log("💳 Proceeding to regular payment...");
                 toast({ title: "Booking Initiated", description: "Redirecting to payment..." });
-                await initiatePayment(res.booking);
+                await initiatePayment(booking);
             } else {
                 const data: any = {
                     restaurantId: stay._id,
-                    userId: user.id || (user as any)._id,
                     bookingDate: checkIn,
                     bookingTime,
                     numberOfGuests: guests,
                 };
+                console.log("📤 Sending Restaurant Booking:", data);
                 await stayService.createRestaurantBooking(data);
                 toast({ title: "Request Sent!", description: "Your table reservation request is being processed." });
             }
@@ -474,7 +534,7 @@ export default function StayDetailsClient({ id, initialStay }: { id: string, ini
                                 </span>
                                 <div className="flex items-center gap-2 bg-white/10 backdrop-blur-xl px-5 py-2 rounded-full border border-white/10 text-sm font-black text-white">
                                     <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-                                    {stay.ratingAvg} <span className="text-white/40 ml-1 font-medium">({totalReviews} Reviews)</span>
+                                    {stay.ratingAvg} <span className="text-white/40 ml-1 font-medium">({stay.ratingCount || 0} Reviews)</span>
                                 </div>
                             </div>
 
@@ -544,49 +604,11 @@ export default function StayDetailsClient({ id, initialStay }: { id: string, ini
 
                         {/* Reviews Section */}
                         <section id="reviews" className="space-y-12">
-                            <div className="flex items-baseline justify-between">
-                                <h2 className="text-5xl font-black text-gray-900 tracking-tighter">Guest Reviews</h2>
-                                <div className="text-xl font-bold text-primary">
-                                    {totalReviews} Reviews
-                                </div>
-                            </div>
-
-                            {/* Review Summary */}
-                            <ReviewSummary
-                                ratingAvg={stay.ratingAvg}
-                                ratingCount={totalReviews}
-                                breakdown={reviewBreakdown}
-                            />
-
-                            <AIReviewSummary targetId={id} />
-
-                            {user ? (
-                                <ReviewForm
-                                    targetId={id}
-                                    targetType="stay"
-                                    onReviewAdded={handleReviewChanged}
-                                />
-                            ) : (
-                                <div className="bg-gray-50 p-12 rounded-[2rem] border-2 border-dashed border-gray-100 text-center mb-12">
-                                    <p className="text-xl text-gray-500 mb-8 font-medium">Have you stayed at {stay.name}? Share your thoughts!</p>
-                                    <Link href={`/login?redirect=/stay/${id}`}>
-                                        <Button className="px-12 h-16 rounded-2xl font-bold text-lg shadow-xl shadow-primary/20">Sign in to Review</Button>
-                                    </Link>
-                                </div>
-                            )}
-
-                            <ReviewList
-                                reviews={reviews}
-                                totalReviews={totalReviews}
-                                hasMore={hasMoreReviews}
-                                onLoadMore={() => fetchReviews(reviewPage + 1)}
-                                onReviewDeleted={(id) => {
-                                    setReviews(prev => prev.filter(r => r._id !== id));
-                                    setTotalReviews(prev => prev - 1);
-                                    fetchReviewBreakdown();
-                                }}
-                                onReviewUpdated={handleReviewChanged}
-                                isLoadingMore={isFetchingReviews}
+                            <ReviewSection
+                                targetId={id}
+                                targetType="stay"
+                                initialRatingAvg={stay.ratingAvg}
+                                initialRatingCount={stay.ratingCount}
                             />
                         </section>
                     </div>
@@ -683,26 +705,38 @@ export default function StayDetailsClient({ id, initialStay }: { id: string, ini
                                     />
                                 </div>
 
-                                {/* Payment Method Selection */}
+                                {/* Payment Method Selection - Simplified to PayPal Only */}
                                 <div className="space-y-4 pt-4">
-                                    <Label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">Select Payment Method</Label>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <button
-                                            onClick={() => setPaymentMethod('razorpay')}
-                                            className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${paymentMethod === 'razorpay' ? "bg-primary/20 border-primary text-white" : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10"}`}
+                                    <Label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">Payment Method</Label>
+                                    <div className="grid grid-cols-1 gap-4">
+                                        <div
+                                            className="p-4 rounded-xl border flex flex-col items-center gap-2 transition-all relative bg-primary/20 border-primary text-white shadow-[0_0_20px_rgba(var(--primary),0.1)]"
                                         >
-                                            <span className="text-xs font-black uppercase tracking-tighter">Razorpay</span>
-                                            <div className="h-1 w-12 bg-primary/40 rounded-full" />
-                                        </button>
-                                        <button
-                                            onClick={() => setPaymentMethod('manual_upi')}
-                                            className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${paymentMethod === 'manual_upi' ? "bg-primary/20 border-primary text-white" : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10"}`}
-                                        >
-                                            <span className="text-xs font-black uppercase tracking-tighter">Manual UPI</span>
-                                            <div className="h-1 w-12 bg-primary/40 rounded-full" />
-                                        </button>
+                                            <span className="text-xs font-black uppercase tracking-tighter">PayPal (Pro Secure)</span>
+                                            <div className="h-1 w-12 rounded-full bg-primary" />
+                                        </div>
                                     </div>
                                 </div>
+
+                                {paymentMethod === 'paypal' && tempBookingId && (
+                                    <div className="pt-4 animate-in fade-in slide-in-from-top-4 duration-500">
+                                        <div id="paypal-button-container" className="w-full">
+                                            {paypalLoaded && (
+                                                <PayPalButtons
+                                                    bookingId={tempBookingId}
+                                                    amount={tempBookingAmount}
+                                                    onSuccess={(res: any) => {
+                                                        toast({ title: "Booking Confirmed!", description: "PayPal payment successful." });
+                                                        router.push(`/booking/confirmation/${tempBookingId}`);
+                                                    }}
+                                                    onError={(err: any) => {
+                                                        toast({ title: "Payment Failed", description: "PayPal transaction could not be completed.", variant: "destructive" });
+                                                    }}
+                                                />
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
 
                                 <Button
                                     className="w-full h-20 text-xl font-black rounded-2xl bg-primary text-primary-foreground shadow-[0_0_30px_rgba(var(--primary),0.3)] hover:scale-[1.02] transition-all"
@@ -728,14 +762,14 @@ export default function StayDetailsClient({ id, initialStay }: { id: string, ini
                     <div className="bg-gray-900 border border-white/10 rounded-[2.5rem] p-10 max-w-md w-full space-y-8 animate-in zoom-in-95 duration-300">
                         <div className="text-center space-y-4">
                             <h2 className="text-3xl font-black text-white">Manual UPI Payment</h2>
-                            <p className="text-white/60">Please pay ₹{stay.price} to the VR Code or VPA below and enter the Transaction ID.</p>
+                            <p className="text-white/60">Please pay ₹{tempBookingAmount} to the VR Code or VPA below and enter the Transaction ID.</p>
                         </div>
 
                         <div className="flex flex-col items-center gap-6 py-4">
                             {/* Dummy QR Code Image */}
                             <div className="w-48 h-48 bg-white p-4 rounded-3xl overflow-hidden">
                                 <img
-                                    src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=heykerala@upi&pn=HeyKerala&am=500&cu=INR"
+                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=heykerala@upi&pn=HeyKerala&am=${tempBookingAmount}&cu=INR`}
                                     alt="UPI QR Code"
                                     className="w-full h-full object-contain"
                                 />
@@ -770,6 +804,27 @@ export default function StayDetailsClient({ id, initialStay }: { id: string, ini
                                 {bookingLoading ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
                                 Submit
                             </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* PayPal Demo Processing Overlay */}
+            {isDemoProcessing && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-md animate-in fade-in duration-500">
+                    <div className="bg-white rounded-3xl p-12 max-w-sm w-full shadow-2xl text-center space-y-8 animate-in zoom-in-95 duration-500">
+                        <div className="relative mx-auto w-24 h-24">
+                            <div className="absolute inset-0 border-4 border-primary/20 rounded-full"></div>
+                            <div className="absolute inset-0 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <img src="https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_111x69.jpg" alt="PayPal" className="w-12 h-auto" />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <h3 className="text-2xl font-black text-gray-900">PayPal Sandbox</h3>
+                            <p className="text-gray-500 font-medium">Processing PayPal Sandbox Payment...</p>
+                        </div>
+                        <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Demo Mode Active</p>
                         </div>
                     </div>
                 </div>

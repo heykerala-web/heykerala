@@ -68,8 +68,30 @@ export default function ExploreLayout() {
                     const response = await fetch(`${API_URL}/ai/search?q=${encodeURIComponent(filters.search)}`);
                     const result = await response.json();
                     data = { success: true, data: result };
+                } else if (filters.type === "Stays" || filters.type === "Restaurants") {
+                    // Stays & Restaurants are stored in the /stays collection
+                    const params: any = {};
+                    if (filters.district !== "all") params.district = filters.district;
+                    if (filters.search) params.search = filters.search;
+                    if (filters.type === "Stays") {
+                        params.type = "hotel,resort,homestay";
+                    } else if (filters.type === "Restaurants") {
+                        params.type = "restaurant,cafe";
+                    }
+
+                    const res = await api.get('/stays', { params });
+                    // Normalize Stay fields to match Place fields expected by ExploreList
+                    const normalized = (res.data?.data || []).map((s: any) => ({
+                        ...s,
+                        category: s.type ? (s.type.charAt(0).toUpperCase() + s.type.slice(1)) : s.type,
+                        image: s.images?.[0] || null,
+                        openingHours: s.openingTime && s.closingTime ? `${s.openingTime} – ${s.closingTime}` : undefined,
+                        tags: s.amenities?.slice(0, 3) || [],
+                        ratingAvg: s.ratingAvg || 0,
+                    }));
+                    data = { success: true, data: normalized };
                 } else {
-                    // Use regular search
+                    // Use regular search for Locations / ThingsToDo
                     const params: any = {};
                     if (filters.search) params.search = filters.search;
                     if (filters.type) params.type = filters.type;

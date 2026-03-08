@@ -15,13 +15,14 @@ const bookingSchema = Joi.object({
 const stayBookingSchema = Joi.object({
   stayId: Joi.string().required(),
   roomType: Joi.string().required(),
-  checkIn: Joi.date().min('now').required(),
+  checkIn: Joi.date().required(), // Removed min('now') to avoid timezone/clock issues
   checkOut: Joi.date().greater(Joi.ref('checkIn')).required(),
   guests: Joi.object({
     adults: Joi.number().min(1).default(1),
     children: Joi.number().min(0).default(0)
-  }).required()
-});
+  }).required(),
+  totalPrice: Joi.number().required()
+}).unknown(true); // Allow unknown fields for robustness
 
 export const createBooking = async (
   req: Request,
@@ -46,8 +47,13 @@ export const createStayBooking = async (req: Request, res: Response, next: NextF
     const userId = (req as any).user?._id;
     if (!userId) return res.status(401).json({ message: "Not authorized" });
 
+    console.log("📥 Received Stay Booking Payload:", JSON.stringify(req.body, null, 2));
+
     const { error } = stayBookingSchema.validate(req.body);
-    if (error) return res.status(400).json({ message: error.details[0].message });
+    if (error) {
+      console.log("❌ Booking Validation Error:", error.details[0].message);
+      return res.status(400).json({ message: error.details[0].message });
+    }
 
     const { stayId, roomType, checkIn, checkOut, guests, totalPrice } = req.body;
 
@@ -81,6 +87,10 @@ export const createStayBooking = async (req: Request, res: Response, next: NextF
       return res.status(400).json({ message: "No rooms available for the selected dates." });
     }
 
+    // Generate Random Booking ID: HK-2026-XXXX
+    const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+    const generatedBookingId = `HK-2026-${randomSuffix}`;
+
     const booking = await Booking.create({
       userId,
       stayId,
@@ -90,7 +100,8 @@ export const createStayBooking = async (req: Request, res: Response, next: NextF
       guests,
       totalPrice,
       status: 'pending',
-      paymentStatus: 'pending'
+      paymentStatus: 'pending',
+      bookingId: generatedBookingId
     });
 
     res.status(201).json({
@@ -205,6 +216,30 @@ export const getContributorBookings = async (req: Request, res: Response, next: 
     }).populate('stayId').populate('restaurantId').populate('userId', 'name email');
 
     res.status(200).json(bookings);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getSingleBooking = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const authUser = (req as any).user;
+
+    const booking = await Booking.findById(id).populate('stayId').populate('packageId');
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    // Security check: Only allow user to see their own booking unless admin or contributor 
+    if (authUser.role !== 'Admin' && authUser._id.toString() !== booking.userId.toString()) {
+      const stay = booking.stayId as any;
+      if (stay?.createdBy?.toString() !== authUser._id.toString()) {
+        return res.status(403).json({ message: "Not authorized to view this booking" });
+      }
+    }
+
+    res.status(200).json(booking);
   } catch (err) {
     next(err);
   }

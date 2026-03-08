@@ -1,7 +1,10 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Star, ChevronLeft, ChevronRight, Send } from "lucide-react"
+import { Star, ChevronLeft, ChevronRight, Send, User } from "lucide-react"
+import { reviewService } from "@/services/reviewService"
+import { useAuth } from "@/context/AuthContext"
+import { toast } from "@/hooks/use-toast"
 
 const defaultTestimonials = [
   {
@@ -51,17 +54,38 @@ const avatarColors = [
 ]
 
 export function TestimonialsSlider() {
-  const [testimonials, setTestimonials] = useState(defaultTestimonials)
+  const { user } = useAuth()
+  const [testimonials, setTestimonials] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [currentIndex, setCurrentIndex] = useState(0)
-
-  // Form state
-  const [rating, setRating] = useState(0)
   const [hoverRating, setHoverRating] = useState(0)
-  const [name, setName] = useState("")
+  const [rating, setRating] = useState(0)
+  const [name, setName] = useState(user?.name || "")
   const [location, setLocation] = useState("")
   const [comment, setComment] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [justSubmitted, setJustSubmitted] = useState(false)
+
+  const fetchLatestReviews = async () => {
+    try {
+      setIsLoading(true)
+      const res = await reviewService.getLatestReviews(10)
+      if (res.success && res.data.length > 0) {
+        setTestimonials(res.data)
+      } else {
+        setTestimonials(defaultTestimonials)
+      }
+    } catch (error) {
+      console.error("Failed to fetch latest reviews", error)
+      setTestimonials(defaultTestimonials)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchLatestReviews()
+  }, [])
 
   // Auto-slide
   useEffect(() => {
@@ -77,31 +101,38 @@ export function TestimonialsSlider() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (rating === 0) { alert("Please select a rating"); return }
-    if (!name.trim()) { alert("Please enter your name"); return }
-    if (!comment.trim()) { alert("Please write a review"); return }
+    if (rating === 0) { toast({ title: "Please select a rating", variant: "destructive" }); return }
+    if (!name.trim()) { toast({ title: "Please enter your name", variant: "destructive" }); return }
+    if (!comment.trim()) { toast({ title: "Please write a review", variant: "destructive" }); return }
 
     setIsSubmitting(true)
-    await new Promise((r) => setTimeout(r, 600))
+    try {
+      const res = await reviewService.createReview({
+        targetId: "app", // General app review
+        targetType: "app",
+        rating,
+        comment: comment.trim(),
+        title: "Review from " + (location || "Traveler")
+      })
 
-    const newReview = {
-      id: Date.now(),
-      name: name.trim(),
-      location: location.trim() || "traveler",
-      avatar: "",
-      rating,
-      text: comment.trim(),
-      trip: "Hey Kerala App",
+      if (res.success) {
+        toast({ title: "Thank you for your review! 🎉" })
+        setJustSubmitted(true)
+        setRating(0)
+        setComment("")
+        fetchLatestReviews()
+        setCurrentIndex(0)
+      }
+    } catch (error: any) {
+      console.error("Failed to submit review", error)
+      toast({
+        title: "Submission failed",
+        description: error.response?.data?.message || "Please try again later.",
+        variant: "destructive"
+      })
+    } finally {
+      setIsSubmitting(false)
     }
-
-    setTestimonials((prev) => [newReview, ...prev])
-    setCurrentIndex(0)
-    setJustSubmitted(true)
-    setRating(0)
-    setName("")
-    setLocation("")
-    setComment("")
-    setIsSubmitting(false)
 
     setTimeout(() => setJustSubmitted(false), 4000)
   }
@@ -221,7 +252,7 @@ export function TestimonialsSlider() {
               style={{ transform: `translateX(-${currentIndex * 100}%)` }}
             >
               {testimonials.map((t, idx) => (
-                <div key={t.id} className="w-full flex-shrink-0 px-4 md:px-12">
+                <div key={t._id || t.id} className="w-full flex-shrink-0 px-4 md:px-12">
                   <div className="relative bg-white/50 backdrop-blur-xl rounded-[2.5rem] p-10 md:p-16 shadow-lg border border-white/40 text-center">
                     {/* Quote icon */}
                     <div className="absolute top-10 left-10 text-primary/10 select-none">
@@ -235,7 +266,7 @@ export function TestimonialsSlider() {
                       className={`w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center text-white font-black text-xl shadow-xl bg-gradient-to-br ${avatarColors[idx % avatarColors.length]
                         }`}
                     >
-                      {getInitials(t.name)}
+                      {getInitials(t.user?.name || t.name)}
                     </div>
 
                     {/* Stars */}
@@ -246,14 +277,14 @@ export function TestimonialsSlider() {
                     </div>
 
                     <blockquote className="text-foreground text-xl md:text-2xl font-medium mb-8 leading-snug tracking-tight">
-                      &ldquo;{t.text}&rdquo;
+                      &ldquo;{t.comment || t.text}&rdquo;
                     </blockquote>
 
                     <div className="pt-6 border-t border-muted/50 max-w-xs mx-auto">
-                      <h4 className="text-lg font-bold text-foreground mb-1">{t.name}</h4>
-                      <p className="text-muted-foreground text-sm font-medium">{t.location}</p>
+                      <h4 className="text-lg font-bold text-foreground mb-1">{t.user?.name || t.name}</h4>
+                      <p className="text-muted-foreground text-sm font-medium">{t.location || (t.user?._id ? "Verified Traveler" : "Traveler")}</p>
                       <div className="mt-3 inline-block px-3 py-1 bg-primary/10 rounded-full">
-                        <span className="text-primary text-[10px] font-bold uppercase tracking-widest">{t.trip}</span>
+                        <span className="text-primary text-[10px] font-bold uppercase tracking-widest">{t.targetType === 'app' ? 'General Review' : (t.targetType || t.trip)}</span>
                       </div>
                     </div>
                   </div>

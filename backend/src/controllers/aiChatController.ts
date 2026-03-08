@@ -10,31 +10,40 @@ export const chatWithAI = async (req: Request, res: Response) => {
             return res.status(500).json({ message: "OpenRouter API key not configured" });
         }
 
-        const { message, history, context } = req.body;
+        // 3. Extract the user message from the request body (`req.body.message`).
+        const { message, history } = req.body;
 
         if (!message) {
             return res.status(400).json({ message: "Message is required" });
         }
 
-        // Construct messages array for OpenRouter
-        const systemPrompt = "You are a Kerala tourism assistant. You help users plan trips, recommend places, hotels, and events in Kerala, India. Keep responses concise and friendly.";
+        const systemPrompt = "You are a helpful Kerala tourism assistant.";
 
+        // Process history to ensure it strictly follows alternating user/assistant roles
+        // and filter out 'system' or 'error' objects which OpenRouter rejects.
+        const formattedHistory = (history || [])
+            .filter((msg: any) => msg.role !== "system" && msg.role !== "error")
+            .map((msg: any) => ({
+                role: msg.role === "model" ? "assistant" : msg.role,
+                content: msg.content || ""
+            }));
+
+        // 1. The request body sent to OpenRouter must follow the correct structure
         const messages = [
             { role: "system", content: systemPrompt },
-            ...(history || []).map((msg: any) => ({
-                role: msg.role === "model" ? "assistant" : msg.role,
-                content: msg.content
-            })),
+            ...formattedHistory,
+            // Latest user message
             { role: "user", content: message }
         ];
 
         const requestBody = JSON.stringify({
-            model: "mistralai/mistral-7b-instruct",
+            model: "openai/gpt-3.5-turbo",
             messages: messages,
-            max_tokens: 300,
+            max_tokens: 500, // Optional: reasonable safety limit for generated tokens
             temperature: 0.7
         });
 
+        // 2. Ensure the request uses the correct headers
         const options = {
             hostname: "openrouter.ai",
             path: "/api/v1/chat/completions",
@@ -59,13 +68,17 @@ export const chatWithAI = async (req: Request, res: Response) => {
                         const jsonResponse = JSON.parse(data);
                         resolve({ statusCode: apiRes.statusCode, data: jsonResponse });
                     } catch (e) {
-                        reject(new Error("Failed to parse OpenRouter response: " + data.substring(0, 100)));
+                        reject(new Error("Failed to parse OpenRouter response"));
                     }
                 });
             });
 
-            apiReq.on("error", (e) => {
-                reject(e);
+            apiReq.on("error", (e) => reject(e));
+
+            // Set a timeout of 10 seconds to handle slow unresponsive OpenRouter endpoints
+            apiReq.setTimeout(10000, () => {
+                apiReq.abort();
+                reject(new Error("OpenRouter timeout"));
             });
 
             apiReq.write(requestBody);
@@ -77,30 +90,39 @@ export const chatWithAI = async (req: Request, res: Response) => {
 
         if (statusCode && statusCode >= 400) {
             console.error("OpenRouter API Error:", JSON.stringify(data, null, 2));
-            return res.status(statusCode).json({
-                message: "AI error",
-                realError: data.error?.message || data.message || "Unknown OpenRouter error"
-            });
+            throw new Error(data.error?.message || data.message || "OpenRouter error");
         }
 
+        // 4. Return the AI response safely using response.data.choices[0].message.content
         const reply = data.choices?.[0]?.message?.content;
 
         if (!reply) {
             console.error("Invalid OpenRouter Response:", JSON.stringify(data, null, 2));
-            return res.status(500).json({ message: "AI error", realError: "Invalid response format from OpenRouter" });
+            throw new Error("Invalid response format from OpenRouter");
         }
 
+        // 6. Ensure the endpoint always returns a valid JSON response
         return res.status(200).json({ reply });
 
     } catch (error: any) {
+        // 7. Make the code production-safe with try/catch and clear error logging
         console.error("Chat Controller Error:", error);
+
         try {
-            fs.appendFileSync("error.log", `[${new Date().toISOString()}] ${error.stack || error.message}\n`);
+            fs.appendFileSync(
+                "error.log",
+                `[${new Date().toISOString()}] AI Chat Error: ${error.stack || error.message}\n`
+            );
         } catch (e) {
             console.error("Failed to write to error log", e);
         }
-        return res.status(500).json({
-            message: "AI error",
+
+        // 5. Add proper error handling for OpenRouter API failures/timeouts to return a fallback response
+        const fallbackResponse = "Sorry, AI service is temporarily unavailable. Here are some suggested places in Kerala: Munnar, Wayanad, Alleppey, and Kochi.";
+
+        return res.status(200).json({
+            reply: fallbackResponse,
+            isFallback: true,       // Helpful flag for frontend telemetry
             realError: error.message
         });
     }

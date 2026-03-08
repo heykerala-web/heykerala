@@ -243,3 +243,71 @@ export const deleteReview = async (req: Request, res: Response) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+// --- PAYMENT MANAGEMENT ---
+import Booking from "../models/Booking";
+import { sendBookingConfirmationEmail } from "../services/emailService";
+
+export const getManualPayments = async (req: Request, res: Response) => {
+    try {
+        const payments = await Booking.find({
+            paymentMethod: 'manual_upi',
+            manualPaymentStatus: 'pending_verification'
+        })
+            .populate("userId", "name email")
+            .populate("stayId", "name")
+            .sort({ createdAt: -1 });
+
+        res.json({ success: true, payments });
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const verifyManualPayment = async (req: Request, res: Response) => {
+    try {
+        const { bookingId, status } = req.body; // status: 'verified' or 'rejected'
+
+        if (!['verified', 'rejected'].includes(status)) {
+            return res.status(400).json({ message: "Invalid status" });
+        }
+
+        const booking = await Booking.findById(bookingId).populate("stayId", "name");
+        if (!booking) {
+            return res.status(404).json({ message: "Booking not found" });
+        }
+
+        booking.manualPaymentStatus = status;
+        if (status === 'verified') {
+            booking.paymentStatus = 'paid';
+            booking.status = 'confirmed';
+        } else {
+            booking.paymentStatus = 'failed';
+            booking.status = 'rejected';
+        }
+
+        await booking.save();
+
+        // Send Email if verified
+        if (status === 'verified') {
+            const user = await User.findById(booking.userId);
+            if (user && user.email) {
+                await sendBookingConfirmationEmail(user.email, user.name || 'Valued Guest', {
+                    id: booking._id,
+                    stayName: (booking.stayId as any)?.name || 'Your Stay',
+                    checkIn: booking.checkIn,
+                    checkOut: booking.checkOut,
+                    totalPrice: booking.totalPrice
+                });
+            }
+        }
+
+        res.json({
+            success: true,
+            message: `Payment ${status === 'verified' ? 'verified' : 'rejected'} successfully`,
+            booking
+        });
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+};

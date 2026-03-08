@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
+import Place from '../models/Place';
 import { KERALA_PLACES } from '../seed/places';
 
-// Helper to calculate distance between two coordinates
+// Helper to calculate distance between two coordinates (can be used for proximity sorting later)
 function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
     const R = 6371; // Earth's radius in km
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -35,8 +36,6 @@ function generateHotels(centerLat: number, centerLng: number, budget: string) {
     const prices = priceMap[budget] || priceMap["Mid-range"];
 
     return Array.from({ length: 3 }, (_, i) => {
-        const offsetLat = (Math.random() - 0.5) * 0.1;
-        const offsetLng = (Math.random() - 0.5) * 0.1;
         const price = Math.floor(Math.random() * (prices.max - prices.min) + prices.min);
         const rating = 3.5 + Math.random() * 1.5;
         const distance = Math.random() * 5 + 0.5;
@@ -52,10 +51,12 @@ function generateHotels(centerLat: number, centerLng: number, budget: string) {
     });
 }
 
-export const createManualItinerary = (data: any) => {
-    const { duration, interests, budget, travelers } = data;
+export const createManualItinerary = async (data: any) => {
+    const { duration, interests, budget, travelers, districts } = data;
 
-    // Parse duration (handle "3-4 days", "5-7 days", etc.)
+    console.log("Generating manual itinerary with:", { duration, interests, budget, travelers, districts });
+
+    // Parse duration
     let daysCount = 3;
     if (typeof duration === 'string') {
         const match = duration.match(/(\d+)/);
@@ -66,36 +67,107 @@ export const createManualItinerary = (data: any) => {
         daysCount = parseInt(duration) || 3;
     }
 
-    // Map interest tags
-    const interestMap: { [key: string]: string[] } = {
-        "Backwaters": ["backwaters", "houseboat", "relaxation"],
-        "Beaches": ["beaches", "coastal"],
-        "Hill Stations": ["hill-station", "tea", "nature"],
-        "Culture & Heritage": ["culture", "history", "architecture", "festival"],
-        "Wildlife": ["wildlife", "trekking", "adventure"],
-        "Adventure Sports": ["adventure", "trekking"]
+    // Map interest options to DB categories
+    const interestToCategory: { [key: string]: string[] } = {
+        "Backwaters": ["Backwaters"],
+        "Beaches": ["Beach"],
+        "Hill Stations": ["Hill Station"],
+        "Culture & Heritage": ["Culture", "History"],
+        "Wildlife": ["Wildlife"],
+        "Adventure Sports": ["Adventure"],
+        "Nature": ["Nature"]
     };
 
+    const selectedCategories: string[] = [];
     const searchTags: string[] = [];
+
     interests.forEach((interest: string) => {
-        if (interestMap[interest]) {
-            searchTags.push(...interestMap[interest]);
+        if (interestToCategory[interest]) {
+            selectedCategories.push(...interestToCategory[interest]);
         } else {
+            // If it's a custom interest or doesn't match, add to tags search
             searchTags.push(interest.toLowerCase());
         }
     });
 
-    // Filter places by interests
-    const relevantPlaces = KERALA_PLACES.filter((place) =>
-        place.tags.some((tag) => searchTags.some(st => tag.toLowerCase().includes(st.toLowerCase())))
-    ).sort((a, b) => Math.random() - 0.5); // Shuffle for variety
+    // Build MongoDB query
+    const query: any = {
+        status: 'approved'
+    };
 
-    if (relevantPlaces.length === 0) {
-        throw new Error("No places found matching your interests.");
+    if (districts && districts.length > 0) {
+        const districtRegexes = districts.map((d: string) => new RegExp(`^${d}$`, 'i'));
+        query.district = { $in: districtRegexes };
     }
 
-    // Split into days (3-4 activities per day)
-    const activitiesPerDay = 3;
+    if (selectedCategories.length > 0 || searchTags.length > 0) {
+        query.$or = [];
+        if (selectedCategories.length > 0) {
+            const categoryRegexes = selectedCategories.map((c: string) => new RegExp(`^${c}$`, 'i'));
+            query.$or.push({ category: { $in: categoryRegexes } });
+        }
+        if (searchTags.length > 0) {
+            query.$or.push({ tags: { $in: searchTags.map(t => new RegExp(t, 'i')) } });
+        }
+    }
+
+    // Fetch places from DB prioritized by rating and popularity
+    let relevantPlaces = await Place.find(query)
+        .sort({ ratingAvg: -1, totalReviews: -1, views: -1 })
+        .limit(daysCount * 5); // Fetch enough for variety
+
+    // Fallback 1: If no places found with filters, try without category/tags but keep districts
+    if (relevantPlaces.length < daysCount && districts && districts.length > 0) {
+        console.warn("Not enough places found with filters in DB, expanding search within districts...");
+        const districtRegexes = districts.map((d: string) => new RegExp(`^${d}$`, 'i'));
+        const fallbackQuery: any = { status: 'approved', district: { $in: districtRegexes } };
+        const fallbackPlaces = await Place.find(fallbackQuery)
+            .sort({ ratingAvg: -1, totalReviews: -1 })
+            .limit(daysCount * 5);
+
+        // Combine and de-duplicate
+        const placeIds = new Set(relevantPlaces.map(p => p._id?.toString()));
+        for (const p of fallbackPlaces) {
+            if (!placeIds.has(p._id?.toString())) {
+                relevantPlaces.push(p);
+            }
+        }
+    }
+
+    // Fallback 2: If still not enough, use static data for selected districts
+    if (relevantPlaces.length < daysCount) {
+        console.warn("Still not enough places in DB, adding static places for selected districts...");
+        const staticFiltered = (districts && districts.length > 0)
+            ? KERALA_PLACES.filter(p => districts.some((d: string) => Math.abs(d.localeCompare(p.district, undefined, { sensitivity: 'base' })) === 0))
+            : KERALA_PLACES;
+
+        // Map static places to match relevantPlaces structure (as much as possible)
+        const staticMapped = staticFiltered.map(p => ({
+            name: p.name,
+            district: p.district,
+            description: p.description,
+            latitude: p.lat,
+            longitude: p.lng,
+            tags: p.tags,
+            priceLevel: p.priceLevel || 'Moderate',
+            image: "/places/munnar-teagardens.jpg" // Default image for static
+        }));
+
+        relevantPlaces = [...relevantPlaces, ...staticMapped];
+    }
+
+    if (relevantPlaces.length === 0) {
+        throw new Error("No places found matching your selections. Try selecting more districts or different interests.");
+    }
+
+    // Shuffle slightly for variety
+    relevantPlaces = relevantPlaces.sort(() => Math.random() - 0.5);
+
+    // Split into days (ensure we format properly based on available places)
+    const totalActivities = relevantPlaces.length;
+    let activitiesPerDay = Math.min(4, Math.ceil(totalActivities / daysCount));
+    if (activitiesPerDay < 1) activitiesPerDay = 1;
+
     const days = [];
     let placeIndex = 0;
 
@@ -103,33 +175,38 @@ export const createManualItinerary = (data: any) => {
         const dayActivities = [];
         const times = ["08:00", "11:00", "14:00", "17:00"];
 
-        for (let i = 0; i < activitiesPerDay && placeIndex < relevantPlaces.length; i++) {
-            const place = relevantPlaces[placeIndex % relevantPlaces.length];
+        // Determine how many places to put on this day (distribute leftovers)
+        const placesForThisDay = Math.min(activitiesPerDay, relevantPlaces.length - placeIndex);
+
+        for (let i = 0; i < placesForThisDay; i++) {
+            const place = relevantPlaces[placeIndex];
             const time = times[i] || "09:00";
-            const duration = ["2h", "3h", "2h", "1h"][i] || "2h";
-            const cost = Math.floor(Math.random() * 200 + 50);
+            const actDuration = ["2h", "3h", "2h", "1h"][i] || "2h";
+            const cost = place.priceLevel === 'Free' ? 0 :
+                place.priceLevel === 'Cheap' ? 100 :
+                    place.priceLevel === 'Expensive' ? 500 : 250;
 
             dayActivities.push({
                 time: time,
                 name: place.name,
-                desc: place.description,
-                lat: place.lat,
-                lng: place.lng,
-                image: "/places/munnar-teagardens.jpg",
-                duration: duration,
+                desc: place.description.substring(0, 150) + "...",
+                lat: place.latitude,
+                lng: place.longitude,
+                image: place.image || place.images?.[0] || "/places/munnar-teagardens.jpg",
+                duration: actDuration,
                 cost: cost
             });
             placeIndex++;
         }
 
-        // Build map polyline from activities
-        const mapPolyline = dayActivities.map(act => [act.lat, act.lng]);
-
-        days.push({
-            day: day,
-            activities: dayActivities,
-            mapPolyline: mapPolyline
-        });
+        if (dayActivities.length > 0) {
+            const mapPolyline = dayActivities.map(act => [act.lat, act.lng]);
+            days.push({
+                day: day,
+                activities: dayActivities,
+                mapPolyline: mapPolyline
+            });
+        }
     }
 
     // Calculate center point for hotels
@@ -143,7 +220,8 @@ export const createManualItinerary = (data: any) => {
     const budgetMap: { [key: string]: { perDay: number } } = {
         "Budget": { perDay: 2000 },
         "Mid-range": { perDay: 4000 },
-        "Luxury": { perDay: 8000 }
+        "Premium": { perDay: 6000 },
+        "Luxury": { perDay: 12000 }
     };
 
     const baseBudget = budgetMap[budget] || budgetMap["Mid-range"];
@@ -162,12 +240,6 @@ export const createManualItinerary = (data: any) => {
         extras: Math.round(totalExtras)
     };
 
-    // Generate itinerary ID
-    const id = `itn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-    // Get hero image
-    const heroImage = days[0]?.activities[0]?.image || "/places/munnar-teagardens.jpg";
-
     // Calculate budget estimate
     const totalBudget = Object.values(budgetBreakdown).reduce((a, b) => a + b, 0);
     const budgetEstimate = {
@@ -175,13 +247,16 @@ export const createManualItinerary = (data: any) => {
         max: Math.round(totalBudget * 1.1)
     };
 
+    // Generate itinerary ID
+    const id = `itn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
     return {
         id: id,
         title: `${daysCount}-Day Kerala Adventure`,
         duration: daysCount,
         travelers: travelers,
         budgetEstimate: budgetEstimate,
-        heroImage: heroImage,
+        heroImage: days[0]?.activities[0]?.image || "/places/munnar-teagardens.jpg",
         aiReason: null as string | null,
         days: days,
         hotels: hotels,
@@ -191,13 +266,13 @@ export const createManualItinerary = (data: any) => {
 
 export const generateManualPlan = async (req: Request, res: Response) => {
     try {
-        const { duration, interests, budget, travelers } = req.body;
+        const { duration, interests, budget, travelers, districts } = req.body;
 
         if (!duration || !interests || !budget || !travelers) {
             return res.status(400).json({ message: "Missing required fields: duration, interests, budget, travelers." });
         }
 
-        const itinerary = createManualItinerary({ duration, interests, budget, travelers });
+        const itinerary = await createManualItinerary({ duration, interests, budget, travelers, districts });
         res.status(200).json(itinerary);
     } catch (error: any) {
         console.error("Error generating manual plan:", error);

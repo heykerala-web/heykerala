@@ -111,6 +111,10 @@ app.use("/api/upload", uploadRoutes); // Use Upload Routes
 import reviewRoutes from "./routes/reviewRoutes";
 app.use("/api/reviews", reviewRoutes);
 
+// ⭐ Interaction Tracking Routes (for rule-based recommendations)
+import interactionRoutes from "./routes/interactionRoutes";
+app.use("/api/interactions", interactionRoutes);
+
 import placePhotoRoutes from "./routes/placePhotoRoutes";
 app.use("/api/place-photos", placePhotoRoutes);
 

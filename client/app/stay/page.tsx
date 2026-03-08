@@ -64,7 +64,7 @@ export default function StayPage() {
             <div className="relative h-[60vh] md:h-[70vh] w-full overflow-hidden bg-gray-900">
                 <div className="absolute inset-0">
                     <img
-                        src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=2070&auto=format&fit=crop"
+                        src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=75&w=1600&auto=format&fit=crop"
                         alt="Luxury Stays"
                         className="w-full h-full object-cover scale-105 animate-slow-zoom opacity-60"
                     />

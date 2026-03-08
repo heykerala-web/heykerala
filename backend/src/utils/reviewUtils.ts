@@ -9,11 +9,14 @@ export const getModelByType = (targetType: string) => {
         case "place": return Place;
         case "stay": return Stay;
         case "event": return Event;
+        case "app": return null;
         default: return null;
     }
 };
 
 export const updateTargetRating = async (targetId: string, targetType: string) => {
+    if (targetType === "app") return; // No model update needed for general app reviews
+
     const TargetModel = getModelByType(targetType);
     if (!TargetModel) return;
 

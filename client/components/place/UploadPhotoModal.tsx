@@ -92,7 +92,8 @@ export default function UploadPhotoModal({ targetId, targetName, targetType = "p
             }
         } catch (error: any) {
             console.error("Upload failed", error);
-            toast.error(error.response?.data?.message || "Failed to upload photo");
+            const errorMessage = error.response?.data?.message || error.response?.data?.error || "Failed to upload photo";
+            toast.error(errorMessage);
         } finally {
             setUploading(false);
         }

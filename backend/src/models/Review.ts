@@ -3,7 +3,7 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface IReview extends Document {
     user: mongoose.Types.ObjectId;
     targetId: mongoose.Types.ObjectId;
-    targetType: "place" | "stay" | "event";
+    targetType: "place" | "stay" | "event" | "app";
     rating: number;
     title?: string;
     comment: string;
@@ -18,7 +18,7 @@ const reviewSchema = new Schema<IReview>(
         targetType: {
             type: String,
             required: true,
-            enum: ["place", "stay", "event"]
+            enum: ["place", "stay", "event", "app"]
         },
         rating: { type: Number, required: true, min: 1, max: 5 },
         title: { type: String, trim: true },

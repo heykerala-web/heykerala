@@ -13,6 +13,9 @@ export interface Place {
     location: string;
     ratingAvg: number;
     totalReviews: number;
+    views?: number;
+    bookmarks?: number;
+    searchClicks?: number;
     tags: string[];
     latitude: number;
     longitude: number;
@@ -34,6 +37,11 @@ export const placeService = {
     getAll: async (params?: PlaceParams) => {
         const response = await api.get('/places', { params });
         return response.data; // This returns { success, data, pagination }
+    },
+
+    getTrending: async () => {
+        const response = await api.get('/places/trending');
+        return response.data;
     },
 
     getById: async (id: string) => {
@@ -76,5 +84,29 @@ export const placeService = {
     submit: async (data: any) => {
         const response = await api.post('/places/user/submission', data);
         return response.data;
+    },
+
+    recordView: async (id: string) => {
+        try {
+            await api.post(`/places/${id}/view`);
+        } catch (error) {
+            // silent fail for interaction tracking
+        }
+    },
+
+    recordSearchClick: async (id: string) => {
+        try {
+            await api.post(`/places/${id}/search-click`);
+        } catch (error) {
+            // silent fail
+        }
+    },
+
+    recordBookmark: async (id: string) => {
+        try {
+            await api.post(`/places/${id}/bookmark-click`);
+        } catch (error) {
+            // silent fail
+        }
     }
 };

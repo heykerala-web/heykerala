@@ -4,10 +4,11 @@ import "./globals.css"
 import type { Metadata, Viewport } from "next"
 import { Inter } from "next/font/google"
 import BirdBackground from "@/components/BirdBackground"
-
-
 import { Providers } from "./providers";
 import { AppShell } from "./AppShell";
+import { Toaster } from "@/components/ui/toaster";
+import { OfflineBanner } from "@/components/OfflineBanner";
+import { InstallPrompt } from "@/components/InstallPrompt";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
@@ -38,27 +39,18 @@ export const metadata: Metadata = {
   generator: 'v0.app'
 }
 
-import { OfflineBanner } from "@/components/OfflineBanner";
-import { InstallPrompt } from "@/components/InstallPrompt";
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className={inter.className}>
         <OfflineBanner />
         <InstallPrompt />
-        {/*
-          Outermost relative container so the absolute bird layer is
-          contained within the viewport and never causes scroll/layout shift.
-        */}
         <div style={{ position: "relative", minHeight: "100vh" }}>
-          {/* Bird silhouettes — absolute, z-index 0, pointer-events none */}
           <BirdBackground />
-
-          {/* All page content sits above the birds */}
           <div style={{ position: "relative", zIndex: 1 }}>
             <Providers>
               <AppShell>{children}</AppShell>
+              <Toaster />
             </Providers>
           </div>
         </div>
@@ -66,5 +58,3 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   )
 }
-// Force rebuild: 2
-

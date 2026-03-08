@@ -1,25 +1,14 @@
 import { Request, Response } from 'express';
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import { KERALA_PLACES } from '../seed/places';
+import https from 'https';
 import Place from '../models/Place';
 import { createManualItinerary } from './itineraryManualController';
-
-const getGenAI = () => {
-    const API_KEY = process.env.API_KEY || process.env.GEMINI_API_KEY;
-    return API_KEY ? new GoogleGenerativeAI(API_KEY) : null;
-};
 
 // Helper to generate hotels (same as manual)
 function generateHotels(centerLat: number, centerLng: number, budget: string) {
     const hotelNames = [
-        "Green View Resort",
-        "Kerala Heritage Hotel",
-        "Backwater Paradise",
-        "Hill Station Retreat",
-        "Coastal Breeze Hotel",
-        "Nature's Nest",
-        "Royal Kerala Inn",
-        "Serenity Stay"
+        "Green View Resort", "Kerala Heritage Hotel", "Backwater Paradise",
+        "Hill Station Retreat", "Coastal Breeze Hotel", "Nature's Nest",
+        "Royal Kerala Inn", "Serenity Stay"
     ];
 
     const priceMap: { [key: string]: { min: number; max: number } } = {
@@ -46,229 +35,223 @@ function generateHotels(centerLat: number, centerLng: number, budget: string) {
     });
 }
 
+const callOpenRouter = (prompt: string): Promise<any> => {
+    return new Promise((resolve, reject) => {
+        const apiKey = process.env.OPENROUTER_API_KEY;
+        if (!apiKey) return reject(new Error("OPENROUTER_API_KEY not configured"));
+
+        const requestBody = JSON.stringify({
+            model: "openai/gpt-4o-mini", // Upgraded for better instruction following
+            messages: [
+                { role: "system", content: "You are an expert Kerala travel planner. You strictly follow district boundaries." },
+                { role: "user", content: prompt }
+            ],
+            response_format: { type: "json_object" },
+            temperature: 0.1 // Lowered for better compliance
+        });
+
+        const options = {
+            hostname: "openrouter.ai",
+            path: "/api/v1/chat/completions",
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${apiKey}`,
+                "Content-Type": "application/json",
+                "Content-Length": Buffer.byteLength(requestBody)
+            }
+        };
+
+        const req = https.request(options, (res) => {
+            let data = "";
+            res.on("data", (chunk) => data += chunk);
+            res.on("end", () => {
+                try {
+                    const json = JSON.parse(data);
+                    if (res.statusCode && res.statusCode >= 400) {
+                        reject(new Error(json.error?.message || "OpenRouter error"));
+                    } else {
+                        resolve(json);
+                    }
+                } catch (e) {
+                    reject(new Error("Failed to parse OpenRouter response"));
+                }
+            });
+        });
+
+        req.on("error", (e) => reject(e));
+        req.setTimeout(45000, () => {
+            req.abort();
+            reject(new Error("OpenRouter timeout"));
+        });
+        req.write(requestBody);
+        req.end();
+    });
+};
+
 export const generateAIPlan = async (req: Request, res: Response) => {
     try {
-        const { duration, budget, interests, travelers } = req.body;
+        const { duration, budget, interests, travelers, districts, customPreference } = req.body;
 
         if (!duration || !budget || !interests || !travelers) {
             return res.status(400).json({ message: "Missing required fields: duration, budget, interests, travelers." });
         }
 
-        const genAI = getGenAI();
-        // If AI not configured, fall back immediately
-        if (!genAI) {
-            console.warn("AI not configured, falling back to manual plan.");
-            const manualPlan = createManualItinerary(req.body);
+        console.log(`[AI Planner] Processing request: Districts=${districts?.join(', ')}, Interests=${interests?.join(', ')}`);
+
+        // Category mapping to match DB
+        const interestMap: { [key: string]: string[] } = {
+            "Beach": ["Beach"],
+            "Hill Station": ["Hill Station"],
+            "Waterfall": ["Nature"], // Waterfalls are categorized as Nature in current DB
+            "Nature": ["Nature"],
+            "Heritage": ["Heritage", "Culture", "History"],
+            "Wildlife": ["Wildlife"]
+        };
+
+        const dbCategories: string[] = [];
+        interests.forEach((i: string) => {
+            if (interestMap[i]) dbCategories.push(...interestMap[i]);
+            else dbCategories.push(i);
+        });
+
+        // 1. Fetch relevant places from MongoDB
+        const query: any = { status: 'approved' };
+        if (districts && districts.length > 0) {
+            const districtRegexes = districts.map((d: string) => new RegExp(`^${d}$`, 'i'));
+            query.district = { $in: districtRegexes };
+        }
+        if (dbCategories.length > 0) {
+            const categoryRegexes = dbCategories.map((c: string) => new RegExp(`^${c}$`, 'i'));
+            query.category = { $in: categoryRegexes };
+        }
+
+        let relevantPlaces = await Place.find(query)
+            .select('name district category ratingAvg description latitude longitude')
+            .sort({ ratingAvg: -1 })
+            .limit(100);
+
+        // Fallback: If no places found with specific categories, pull by district only
+        if (relevantPlaces.length < 10 && districts && districts.length > 0) {
+            console.log(`[AI Planner] Loosening category constraints for ${districts.join(', ')}`);
+            const districtRegexes = districts.map((d: string) => new RegExp(`^${d}$`, 'i'));
+            relevantPlaces = await Place.find({ status: 'approved', district: { $in: districtRegexes } })
+                .select('name district category ratingAvg description latitude longitude')
+                .sort({ ratingAvg: -1 })
+                .limit(100);
+        }
+
+        // If we still didn't find *any* places for the selected districts, we MUST not proceed 
+        // to hallucinate. Pass the raw body directly to the manual controller which handles static fallbacks strictly.
+        if (relevantPlaces.length === 0) {
+            console.log("[AI Planner] No places found in DB, falling back to manual...");
+            const manualPlan = await createManualItinerary(req.body);
             return res.status(200).json(manualPlan);
         }
+
+        const placesContext = relevantPlaces.map(p =>
+            `- ${p.name} (District: ${p.district}, Category: ${p.category}, Rating: ${p.ratingAvg}, Lat: ${p.latitude}, Lng: ${p.longitude}): ${p.description.substring(0, 100)}...`
+        ).join('\n');
 
         // Parse duration
         let daysCount = 3;
         if (typeof duration === 'string') {
             const match = duration.match(/(\d+)/);
-            if (match) {
-                daysCount = parseInt(match[1]);
-            }
+            if (match) daysCount = parseInt(match[1]);
         } else {
             daysCount = parseInt(duration) || 3;
         }
 
-        try {
-            // Get relevant places for context
-            const interestMap: { [key: string]: string[] } = {
-                "Backwaters": ["backwaters", "houseboat"],
-                "Beaches": ["beaches"],
-                "Hill Stations": ["hill-station", "tea"],
-                "Culture & Heritage": ["culture", "history"],
-                "Wildlife": ["wildlife"],
-                "Adventure Sports": ["adventure"]
-            };
-
-            const searchTags: string[] = [];
-            interests.forEach((interest: string) => {
-                if (interestMap[interest]) {
-                    searchTags.push(...interestMap[interest]);
-                } else {
-                    searchTags.push(interest.toLowerCase());
-                }
-            });
-
-            // Try to fetch from database first
-            let relevantPlaces: any[] = [];
-            try {
-                relevantPlaces = await Place.find({
-                    $or: [
-                        { category: { $in: interests } },
-                        { tags: { $in: searchTags } }
-                    ],
-                    status: 'approved'
-                }).limit(15);
-            } catch (dbError) {
-                console.error("Database fetch failed for AI context, falling back to static data:", dbError);
-            }
-
-            // Map database fields to the structure AI expects
-            let contextPlaces = relevantPlaces.map(p => ({
-                name: p.name,
-                lat: p.latitude || p.lat,
-                lng: p.longitude || p.lng,
-                description: p.description,
-                tags: p.tags
-            }));
-
-            // If no places found in DB or DB failed, use static KERALA_PLACES
-            if (contextPlaces.length === 0) {
-                // console.log("No approved places found in DB, using static data for AI context.");
-                contextPlaces = KERALA_PLACES.filter((place) =>
-                    place.tags.some((tag) => searchTags.some(st => tag.toLowerCase().includes(st.toLowerCase())))
-                ).slice(0, 10);
-            }
-
-            const placesContext = contextPlaces.map(p =>
-                `${p.name} (${p.lat}, ${p.lng}): ${p.description}`
-            ).join('\n');
-
-            const prompt = `You are a travel expert creating a personalized Kerala itinerary. Return ONLY valid JSON, no markdown, no code blocks.
-
-Trip Details:
-- Duration: ${daysCount} days
+        const prompt = `Generate a structured ${daysCount}-day travel itinerary for Kerala.
+User Inputs:
+- Selected Districts (STRICT): ${districts?.join(', ') || 'Any in Kerala'} 
+- Traveler Type: ${travelers}
 - Budget: ${budget}
-- Travelers: ${travelers}
 - Interests: ${interests.join(', ')}
+- Custom Preference: ${customPreference || 'None'}
 
-Available Places (use these coordinates if possible, otherwise use known coordinates in Kerala):
+Available Places Context (ONLY use places from this list):
 ${placesContext}
 
-Return this EXACT JSON structure:
+STRICT INSTRUCTIONS:
+1. ONLY use the provided places. DO NOT hallucinate places from other districts or use places not explicitly listed in the Available Places Context.
+2. If "Selected Districts" is ${districts?.join(', ')}, then DO NOT include places from Kochi, Trivandrum, or Munnar UNLESS they are in that list or present in the Available Places Context. Make absolutely sure the name of the place directly matches the context.
+3. Distribute the provided places logically across the ${daysCount} days (e.g., 2-4 activities per day). Do not leave days empty. Focus strongly on geographic proximity for each day's plan.
+4. Return ONLY valid JSON:
 {
-  "title": "string (e.g., '3-Day Kerala Adventure')",
-  "aiReason": "string (explain why this itinerary fits their preferences)",
+  "title": "Title",
+  "aiReason": "Explain how this fits the selected districts, interests, and preferences.",
   "days": [
     {
       "day": 1,
       "activities": [
-        {
-          "time": "08:00",
-          "name": "Place name",
-          "desc": "Brief description",
-          "lat": number,
-          "lng": number,
-          "image": "/places/munnar-teagardens.jpg",
-          "duration": "2h",
-          "cost": 100
-        }
+        { "time": "09:00", "name": "Exact Name from List", "desc": "description", "lat": 10.0, "lng": 76.0, "duration": "2h", "cost": 0, "image": "/places/default.jpg" }
       ]
     }
-  ]
-}
+  ],
+  "budgetEstimates": { "min": 0, "max": 0 }
+}`;
 
-Requirements:
-- Create ${daysCount} days
-- 3-4 activities per day with times (08:00, 11:00, 14:00, 17:00)
-- Include mapPolyline array in each day: [[lat1, lng1], [lat2, lng2], ...]
-- Make it geographically logical
-- aiReason should be 2-3 sentences explaining the itinerary choice`;
+        try {
+            const aiResponse = await callOpenRouter(prompt);
+            const aiData = JSON.parse(aiResponse.choices[0].message.content);
 
-            // Changed model to 1.5-flash for better quota handling and performance
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            // POST-FILTERing: Ensure no hallucinations made it through
+            if (districts && districts.length > 0) {
+                aiData.days.forEach((day: any) => {
+                    day.activities = day.activities.filter((act: any) => {
+                        return relevantPlaces.some(p =>
+                            p.name.toLowerCase().includes(act.name.toLowerCase()) ||
+                            act.name.toLowerCase().includes(p.name.toLowerCase())
+                        );
+                    });
+                });
+            }
 
-            const response = await model.generateContent({
-                contents: [{
-                    role: "user",
-                    parts: [{ text: prompt }],
-                }],
-                generationConfig: {
-                    responseMimeType: "application/json",
-                    temperature: 0.7,
-                },
-            });
+            // Process days and add polyline
+            const processedDays = aiData.days.map((day: any) => ({
+                ...day,
+                mapPolyline: day.activities.map((a: any) => [a.lat, a.lng])
+            }));
 
-            const jsonText = response.response.text().trim();
-            // Remove markdown code blocks if present
-            const cleanJson = jsonText.replace(/^```json\n?/, '').replace(/\n?```$/, '').trim();
-            const aiData = JSON.parse(cleanJson);
+            const firstAct = processedDays[0]?.activities[0];
+            const hotels = generateHotels(firstAct?.lat || 10.8505, firstAct?.lng || 76.2711, budget);
 
-            // Process AI response to match exact schema
-            const processedDays = aiData.days.map((day: any) => {
-                // Ensure mapPolyline exists
-                if (!day.mapPolyline && day.activities) {
-                    day.mapPolyline = day.activities.map((act: any) => [act.lat, act.lng]);
-                }
-                return day;
-            });
-
-            // Calculate center for hotels
-            const firstActivity = processedDays[0]?.activities[0];
-            const centerLat = firstActivity?.lat || 10.5276;
-            const centerLng = firstActivity?.lng || 76.2144;
-
-            // Generate hotels
-            const hotels = generateHotels(centerLat, centerLng, budget);
-
-            // Calculate budget breakdown
-            const budgetMap: { [key: string]: { perDay: number } } = {
-                "Budget": { perDay: 2000 },
-                "Mid-range": { perDay: 4000 },
-                "Luxury": { perDay: 8000 }
-            };
-
-            const baseBudget = budgetMap[budget] || budgetMap["Mid-range"];
-            const stayPerDay = hotels[0]?.price || 1500;
-            const totalStay = stayPerDay * daysCount;
-            const totalFood = baseBudget.perDay * daysCount * 0.3;
-            const totalTravel = baseBudget.perDay * daysCount * 0.2;
-            const totalTickets = baseBudget.perDay * daysCount * 0.1;
-            const totalExtras = baseBudget.perDay * daysCount * 0.1;
-
+            const budgetRanks: any = { "Budget": 1, "Mid-range": 2, "Luxury": 3 };
+            const rank = budgetRanks[budget] || 2;
+            const dailyAllowance = rank * 2000;
             const budgetBreakdown = {
-                stay: Math.round(totalStay),
-                food: Math.round(totalFood),
-                travel: Math.round(totalTravel),
-                tickets: Math.round(totalTickets),
-                extras: Math.round(totalExtras)
+                stay: hotels[0].price * daysCount,
+                food: dailyAllowance * daysCount * 0.4,
+                travel: dailyAllowance * daysCount * 0.3,
+                tickets: dailyAllowance * daysCount * 0.2,
+                extras: dailyAllowance * daysCount * 0.1
             };
-
-            const totalBudget = Object.values(budgetBreakdown).reduce((a, b) => a + b, 0);
-            const budgetEstimate = {
-                min: Math.round(totalBudget * 0.9),
-                max: Math.round(totalBudget * 1.1)
-            };
-
-            // Generate itinerary ID
-            const id = `itn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-            // Get hero image
-            const heroImage = processedDays[0]?.activities[0]?.image || "/places/munnar-teagardens.jpg";
+            const total = Object.values(budgetBreakdown).reduce((a, b) => a + (b as number), 0);
 
             const itinerary = {
-                id: id,
-                title: aiData.title || `${daysCount}-Day Kerala Adventure`,
+                id: `itn_${Date.now()}`,
+                title: aiData.title,
                 duration: daysCount,
                 travelers: travelers,
-                budgetEstimate: budgetEstimate,
-                heroImage: heroImage,
-                aiReason: aiData.aiReason || "This itinerary is carefully crafted based on your preferences and interests.",
+                budgetEstimate: { min: Math.round(total * 0.9), max: Math.round(total * 1.1) },
+                heroImage: relevantPlaces[0]?.image || "/places/munnar-teagardens.jpg",
+                aiReason: aiData.aiReason,
                 days: processedDays,
                 hotels: hotels,
                 budgetBreakdown: budgetBreakdown
             };
 
-            res.status(200).json(itinerary);
+            return res.status(200).json(itinerary);
 
-        } catch (aiError: any) {
-            console.error("AI Generation Error (Quota/Model/Parsing):", aiError.message);
-            console.warn("Falling back to manual itinerary generation...");
-
-            // Fallback to manual generation
-            const manualPlan = createManualItinerary(req.body);
-            // Optionally add a flag or modify reason to indicate fallback
-            manualPlan.aiReason = "AI services are currently busy. This itinerary was automatically curated based on your interests.";
-
-            res.status(200).json(manualPlan);
+        } catch (aiErr: any) {
+            console.error("AI Error:", aiErr.message);
+            const manualPlan = await createManualItinerary(req.body);
+            manualPlan.aiReason = "AI generation failed, providing a curated manual plan instead.";
+            return res.status(200).json(manualPlan);
         }
 
     } catch (error: any) {
-        console.error("Critical Error in AI Planner:", error);
-        res.status(500).json({ message: "Failed to generate itinerary.", error: error.message });
+        console.error("Controller Error:", error);
+        res.status(500).json({ message: "Internal server error" });
     }
 };

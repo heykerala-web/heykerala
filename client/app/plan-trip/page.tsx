@@ -20,19 +20,13 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 
 // TYPES ---------------------------
-interface PackageType {
-  _id: string;
-  image: string;
-  title: string;
-  duration: string;
-  price: number;
-}
-
 interface TripForm {
   duration: string;
   budget: string;
   interests: string[];
   travelers: string;
+  districts: string[];
+  customPreference: string;
 }
 
 interface InterestOption {
@@ -56,26 +50,33 @@ export default function PlanTripPage() {
     budget: "",
     interests: [],
     travelers: "",
+    districts: [],
+    customPreference: "",
   });
 
   const [mode, setMode] = useState<"manual" | "ai">("manual");
   const [loading, setLoading] = useState(false);
   const [packages, setPackages] = useState<PackageType[]>([]);
-  const [customInterest, setCustomInterest] = useState("");
   const [loadingMessage, setLoadingMessage] = useState("Analyzing your preferences...");
 
   // OPTIONS
   const durations = ["1-2 days", "3-4 days", "5-7 days", "8-10 days", "10+ days", "Custom"];
-  const budgets = ["Budget", "Mid-range", "Premium", "Luxury"];
-  const travelers = ["Solo", "Couple", "Family", "Small Group", "Large Group"];
+  const budgets = ["Budget", "Mid-range", "Luxury"];
+  const travelers = ["Solo", "Couple", "Family", "Friends"];
+
+  const keralaDistricts = [
+    "Kozhikode", "Wayanad", "Kannur", "Malappuram", "Idukki",
+    "Ernakulam", "Alappuzha", "Thiruvananthapuram", "Kasaragod",
+    "Palakkad", "Thrissur", "Kottayam", "Pathanamthitta", "Kollam"
+  ];
 
   const interests: InterestOption[] = [
-    { value: "Backwaters", icon: "🚤", label: "Backwaters", description: "Serene boat rides & housestays" },
-    { value: "Beaches", icon: "🏖️", label: "Beaches", description: "Sun, sand & coastal vibes" },
-    { value: "Hill Stations", icon: "⛰️", label: "Hill Stations", description: "Cool mist & tea plantations" },
-    { value: "Culture & Heritage", icon: "🏛️", label: "Culture", description: "Ancient arts & traditions" },
-    { value: "Wildlife", icon: "🦁", label: "Wildlife", description: "Jungles & exotic species" },
-    { value: "Adventure Sports", icon: "🎈", label: "Adventure", description: "Thrills & outdoor activities" },
+    { value: "Beach", icon: "🏖️", label: "Beach", description: "Sun, sand & coastal vibes" },
+    { value: "Hill Station", icon: "⛰️", label: "Hill Station", description: "Cool mist & tea plantations" },
+    { value: "Waterfall", icon: "🌊", label: "Waterfall", description: "Majestic cascades & nature cascades" },
+    { value: "Nature", icon: "🌿", label: "Nature", description: "Greenery & scenic landscapes" },
+    { value: "Heritage", icon: "🏛️", label: "Heritage", description: "Ancient arts & traditions" },
+    { value: "Wildlife", icon: "🐘", label: "Wildlife", description: "Jungles & exotic species" },
   ];
 
   const loadingMessages = [
@@ -116,6 +117,16 @@ export default function PlanTripPage() {
     }));
   };
 
+  // Toggle District
+  const toggleDistrict = (district: string) => {
+    setForm((prev) => ({
+      ...prev,
+      districts: prev.districts.includes(district)
+        ? prev.districts.filter((d) => d !== district)
+        : [...prev.districts, district],
+    }));
+  };
+
   const nextStep = () => {
     if (currentStep === 1) {
       if (!form.duration || !form.budget || !form.travelers) {
@@ -132,12 +143,7 @@ export default function PlanTripPage() {
 
   // GENERATE PLAN
   const generatePlan = async (selectedMode: "manual" | "ai") => {
-    const finalInterests = [...form.interests];
-    if (customInterest.trim()) {
-      finalInterests.push(customInterest.trim());
-    }
-
-    if (finalInterests.length === 0) {
+    if (form.interests.length === 0) {
       alert("Please select at least 1 interest.");
       return;
     }
@@ -145,19 +151,17 @@ export default function PlanTripPage() {
     setMode(selectedMode);
     setLoading(true);
 
-    const payload = { ...form, interests: finalInterests };
-
     try {
       const res = await fetch(`/api/itinerary/${selectedMode}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(form),
       });
 
       const data = await res.json();
       if (!res.ok || data.error) throw new Error(data.error || "Failed to generate plan");
 
-      router.push(`/plan-trip/result?data=${encodeURIComponent(JSON.stringify(data))}`);
+      router.push(`/plan-trip/result?data=${encodeURIComponent(JSON.stringify(data))}&t=${Date.now()}`);
     } catch (err: any) {
       alert(err.message || "An error occurred. Please try again.");
       setLoading(false);
@@ -256,8 +260,8 @@ export default function PlanTripPage() {
                             key={d}
                             onClick={() => setForm({ ...form, duration: d })}
                             className={`p-3 text-sm rounded-xl border transition-all ${form.duration === d
-                                ? "bg-emerald-50 border-emerald-500 text-emerald-700 font-semibold"
-                                : "bg-white border-gray-100 hover:border-gray-300"
+                              ? "bg-emerald-50 border-emerald-500 text-emerald-700 font-semibold"
+                              : "bg-white border-gray-100 hover:border-gray-300"
                               }`}
                           >
                             {d}
@@ -266,8 +270,8 @@ export default function PlanTripPage() {
                         <button
                           onClick={() => setForm({ ...form, duration: "Custom" })}
                           className={`p-3 text-sm rounded-xl border transition-all col-span-2 ${form.duration === "Custom" || (!durations.slice(0, 4).includes(form.duration) && form.duration !== "")
-                              ? "bg-emerald-50 border-emerald-500 text-emerald-700 font-semibold"
-                              : "bg-white border-gray-100 hover:border-gray-300"
+                            ? "bg-emerald-50 border-emerald-500 text-emerald-700 font-semibold"
+                            : "bg-white border-gray-100 hover:border-gray-300"
                             }`}
                         >
                           Custom Plan
@@ -294,8 +298,8 @@ export default function PlanTripPage() {
                             key={b}
                             onClick={() => setForm({ ...form, budget: b })}
                             className={`w-full p-3 text-sm text-left px-4 rounded-xl border transition-all flex justify-between items-center ${form.budget === b
-                                ? "bg-emerald-50 border-emerald-500 text-emerald-700 font-semibold shadow-sm"
-                                : "bg-white border-gray-100 hover:border-gray-300"
+                              ? "bg-emerald-50 border-emerald-500 text-emerald-700 font-semibold shadow-sm"
+                              : "bg-white border-gray-100 hover:border-gray-300"
                               }`}
                           >
                             {b}
@@ -316,8 +320,8 @@ export default function PlanTripPage() {
                             key={t}
                             onClick={() => setForm({ ...form, travelers: t })}
                             className={`w-full p-3 text-sm text-left px-4 rounded-xl border transition-all flex justify-between items-center ${form.travelers === t
-                                ? "bg-emerald-50 border-emerald-500 text-emerald-700 font-semibold shadow-sm"
-                                : "bg-white border-gray-100 hover:border-gray-300"
+                              ? "bg-emerald-50 border-emerald-500 text-emerald-700 font-semibold shadow-sm"
+                              : "bg-white border-gray-100 hover:border-gray-300"
                               }`}
                           >
                             {t}
@@ -325,6 +329,29 @@ export default function PlanTripPage() {
                           </button>
                         ))}
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Districts Selection */}
+                  <div className="pt-8 border-t border-gray-100">
+                    <label className="text-sm font-bold uppercase tracking-wider text-gray-400 flex items-center gap-2 mb-4">
+                      <MapPin className="w-4 h-4" /> Destination Districts (Required)
+                    </label>
+                    <p className="text-xs text-gray-500 mb-4 italic">Please select at least one district to plan your journey.</p>
+                    <div className="flex flex-wrap gap-2">
+                      {keralaDistricts.map((d) => (
+                        <button
+                          key={d}
+                          onClick={() => toggleDistrict(d)}
+                          className={`px-4 py-2 text-xs rounded-full border transition-all ${form.districts.includes(d)
+                            ? "bg-emerald-500 border-emerald-500 text-white font-bold shadow-md shadow-emerald-100"
+                            : "bg-white border-gray-200 text-gray-600 hover:border-emerald-300"
+                            }`}
+                        >
+                          {d}
+                          {form.districts.includes(d) && " ✓"}
+                        </button>
+                      ))}
                     </div>
                   </div>
 
@@ -362,8 +389,8 @@ export default function PlanTripPage() {
                           key={interest.value}
                           onClick={() => toggleInterest(interest.value)}
                           className={`relative p-5 rounded-2xl border text-left transition-all group ${isActive
-                              ? "bg-emerald-50 border-emerald-500 ring-4 ring-emerald-50"
-                              : "bg-white border-gray-100 hover:border-emerald-200"
+                            ? "bg-emerald-50 border-emerald-500 ring-4 ring-emerald-50"
+                            : "bg-white border-gray-100 hover:border-emerald-200"
                             }`}
                         >
                           <div className="flex gap-4">
@@ -389,13 +416,13 @@ export default function PlanTripPage() {
                   </div>
 
                   <div className="space-y-4">
-                    <label className="text-sm font-bold uppercase tracking-wider text-gray-400">Something else?</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Photography, Ayurveda, Cooking classes..."
-                      value={customInterest}
-                      onChange={(e) => setCustomInterest(e.target.value)}
-                      className="w-full p-4 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+                    <label className="text-sm font-bold uppercase tracking-wider text-gray-400">Custom Preferences</label>
+                    <textarea
+                      placeholder="e.g. Include sunset spots, prefer waterfalls and trekking, suggest local seafood..."
+                      value={form.customPreference}
+                      onChange={(e) => setForm({ ...form, customPreference: e.target.value })}
+                      rows={3}
+                      className="w-full p-4 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all resize-none"
                     />
                   </div>
 
@@ -456,17 +483,23 @@ export default function PlanTripPage() {
                     </div>
 
                     <div className="mt-8 pt-8 border-t border-emerald-800 flex flex-wrap gap-2">
+                      {form.districts.length > 0 && form.districts.map(d => (
+                        <span key={d} className="px-3 py-1 bg-emerald-700/50 rounded-full text-xs font-medium text-white border border-emerald-600">
+                          📍 {d}
+                        </span>
+                      ))}
                       {form.interests.map(i => (
                         <span key={i} className="px-3 py-1 bg-emerald-800/50 rounded-full text-xs font-medium text-emerald-200">
                           {i}
                         </span>
                       ))}
-                      {customInterest && (
-                        <span className="px-3 py-1 bg-emerald-800/50 rounded-full text-xs font-medium text-emerald-200">
-                          {customInterest}
-                        </span>
-                      )}
                     </div>
+                    {form.customPreference && (
+                      <div className="mt-4 p-4 bg-emerald-800/30 rounded-xl border border-emerald-700/50">
+                        <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-400 block mb-1">Custom Preference</span>
+                        <p className="text-sm italic text-emerald-50">"{form.customPreference}"</p>
+                      </div>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
