@@ -19,12 +19,15 @@ interface SmartImageProps extends Omit<ImageProps, 'src'> {
     src: string | null | undefined;
     category?: 'restaurant' | 'place' | 'stay' | 'event' | 'default';
     aspectRatio?: 'square' | 'video' | 'portrait' | 'wide' | 'none';
+    images?: string[];
     fallbackName?: string;
     containerClassName?: string;
+    updatedAt?: string | Date;
 }
 
 export const SmartImage: React.FC<SmartImageProps> = ({
     src,
+    images = [],
     alt,
     category = 'default',
     aspectRatio = 'video',
@@ -32,6 +35,7 @@ export const SmartImage: React.FC<SmartImageProps> = ({
     className,
     containerClassName,
     fill = true, // Default to fill for flexible containers
+    updatedAt,
     ...props
 }) => {
     const [imgSrc, setImgSrc] = useState<string>('');
@@ -39,10 +43,10 @@ export const SmartImage: React.FC<SmartImageProps> = ({
 
     // Determine the initial source
     useEffect(() => {
-        const initialSrc = getFullImageUrl(src, fallbackName, category);
+        const initialSrc = getFullImageUrl(src, fallbackName, category, images, updatedAt);
         setImgSrc(initialSrc);
         setHasError(false);
-    }, [src, category, fallbackName]);
+    }, [src, category, fallbackName, images, updatedAt]);
 
     const handleError = () => {
         if (hasError) return; // Prevent cascade loops

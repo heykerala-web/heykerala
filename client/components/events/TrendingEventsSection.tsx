@@ -62,7 +62,7 @@ export function TrendingEventsSection() {
                         <Link key={ev._id} href={`/events/${ev._id}`} className="flex-shrink-0 w-72 group block">
                             <div className="relative rounded-3xl overflow-hidden h-80 bg-gray-900 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
                                 <img
-                                    src={getFullImageUrl(ev.images?.[0], ev.title, ev.category)}
+                                    src={getFullImageUrl(ev.image, ev.title, ev.category, ev.images)}
                                     alt={ev.title}
                                     className="w-full h-full object-cover opacity-80 group-hover:opacity-70 group-hover:scale-105 transition-all duration-700"
                                 />

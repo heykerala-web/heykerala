@@ -1,0 +1,83 @@
+{
+  "places": [
+    {
+      "_id": "699dfab5ca8a361891291b7f",
+      "name": "Sulthan Bathery Jain Temple",
+      "slug": "sulthan-bathery-jain-temple",
+      "district": "Wayanad",
+      "category": "History",
+      "description": "A 13th-century temple that showcases a blend of Jain and Kerala architecture. It served as an ammunition store for Tipu Sultan's army, giving the town its current name.",
+      "image": "https://www.keralatourism.org/images/destination/large/jain_temple_sulthan_bathery20131031115816_366_1.jpg",
+      "images": [
+        "/uploads/1772993219201-452124494.jpg"
+      ],
+      "location": "Sulthan Bathery, Wayanad",
+      "latitude": 11.6668,
+      "longitude": 76.2624,
+      "tags": [
+        "history",
+        "temple",
+        "culture",
+        "architecture"
+      ],
+      "ratingAvg": 4.4,
+      "ratingCount": 0,
+      "totalReviews": 0,
+      "rating": 4.4,
+      "highlights": [
+        "Granite Sculptures",
+        "Historical Ammunition Store",
+        "Ancient Architecture"
+      ],
+      "bestTimeToVisit": "September to March",
+      "entryFee": "Free",
+      "openingHours": "8:00 AM - 12:00 PM, 2:00 PM - 6:00 PM",
+      "status": "approved",
+      "embedding": [],
+      "priceLevel": "Free",
+      "isUntold": false,
+      "nearby": [],
+      "__v": 0,
+      "createdAt": "2026-02-24T19:23:33.572Z",
+      "updatedAt": "2026-03-08T19:51:45.967Z",
+      "views": 6,
+      "untoldStory": ""
+    }
+  ],
+  "amba": [
+    {
+      "_id": "69adba6e197ca6079cf31562",
+      "name": "Ambalavayal",
+      "slug": "ambalayala.com",
+      "district": "Wayanad",
+      "category": "Hill Station",
+      "description": "best hill in wayanad",
+      "images": [
+        "/uploads/1772993150529-991254822.jpg"
+      ],
+      "location": "20km from sulthan bathery",
+      "latitude": 0,
+      "longitude": 0,
+      "tags": [
+        "hill"
+      ],
+      "nearby": [],
+      "ratingAvg": 5,
+      "ratingCount": 0,
+      "totalReviews": 0,
+      "rating": 5,
+      "highlights": [],
+      "status": "approved",
+      "embedding": [],
+      "priceLevel": "Moderate",
+      "isUntold": false,
+      "untoldStory": "",
+      "views": 20,
+      "bookmarks": 0,
+      "searchClicks": 0,
+      "createdAt": "2026-03-08T18:05:34.926Z",
+      "updatedAt": "2026-03-08T19:50:36.266Z",
+      "__v": 0
+    }
+  ]
+}

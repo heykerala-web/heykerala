@@ -17,6 +17,7 @@ export interface IStay extends Document {
     latitude?: number;
     longitude?: number;
     images: string[];
+    image?: string;
     price: number; // Base or starting price
     roomTypes?: IRoomType[];
     minStay?: number;
@@ -46,6 +47,7 @@ const StaySchema: Schema = new Schema({
     latitude: { type: Number },
     longitude: { type: Number },
     images: [{ type: String }],
+    image: { type: String },
     price: { type: Number, required: true },
     roomTypes: [{
         name: { type: String },
@@ -70,5 +72,13 @@ const StaySchema: Schema = new Schema({
     totalCapacity: { type: Number },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
+
+// Pre-save hook to sync image with the first element of images array
+StaySchema.pre('save', function (this: IStay, next) {
+    if ((!this.image || this.image === '') && this.images && this.images.length > 0) {
+        this.image = this.images[0];
+    }
+    next();
+});
 
 export default mongoose.models.Stay || mongoose.model<IStay>('Stay', StaySchema);

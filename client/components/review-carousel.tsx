@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { ChevronLeft, ChevronRight, Star } from "lucide-react"
+import { getFullImageUrl } from "@/lib/images"
 
 const REVIEWS = [
   {
@@ -57,7 +58,7 @@ export function ReviewCarousel() {
       <div className="relative rounded-2xl bg-white shadow p-6 md:p-10">
         <div className="mx-auto max-w-3xl text-center">
           <img
-            src={r.avatar || "/placeholder.svg"}
+            src={getFullImageUrl(r.avatar, r.name, "Traveler Profile")}
             alt={`${r.name} profile`}
             className="mx-auto mb-4 h-16 w-16 rounded-full object-cover"
           />

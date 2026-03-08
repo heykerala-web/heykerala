@@ -157,7 +157,7 @@ function TrendingCard({ spot, index }: { spot: any; index: number }) {
     >
       <div className="absolute inset-0">
         <SafeImage
-          src={getFullImageUrl(spot.image || spot.images?.[0], spot.name, spot.category)}
+          src={getFullImageUrl(spot.image, spot.name, spot.category, spot.images, spot.updatedAt)}
           alt={spot.name}
           fallbackName={spot.name}
           fallbackCategory={spot.category}

@@ -20,7 +20,7 @@ const PlaceCard: React.FC<PlaceCardProps> = ({ place, viewMode = 'grid' }) => {
             >
                 <div className="relative w-full md:w-56 h-48 flex-shrink-0 overflow-hidden rounded-[1.5rem] shadow-inner">
                     <SafeImage
-                        src={getFullImageUrl(place.image, place.name, place.category)}
+                        src={getFullImageUrl(place.image, place.name, place.category, place.images, place.updatedAt)}
                         alt={place.name}
                         fallbackName={place.name}
                         fallbackCategory={place.category}
@@ -73,7 +73,7 @@ const PlaceCard: React.FC<PlaceCardProps> = ({ place, viewMode = 'grid' }) => {
         >
             <div className="relative overflow-hidden h-48 sm:h-56">
                 <SafeImage
-                    src={getFullImageUrl(place.image, place.name, place.category)}
+                    src={getFullImageUrl(place.image, place.name, place.category, place.images, place.updatedAt)}
                     alt={place.name}
                     fallbackName={place.name}
                     fallbackCategory={place.category}

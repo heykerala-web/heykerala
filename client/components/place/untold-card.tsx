@@ -26,7 +26,7 @@ export function UntoldCard({ place, index }: UntoldCardProps) {
                 {/* Background Image with Reveal Effect */}
                 <div className="absolute inset-0">
                     <img
-                        src={getFullImageUrl(place.image || place.images?.[0], place.name, place.category)}
+                        src={getFullImageUrl(place.image || place.images?.[0], place.name, place.category, undefined, place.updatedAt)}
                         alt={place.name}
                         className="w-full h-full object-cover transition-all duration-1000 scale-110 group-hover:scale-100 group-hover:rotate-1 group-hover:blur-0 grayscale group-hover:grayscale-0 brightness-[0.6] group-hover:brightness-100"
                     />

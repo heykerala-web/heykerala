@@ -3,11 +3,14 @@
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 
+import { getFullImageUrl } from "@/lib/images"
+
 interface CollectionItem {
     id: string
     title: string
     image: string
     subtitle: string
+    updatedAt?: string | Date
 }
 
 interface CuratedCollectionProps {
@@ -40,11 +43,11 @@ export function CuratedCollection({ title, subtitle, items, viewAllLink = "/expl
                         href={`/places/${item.id}`}
                         className="group block"
                     >
-                        <div className="relative aspect-[3/4] rounded-2xl overflow-hidden mb-4">
+                        <div className="relative aspect-[4/3] rounded-[2rem] overflow-hidden shadow-lg transition-all duration-500 group-hover:shadow-2xl group-hover:-translate-y-2">
                             <img
-                                src={item.image || "/placeholder.svg"}
+                                src={getFullImageUrl(item.image, item.title, item.subtitle, undefined, item.updatedAt)}
                                 alt={item.title}
-                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
                             />
                             <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
                         </div>

@@ -1,0 +1,80 @@
+{
+  "places": [
+    {
+      "_id": "69adba6e197ca6079cf31562",
+      "name": "Ambalavayal",
+      "image": "/uploads/1772993150529-991254822.jpg",
+      "images": [
+        "/uploads/1772993150529-991254822.jpg"
+      ],
+      "ratingAvg": 5,
+      "category": "Hill Station",
+      "district": "Wayanad",
+      "score": 0
+    },
+    {
+      "_id": "699dfab5ca8a361891291b84",
+      "name": "Nelliyampathy Hills",
+      "image": "/places/ponmudi.jpg",
+      "images": [
+        "/places/ponmudi.jpg"
+      ],
+      "ratingAvg": 5,
+      "category": "Hill Station",
+      "district": "Palakkad",
+      "score": 0
+    },
+    {
+      "_id": "69add2e0dd9ac12f7960a7d5",
+      "name": "En Ooru",
+      "image": "/uploads/1772999389675-583161639.webp",
+      "images": [
+        "/uploads/1772999389675-583161639.webp"
+      ],
+      "ratingAvg": 5,
+      "category": "Culture",
+      "district": "Wayanad",
+      "score": 0
+    },
+    {
+      "_id": "699dfab5ca8a361891291b6a",
+      "name": "Alappuzha Backwaters",
+      "image": "/places/alappuzhabackwaters.webp",
+      "images": [
+        "/places/alappuzhabackwaters.webp"
+      ],
+      "ratingAvg": 4.9,
+      "category": "Backwaters",
+      "district": "Alappuzha",
+      "score": 0
+    },
+    {
+      "_id": "699dfab5ca8a361891291b6f",
+      "name": "Munnar Tea Gardens",
+      "image": "/places/munnar-teagardens.jpg",
+      "images": [
+        "/places/munnar-teagardens.jpg"
+      ],
+      "ratingAvg": 4.9,
+      "category": "Hill Station",
+      "district": "Idukki",
+      "score": 0
+    },
+    {
+      "_id": "699dfab5ca8a361891291b83",
+      "name": "Maravanthuruthu",
+      "image": "/places/munroeisland.jpg",
+      "images": [
+        "/places/munroeisland.jpg"
+      ],
+      "ratingAvg": 4.8,
+      "category": "Backwaters",
+      "district": "Kottayam",
+      "score": 0
+    }
+  ],
+  "explanation": "Top-rated places loved by Kerala travellers – save or explore a few destinations to get personalised picks!",
+  "sectionTitle": "Recommended For You",
+  "isPersonalized": false,
+  "preferenceProfile": null
+}

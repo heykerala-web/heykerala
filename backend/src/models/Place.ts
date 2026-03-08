@@ -16,8 +16,8 @@ const placeSchema = new mongoose.Schema(
     image: { type: String }, // Main image (kept for backward compatibility or easy access)
     images: [{ type: String }], // Array of image URLs
     location: { type: String, required: true }, // Short location string
-    latitude: { type: Number, required: true },
-    longitude: { type: Number, required: true },
+    latitude: { type: Number },
+    longitude: { type: Number },
     tags: [{ type: String }],
     nearby: [nearbyAttractionSchema],
     ratingAvg: { type: Number, default: 5.0, min: 0, max: 5 },
@@ -50,6 +50,14 @@ const placeSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+// Pre-save hook to sync image with the first element of images array
+placeSchema.pre('save', function (this: any, next) {
+  if ((!this.image || this.image === '') && this.images && this.images.length > 0) {
+    this.image = this.images[0];
+  }
+  next();
+});
 
 // Indexes for Search & Filter Optimization
 placeSchema.index({ district: 1 });

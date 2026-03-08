@@ -1,6 +1,9 @@
 "use client"
-import { useState, useEffect } from "react"
+
+import React, { useState, useEffect } from "react"
 import { Calendar, MapPin, Eye, Bookmark, BookmarkCheck } from "lucide-react"
+import Link from "next/link"
+import Image from "next/image"
 import { getFullImageUrl } from "@/lib/images"
 import { EventStatusBadge } from "@/components/events/EventStatusBadge"
 import { useAuth } from "@/context/AuthContext"
@@ -14,18 +17,20 @@ export interface EventCardProps {
   date: string
   time?: string
   location: string
-  image: string
+  image?: string
+  images?: string[]
   description: string
   category: string
   eventStatus?: 'upcoming' | 'ongoing' | 'completed' | 'cancelled'
   viewCount?: number
   isFeatured?: boolean
   isBookmarked?: boolean
+  updatedAt?: string | Date
 }
 
-export function EventCard({
-  id, name, date, time, location, image, description, category,
-  eventStatus = 'upcoming', viewCount = 0, isFeatured = false, isBookmarked = false
+export const EventCard = React.memo(function EventCard({
+  id, name, date, time, location, image, images, description, category,
+  eventStatus = 'upcoming', viewCount = 0, isFeatured = false, isBookmarked = false, updatedAt
 }: EventCardProps) {
   const { user, updateUser } = useAuth()
   const router = useRouter()
@@ -89,10 +94,12 @@ export function EventCard({
       )}
 
       <div className="relative h-56 overflow-hidden">
-        <img
-          src={getFullImageUrl(image, name, category)}
+        <Image
+          src={getFullImageUrl(image, name, category, images, updatedAt)}
           alt={name}
-          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+          className="object-cover transition-transform duration-700 group-hover:scale-110"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-700" />
 
@@ -157,4 +164,5 @@ export function EventCard({
       </div>
     </article>
   )
-}
+})
+

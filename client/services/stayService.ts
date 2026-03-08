@@ -27,6 +27,7 @@ export interface Stay {
     latitude?: number;
     longitude?: number;
     images: string[];
+    image?: string;
     price: number;
     roomTypes?: RoomType[];
     minStay?: number;
@@ -38,6 +39,7 @@ export interface Stay {
     avgDuration?: number;
     totalCapacity?: number;
     createdAt: string;
+    updatedAt: string;
 }
 
 export interface StayParams {
@@ -46,6 +48,7 @@ export interface StayParams {
     search?: string;
     minPrice?: number;
     maxPrice?: number;
+    limit?: number;
 }
 
 export interface BookingData {

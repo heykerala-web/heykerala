@@ -4,6 +4,10 @@ import Event from '../models/Event';
 import EventReminder from '../models/EventReminder';
 import Review from '../models/Review';
 import User from '../models/User';
+import cache from '../utils/cache';
+
+const EVENTS_LIST_TTL = 2 * 60;  // 2 minutes (events change more often)
+const EVENTS_TRENDING_TTL = 5 * 60; // 5 minutes
 
 // ─────────────────────────────────────────────────────────────
 // Helper: compute eventStatus from dates
@@ -61,7 +65,7 @@ const getSmartDateRange = (timeFilter: string): { start: Date; end: Date } | nul
 // ─────────────────────────────────────────────────────────────
 export const addEvent = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { title, description, category, district, venue, startDate, endDate, time, images, latitude, longitude, ticketUrl } = req.body;
+        const { title, description, category, district, venue, startDate, endDate, time, image, images, latitude, longitude, ticketUrl } = req.body;
 
         if (!title || !startDate || !endDate) {
             return res.status(400).json({ success: false, message: "Missing required fields" });
@@ -73,11 +77,12 @@ export const addEvent = async (req: Request, res: Response, next: NextFunction) 
 
         const event = await Event.create({
             title, description, category, district, venue,
-            startDate, endDate, time, images, latitude, longitude, ticketUrl,
+            startDate, endDate, time, image, images, latitude, longitude, ticketUrl,
             status: 'approved',
             eventStatus: status
         });
 
+        cache.del('events');
         res.status(201).json({ success: true, data: event });
     } catch (err) {
         next(err);
@@ -90,7 +95,7 @@ export const addEvent = async (req: Request, res: Response, next: NextFunction) 
 export const submitEvent = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const userId = (req as any).user._id;
-        const { title, description, category, district, venue, startDate, endDate, time, images, latitude, longitude, ticketUrl } = req.body;
+        const { title, description, category, district, venue, startDate, endDate, time, image, images, latitude, longitude, ticketUrl } = req.body;
 
         if (!title || !startDate || !endDate) {
             return res.status(400).json({ success: false, message: "Missing required fields" });
@@ -105,12 +110,13 @@ export const submitEvent = async (req: Request, res: Response, next: NextFunctio
 
         const event = await Event.create({
             title, description, category, district, venue,
-            startDate: start, endDate: end, time, images, latitude, longitude, ticketUrl,
+            startDate: start, endDate: end, time, image, images, latitude, longitude, ticketUrl,
             status: 'pending',
             eventStatus: 'upcoming',
             createdBy: userId
         });
 
+        cache.del('events');
         res.status(201).json({ message: 'Event submitted successfully', event });
     } catch (err) {
         next(err);
@@ -125,13 +131,25 @@ export const getEvents = async (req: Request, res: Response, next: NextFunction)
         const { district, category, date, search, status, timeFilter, eventStatus, sort, page, limit } = req.query;
         const isAdmin = (req as any).user && (req as any).user.role === 'Admin';
 
+        // Cache only for non-admin, non-status-filtered requests
+        if (!isAdmin || !status) {
+            const cacheKey = `events_list_${JSON.stringify(req.query)}`;
+            const cached = cache.get<any>(cacheKey);
+            if (cached) {
+                res.setHeader('X-Cache', 'HIT');
+                return res.status(200).json(cached);
+            }
+        }
+
         let query: any = {};
 
         // Approval filter
         if (isAdmin) {
             if (status) query.status = status;
         } else {
+            const userId = (req as any).user?._id;
             query.$or = [{ status: 'approved' }, { status: { $exists: false } }];
+            if (userId) query.$or.push({ createdBy: userId });
         }
 
         // District filter
@@ -191,19 +209,34 @@ export const getEvents = async (req: Request, res: Response, next: NextFunction)
 
         // Pagination
         const pageNum = parseInt(page as string) || 1;
-        const limitNum = parseInt(limit as string) || 50;
+        const limitNum = parseInt(limit as string) || 12;
         const skip = (pageNum - 1) * limitNum;
 
-        const [events, total] = await Promise.all([
-            Event.find(query).sort(sortOption).skip(skip).limit(limitNum),
-            Event.countDocuments(query)
-        ]);
+        const total = await Event.countDocuments(query);
+        const events = await Event.find(query)
+            .sort(sortOption)
+            .skip(skip)
+            .limit(limitNum);
 
-        res.status(200).json({
+        const responseData = {
             success: true,
             data: events,
-            pagination: { total, page: pageNum, limit: limitNum, pages: Math.ceil(total / limitNum) }
-        });
+            pagination: {
+                total,
+                page: pageNum,
+                limit: limitNum,
+                pages: Math.ceil(total / limitNum)
+            }
+        };
+
+        if (!isAdmin || !status) {
+            const cacheKey = `events_list_${JSON.stringify(req.query)}`;
+            cache.set(cacheKey, responseData, EVENTS_LIST_TTL);
+        }
+
+        res.setHeader('X-Cache', 'MISS');
+        res.setHeader('Cache-Control', 'public, max-age=120, stale-while-revalidate=30');
+        res.status(200).json(responseData);
     } catch (err) {
         next(err);
     }
@@ -273,6 +306,12 @@ export const getCalendarEvents = async (req: Request, res: Response, next: NextF
 // ─────────────────────────────────────────────────────────────
 export const getTrendingEvents = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const cachedTrending = cache.get<any>('events_trending');
+        if (cachedTrending) {
+            res.setHeader('X-Cache', 'HIT');
+            return res.status(200).json(cachedTrending);
+        }
+
         const now = new Date();
         const events = await Event.find({
             $or: [{ status: 'approved' }, { status: { $exists: false } }],
@@ -281,7 +320,11 @@ export const getTrendingEvents = async (req: Request, res: Response, next: NextF
             .sort({ viewCount: -1, reminderCount: -1, startDate: 1 })
             .limit(8);
 
-        res.status(200).json({ success: true, data: events });
+        const trendingData = { success: true, data: events };
+        cache.set('events_trending', trendingData, EVENTS_TRENDING_TTL);
+        res.setHeader('X-Cache', 'MISS');
+        res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=60');
+        res.status(200).json(trendingData);
     } catch (err) {
         next(err);
     }
@@ -324,9 +367,11 @@ export const getEventById = async (req: Request, res: Response, next: NextFuncti
         if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
 
         const isApproved = event.status === 'approved' || !(event as any).status;
-        const isAdmin = (req as any).user && (req as any).user.role === 'Admin';
+        const user = (req as any).user;
+        const isAdmin = user && user.role === 'Admin';
+        const isCreator = user && event.createdBy?.toString() === user._id.toString();
 
-        if (!isApproved && !isAdmin) {
+        if (!isApproved && !isAdmin && !isCreator) {
             return res.status(403).json({ success: false, message: 'Event pending approval' });
         }
 
@@ -354,11 +399,16 @@ export const updateEvent = async (req: Request, res: Response, next: NextFunctio
             return res.status(400).json({ success: false, message: "Invalid Event ID format" });
         }
 
-        const allowedFields = ['title', 'description', 'category', 'district', 'venue', 'startDate', 'endDate', 'time', 'images', 'latitude', 'longitude', 'status', 'isFeatured', 'ticketUrl', 'eventStatus'];
+        const allowedFields = ['title', 'description', 'category', 'district', 'venue', 'startDate', 'endDate', 'time', 'image', 'images', 'latitude', 'longitude', 'status', 'isFeatured', 'ticketUrl', 'eventStatus'];
         const updateData: any = {};
         Object.keys(req.body).forEach(key => {
             if (allowedFields.includes(key)) updateData[key] = req.body[key];
         });
+
+        // Sync primary image if images provided but image is not
+        if ((!updateData.image || updateData.image === '') && updateData.images && updateData.images.length > 0) {
+            updateData.image = updateData.images[0];
+        }
 
         // Recalculate eventStatus if dates changed
         if (updateData.startDate || updateData.endDate) {
@@ -375,6 +425,7 @@ export const updateEvent = async (req: Request, res: Response, next: NextFunctio
         const event = await Event.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
         if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
 
+        cache.del('events');
         res.status(200).json({ success: true, data: event });
     } catch (err) {
         next(err);
@@ -397,6 +448,7 @@ export const deleteEvent = async (req: Request, res: Response, next: NextFunctio
         // Cascading delete
         await Review.deleteMany({ targetId: id, targetType: "event" });
         await EventReminder.deleteMany({ eventId: id });
+        cache.del('events');
 
         res.status(200).json({ success: true, message: 'Event deleted successfully' });
     } catch (err) {

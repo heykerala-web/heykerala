@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Search, MapPin, Star, Grid, List, Map, X, Calendar, IndianRupee, Loader2 } from "lucide-react"
 import dynamic from "next/dynamic"
 import { PlaceCard } from "@/components/place-card"
+import { getFullImageUrl } from "@/lib/images"
 
 const LeafletMap = dynamic(() => import("@/app/components/Map/LeafletMap"), { ssr: false })
 
@@ -182,11 +183,11 @@ const SearchContent = () => {
               {places.map((item) => (
                 <Link
                   key={item._id}
-                  href={`/places/${item._id}`}
+                  href={item.type === 'event' ? `/events/${item._id}` : `/places/${item._id}`}
                   className="bg-white rounded-3xl shadow-lg overflow-hidden hover:shadow-xl transition-all"
                 >
                   <img
-                    src={item.images?.[0] || item.image || "/placeholder.svg"}
+                    src={getFullImageUrl(item.image, item.name, item.category, item.images, item.updatedAt)}
                     alt={item.name}
                     className="w-full h-40 object-cover"
                   />
@@ -224,6 +225,10 @@ const SearchContent = () => {
                 rating={item.ratingAvg}
                 description={item.description}
                 category={item.category}
+                images={item.images}
+                updatedAt={item.updatedAt}
+                // @ts-ignore
+                type={item.type}
               />
             ))}
           </div>
@@ -232,12 +237,12 @@ const SearchContent = () => {
             {places.map((item) => (
               <Link
                 key={item._id}
-                href={`/places/${item._id}`}
+                href={item.type === 'event' ? `/events/${item._id}` : `/places/${item._id}`}
                 className="group bg-white rounded-3xl border border-slate-100 p-4 active:scale-[0.99] flex flex-col md:flex-row gap-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden"
               >
                 <div className="relative w-full md:w-72 h-52 flex-shrink-0 overflow-hidden rounded-2xl">
                   <img
-                    src={item.images?.[0] || item.image || "/placeholder.svg"}
+                    src={getFullImageUrl(item.image, item.name, item.category, item.images, item.updatedAt)}
                     alt={item.name}
                     loading="lazy"
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"

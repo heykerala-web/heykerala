@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { API_URL } from "@/lib/api"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
+import { getFullImageUrl } from "@/lib/images"
 
 interface SearchResult {
     _id: string;
@@ -16,6 +17,7 @@ interface SearchResult {
     image: string;
     score?: number;
     type: 'place' | 'stay' | 'event';
+    updatedAt?: string | Date;
 }
 
 interface SmartSearchProps {
@@ -166,13 +168,13 @@ export function SmartSearch({ defaultQuery = "" }: SmartSearchProps) {
                                         href={
                                             result.type === 'stay' ? `/stay/${result._id}` :
                                                 result.type === 'event' ? `/events/${result._id}` :
-                                                    `/explore/${result._id}`
+                                                    `/places/${result._id}`
                                         }
                                         className="flex items-center gap-4 p-4 hover:bg-primary/5 transition-colors group"
                                     >
                                         <div className="w-20 h-20 rounded-2xl overflow-hidden shadow-sm flex-shrink-0 bg-slate-100">
                                             <img
-                                                src={result.image || "/placeholder.svg"}
+                                                src={getFullImageUrl(result.image, result.name, result.category, undefined, result.updatedAt)}
                                                 alt={result.name}
                                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                             />

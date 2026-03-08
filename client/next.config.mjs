@@ -2,7 +2,7 @@ import withPWAInit from "next-pwa";
 
 const withPWA = withPWAInit({
   dest: "public",
-  disable: process.env.NODE_ENV === "development",
+  disable: process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_ENABLE_SW !== "true",
   register: true,
   skipWaiting: true,
   fallbacks: {
@@ -72,12 +72,13 @@ const withPWA = withPWAInit({
     },
     {
       urlPattern: /\/api\/users\/saved/i,
-      handler: "StaleWhileRevalidate",
+      handler: "NetworkFirst",
       options: {
         cacheName: "api-wishlist",
+        networkTimeoutSeconds: 5,
         expiration: {
-          maxEntries: 1,
-          maxAgeSeconds: 24 * 60 * 60, // 24 hours
+          maxEntries: 10,
+          maxAgeSeconds: 7 * 24 * 60 * 60, // 7 days
         },
       },
     },
@@ -197,6 +198,10 @@ const nextConfig = {
 
   images: {
     unoptimized: false,
+    formats: ['image/avif', 'image/webp'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 86400, // 24 hours
     remotePatterns: [
       {
         protocol: "https",

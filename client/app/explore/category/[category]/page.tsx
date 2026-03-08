@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, ArrowLeft, Loader2, MapPin, Star } from "lucide-react";
 import Link from "next/link";
+import { getFullImageUrl } from "@/lib/images";
 
 
 // Simple debounce effect if hook doesn't exist
@@ -32,6 +33,8 @@ interface Place {
     district: string;
     image: string;
     ratingAvg: number;
+    type?: string;
+    updatedAt?: string | Date;
 }
 
 export default function CategoryExplorePage() {
@@ -115,12 +118,12 @@ export default function CategoryExplorePage() {
                         {places.map((place) => (
                             <Link
                                 key={place._id}
-                                href={`/places/${place._id}`}
+                                href={place.type === 'event' ? `/events/${place._id}` : `/places/${place._id}`}
                                 className="group bg-card rounded-[2rem] border border-border overflow-hidden hover:shadow-2xl transition-all duration-700 transform hover:-translate-y-2 flex flex-col shadow-sm"
                             >
                                 <div className="relative overflow-hidden aspect-[4/3]">
                                     <img
-                                        src={place.image || "/placeholder.svg"}
+                                        src={getFullImageUrl(place.image, place.name, place.category, undefined, place.updatedAt)}
                                         alt={place.name}
                                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                                     />

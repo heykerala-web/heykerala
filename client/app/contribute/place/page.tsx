@@ -48,6 +48,9 @@ export default function ContributePlacePage() {
         location: "",
         latitude: "",
         longitude: "",
+        openingHours: "",
+        bestTimeToVisit: "",
+        entryFee: "",
         tags: [] as string[],
         images: [] as string[],
         isUntold: false,
@@ -108,8 +111,8 @@ export default function ContributePlacePage() {
         setLoading(true);
 
         try {
-            if (!formData.name || !formData.category || !formData.district) {
-                toast.error("Please fill in all required fields.");
+            if (!formData.name || !formData.category || !formData.district || !formData.location || !formData.description) {
+                toast.error("Please fill in all required fields (Name, Category, Location, District, Description).");
                 setLoading(false);
                 return;
             }
@@ -200,15 +203,50 @@ export default function ContributePlacePage() {
                                             </SelectContent>
                                         </Select>
                                     </div>
-                                    <div className="space-y-2">
-                                        <Label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Location Name</Label>
-                                        <Input
-                                            name="location"
-                                            value={formData.location}
-                                            onChange={handleChange}
-                                            placeholder="e.g. Near the Old Bridge"
-                                            className="h-14 rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-emerald-500/20 font-medium"
-                                        />
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Location Name</Label>
+                                            <Input
+                                                name="location"
+                                                value={formData.location}
+                                                onChange={handleChange}
+                                                placeholder="e.g. Near the Old Bridge"
+                                                className="h-14 rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-emerald-500/20 font-medium"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Opening Hours (Time)</Label>
+                                            <Input
+                                                name="openingHours"
+                                                value={formData.openingHours}
+                                                onChange={handleChange}
+                                                placeholder="e.g. 9:00 AM - 6:00 PM"
+                                                className="h-14 rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-emerald-500/20 font-medium"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Best Time to Visit</Label>
+                                            <Input
+                                                name="bestTimeToVisit"
+                                                value={formData.bestTimeToVisit}
+                                                onChange={handleChange}
+                                                placeholder="e.g. September to March"
+                                                className="h-14 rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-emerald-500/20 font-medium"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Entry Fee</Label>
+                                            <Input
+                                                name="entryFee"
+                                                value={formData.entryFee}
+                                                onChange={handleChange}
+                                                placeholder="e.g. ₹50 for adults"
+                                                className="h-14 rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-emerald-500/20 font-medium"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 
@@ -289,6 +327,29 @@ export default function ContributePlacePage() {
                                             ))}
                                         </SelectContent>
                                     </Select>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Latitude (Optional)</Label>
+                                        <Input
+                                            name="latitude"
+                                            value={formData.latitude}
+                                            onChange={handleChange}
+                                            placeholder="10.8505"
+                                            className="h-14 rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-emerald-500/20 font-medium"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Longitude (Optional)</Label>
+                                        <Input
+                                            name="longitude"
+                                            value={formData.longitude}
+                                            onChange={handleChange}
+                                            placeholder="76.2711"
+                                            className="h-14 rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-emerald-500/20 font-medium"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </Card>

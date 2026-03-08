@@ -21,6 +21,7 @@ export interface Place {
     longitude: number;
     openingHours?: string;
     createdAt: string;
+    updatedAt: string;
 }
 
 export interface PlaceParams {

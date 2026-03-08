@@ -199,7 +199,7 @@ export default function PlaceDetailsClient({ placeId, initialPlace }: { placeId:
     }
 
     const allImages = [...(place.images || []), ...(userPhotos.map(p => p.image))];
-    const images = (allImages.length > 0 ? allImages : [null]).map((img: string | null) => getFullImageUrl(img, place.name, place.category));
+    const images = (allImages.length > 0 ? allImages : [null]).map((img: string | null) => getFullImageUrl(img, place.name, place.category, undefined, place.updatedAt));
 
     return (
         <main className="min-h-screen bg-white">
@@ -214,7 +214,7 @@ export default function PlaceDetailsClient({ placeId, initialPlace }: { placeId:
             <div className="relative h-[95vh] w-full overflow-hidden bg-gray-900">
                 <div className="absolute inset-0">
                     <img
-                        src={images[0]}
+                        src={getFullImageUrl(place.image || (place.images && place.images[0]), place.name, place.category, undefined, place.updatedAt)}
                         alt={place.name}
                         className="w-full h-full object-cover scale-105 animate-slow-zoom"
                     />
@@ -324,7 +324,7 @@ export default function PlaceDetailsClient({ placeId, initialPlace }: { placeId:
                                 </div>
                                 <Button
                                     onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${place.latitude},${place.longitude}`, '_blank')}
-                                    className="bg-gray-900 text-white hover:bg-black px-8 h-14 rounded-2xl font-bold flex gap-3 shadow-2xl"
+                                    className="bg-gray-900 text-white hover:bg-black px-8 h-14 rounded-2xl font-bold flex gap-3 shadow-2xl shrink-0"
                                 >
                                     <MapPin className="h-5 w-5" />
                                     Open in Google Maps
@@ -355,36 +355,38 @@ export default function PlaceDetailsClient({ placeId, initialPlace }: { placeId:
                         />
                     </div>
 
-                    <div className="lg:col-span-4 space-y-12">
-                        <QuickInfoPanel place={place} />
+                    <div className="lg:col-span-4 space-y-12 relative">
+                        <div className="sticky top-32 space-y-12 self-start max-h-[calc(100vh-160px)] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300">
+                            <QuickInfoPanel place={place} />
 
-                        <div className="bg-gray-900 rounded-[2.5rem] p-10 text-white space-y-8 sticky top-32 border border-white/10">
-                            <h3 className="text-3xl font-black tracking-tight">Plan Your Journey</h3>
-                            <Button onClick={handleAddToItinerary} className="w-full h-20 bg-primary text-primary-foreground rounded-2xl font-black text-xl shadow-lg">
-                                {addedToItinerary ? "Saved to Plan" : "Add to Itinerary"}
-                            </Button>
-                        </div>
+                            <div className="bg-gray-900 rounded-[2.5rem] p-10 text-white space-y-8 border border-white/10">
+                                <h3 className="text-3xl font-black tracking-tight">Plan Your Journey</h3>
+                                <Button onClick={handleAddToItinerary} className="w-full h-20 bg-primary text-primary-foreground rounded-2xl font-black text-xl shadow-lg">
+                                    {addedToItinerary ? "Saved to Plan" : "Add to Itinerary"}
+                                </Button>
+                            </div>
 
-                        <div className="space-y-8">
-                            <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter px-2">Explore Beyond</h3>
-                            <div className="grid gap-6">
-                                {nearbyPlaces.map(np => (
-                                    <Link key={np._id} href={`/places/${np._id}`} className="group block">
-                                        <div className="bg-white hover:bg-gray-50 rounded-3xl p-5 transition-all border border-gray-100 flex gap-6">
-                                            <div className="h-24 w-24 rounded-[1.5rem] overflow-hidden shrink-0 shadow-lg relative">
-                                                <img src={getFullImageUrl(np.image, np.name, np.category)} className="h-full w-full object-cover" alt={np.name} />
-                                            </div>
-                                            <div className="flex flex-col justify-center gap-1.5">
-                                                <h4 className="font-black text-gray-900 text-lg line-clamp-1">{np.name}</h4>
-                                                <div className="flex items-center gap-3">
-                                                    <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-                                                    <span className="text-xs font-black">{np.ratingAvg}</span>
-                                                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{np.category}</span>
+                            <div className="space-y-8">
+                                <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter px-2">Explore Beyond</h3>
+                                <div className="grid gap-6">
+                                    {nearbyPlaces.map(np => (
+                                        <Link key={np._id} href={`/places/${np._id}`} className="group block">
+                                            <div className="bg-white hover:bg-gray-50 rounded-3xl p-5 transition-all border border-gray-100 flex gap-6">
+                                                <div className="h-24 w-24 rounded-[1.5rem] overflow-hidden shrink-0 shadow-lg relative">
+                                                    <img src={getFullImageUrl(np.image, np.name, np.category, undefined, np.updatedAt)} className="h-full w-full object-cover" alt={np.name} />
+                                                </div>
+                                                <div className="flex flex-col justify-center gap-1.5">
+                                                    <h4 className="font-black text-gray-900 text-lg line-clamp-1">{np.name}</h4>
+                                                    <div className="flex items-center gap-3">
+                                                        <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                                                        <span className="text-xs font-black">{np.ratingAvg}</span>
+                                                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{np.category}</span>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </Link>
-                                ))}
+                                        </Link>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </div>

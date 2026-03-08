@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { getFullImageUrl } from "@/lib/images"
 
 export function FeaturedStory() {
     return (
@@ -14,7 +15,7 @@ export function FeaturedStory() {
                         <div className="absolute -inset-4 bg-gradient-to-r from-accent to-purple-600 rounded-[2.5rem] rotate-3 opacity-20 blur-xl transition-all duration-700 group-hover:rotate-2 group-hover:opacity-30" />
                         <div className="relative rounded-[2rem] overflow-hidden aspect-[4/3] shadow-2xl">
                             <img
-                                src="/places/wayanadrainforest.jpg"
+                                src={getFullImageUrl("/places/wayanadrainforest.jpg", "Wayanad Rainforest", "Hill Station")}
                                 alt="Wayanad Rainforest"
                                 className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
                             />

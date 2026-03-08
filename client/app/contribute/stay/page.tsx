@@ -117,8 +117,8 @@ export default function ContributeStayPage() {
         setLoading(true);
 
         try {
-            if (!formData.name || !formData.type || !formData.district || !formData.price) {
-                toast.error("Please fill in all required fields.");
+            if (!formData.name || !formData.type || !formData.district || !formData.price || !formData.description) {
+                toast.error("Please fill in all required fields (Name, Type, District, Price, Description).");
                 setLoading(false);
                 return;
             }

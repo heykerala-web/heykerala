@@ -62,18 +62,48 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         try {
             const res = await authAPI.getMe(token);
             if (res.success && res.user) {
-                // Ensure avatar is properly formatted URL if needed, though API usually sends it
-                // If the API sends a relative path, we might want to process it here or in the component.
-                // The Interface says avatar?: string. 
                 setUser(res.user as User);
+                // Cache the user in localStorage for offline resilience
+                try {
+                    localStorage.setItem("cached_user", JSON.stringify(res.user));
+                } catch { }
             } else {
                 setUser(null);
-                tokenManager.remove(); // Invalid token
+                tokenManager.remove();
+                localStorage.removeItem("cached_user");
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error("Auth check failed:", error);
-            setUser(null);
-            tokenManager.remove();
+
+            // If offline or network error, try to restore user from localStorage cache
+            const isNetworkError =
+                !navigator.onLine ||
+                error?.message === "Network Error" ||
+                error?.code === "ERR_NETWORK" ||
+                error?.code === "ERR_INTERNET_DISCONNECTED";
+
+            if (isNetworkError) {
+                try {
+                    const cachedUserStr = localStorage.getItem("cached_user");
+                    if (cachedUserStr) {
+                        const cachedUser = JSON.parse(cachedUserStr);
+                        console.log("[Auth] Offline – restoring user from cache");
+                        setUser(cachedUser as User);
+                        setLoading(false);
+                        return;
+                    }
+                } catch { }
+            }
+
+            // Clear user only if it's a real auth failure (not just network)
+            if (!isNetworkError) {
+                setUser(null);
+                tokenManager.remove();
+                localStorage.removeItem("cached_user");
+            } else {
+                // Offline with no cache — keep loading:false but don't force logout
+                setUser(null);
+            }
         } finally {
             setLoading(false);
         }

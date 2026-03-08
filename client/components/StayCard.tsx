@@ -4,35 +4,41 @@ import { useState, useEffect } from "react"
 import { Star, MapPin, ArrowRight, Heart } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { getFullImageUrl } from "@/lib/images"
 import api from "@/services/api"
 import toast from "react-hot-toast"
+import React from "react"
+import { useAuth } from "@/context/AuthContext"
 
 interface StayCardProps {
     id: string
     name: string
     type: string
     district: string
-    image: string
+    image?: string
+    images?: string[]
     rating: number
     price: number
     amenities: string[]
     isSaved?: boolean
+    updatedAt?: string | Date
 }
-import { useAuth } from "@/context/AuthContext"
 
-export function StayCard({
+export const StayCard = React.memo(function StayCard({
     id,
     name,
     type,
     district,
     image,
+    images,
     rating,
     price,
     amenities,
     isSaved = false,
+    updatedAt,
 }: StayCardProps) {
     const { user, updateUser } = useAuth()
     const router = useRouter()
@@ -89,10 +95,12 @@ export function StayCard({
         <div className="group relative h-[420px] w-full rounded-[2rem] overflow-hidden cursor-pointer transition-all duration-500 hover:shadow-2xl hover:shadow-primary/20">
             {/* Image Background */}
             <div className="absolute inset-0">
-                <img
-                    src={getFullImageUrl(image, name, type)}
+                <Image
+                    src={getFullImageUrl(image, name, type, images, updatedAt)}
                     alt={name}
-                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                    className="object-cover transition-transform duration-700 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-300" />
             </div>
@@ -154,4 +162,4 @@ export function StayCard({
             </div>
         </div>
     )
-}
+})

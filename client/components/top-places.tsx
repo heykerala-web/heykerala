@@ -1,45 +1,40 @@
-import { PlaceCard } from "./place-card"
+"use client"
 
-const topPlaces = [
-  {
-    id: "1",
-    name: "Munnar Tea Gardens",
-    location: "Munnar, Idukki",
-    image: "/places/munnar-teagardens.jpg",
-    rating: 4.8,
-    description: "Endless tea plantations in the Western Ghats with cool breeze and scenic viewpoints.",
-    category: "Hill Station",
-  },
-  {
-    id: "2",
-    name: "Alleppey Backwaters",
-    location: "Alleppey, Alappuzha",
-    image: "/places/alappuzhabackwaters.webp",
-    rating: 4.9,
-    description: "Serene canals and lagoons, perfect for houseboat cruises and village life views.",
-    category: "Backwaters",
-  },
-  {
-    id: "3",
-    name: "Kovalam Beach",
-    location: "Kovalam, Thiruvananthapuram",
-    image: "/places/kovalambeach.webp",
-    rating: 4.6,
-    description: "Golden sand, calm waters and a laid-back vibe along the palm-lined coast.",
-    category: "Beach",
-  },
-  {
-    id: "4",
-    name: "Periyar Wildlife Sanctuary",
-    location: "Thekkady, Idukki",
-    image: "/places/thekkadyperiyar.jpg",
-    rating: 4.7,
-    description: "Lush forests with elephants, birds and boat safaris on the Periyar Lake.",
-    category: "Wildlife",
-  },
-]
+import { useState, useEffect } from "react"
+import { PlaceCard } from "./place-card"
+import { placeService } from "@/services/placeService"
+import { Loader2 } from "lucide-react"
 
 export function TopPlaces() {
+  const [topPlaces, setTopPlaces] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchTopPlaces = async () => {
+      try {
+        const response = await placeService.getAll({ limit: 4, sort: 'popular' })
+        if (response && response.success) {
+          setTopPlaces(response.data)
+        }
+      } catch (error) {
+        console.error("Failed to fetch top places", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchTopPlaces()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-20">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  if (topPlaces.length === 0) return null
+
   return (
     <section aria-labelledby="top-places-heading">
       <div className="text-center mb-8">
@@ -51,7 +46,20 @@ export function TopPlaces() {
 
       <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
         {topPlaces.map((p) => (
-          <PlaceCard key={p.id} {...p} />
+          <PlaceCard
+            key={p._id}
+            id={p._id}
+            name={p.name}
+            location={p.district || p.location}
+            image={p.image}
+            rating={p.ratingAvg || 0}
+            description={p.description}
+            category={p.category}
+            images={p.images}
+            district={p.district}
+            tags={p.tags}
+            updatedAt={p.updatedAt}
+          />
         ))}
       </div>
     </section>

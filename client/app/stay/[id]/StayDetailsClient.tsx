@@ -287,55 +287,38 @@ export default function StayDetailsClient({ id, initialStay }: { id: string, ini
     };
 
     const handleBooking = async () => {
-        console.log("🚀 Booking process started", {
-            stayType: stay?.type,
-            checkIn,
-            checkOut,
-            guests,
-            selectedRoom,
-            paymentMethod
-        });
-
         if (!stay) {
-            console.error("❌ Stay is null");
             return;
         }
 
         if (isStayType()) {
             if (!checkIn || !checkOut) {
-                console.log("❌ Missing dates");
                 toast({ title: "Please select dates", variant: "destructive" });
                 return;
             }
             if (stay.roomTypes && stay.roomTypes.length > 0 && !selectedRoom) {
-                console.log("❌ Room not selected");
                 toast({ title: "Please select a room type", variant: "destructive" });
                 return;
             }
             const nights = Math.ceil((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24));
             const minStay = stay.minStay || 1;
-            console.log("📊 Night calculation:", { nights, minStay });
             if (nights < minStay) {
-                console.log("❌ Minimum stay error");
                 toast({ title: `Minimum stay is ${minStay} night(s).`, variant: "destructive" });
                 return;
             }
         } else {
             if (!checkIn || !bookingTime) {
-                console.log("❌ Missing time/date for non-stay");
                 toast({ title: "Please select date and time", variant: "destructive" });
                 return;
             }
         }
 
         if (!user) {
-            console.log("❌ User not logged in");
             toast({ title: "Please login to book", variant: "destructive" });
             router.push("/login?redirect=/stay/" + id);
             return;
         }
 
-        console.log("✅ Validation passed, proceeding with booking...");
         setBookingLoading(true);
         try {
             if (!navigator.onLine) {
@@ -359,7 +342,6 @@ export default function StayDetailsClient({ id, initialStay }: { id: string, ini
                         bookingTime,
                         numberOfGuests: guests,
                     };
-                    console.log("📤 Queuing Restaurant Booking:", data);
                     await queueBooking('restaurant', data);
                 }
                 toast({ title: "Offline Mode", description: "Booking queued and will be processed when you are back online." });
@@ -383,9 +365,7 @@ export default function StayDetailsClient({ id, initialStay }: { id: string, ini
                     totalPrice: totalPrice || 0
                 };
 
-                console.log("📤 Sending Stay Booking:", data);
                 const apiRes = await stayService.createBooking(data);
-                console.log("📥 Booking Response:", apiRes);
 
                 // Safety check for response structure
                 const booking = apiRes.booking || apiRes.data?.booking;
@@ -394,24 +374,19 @@ export default function StayDetailsClient({ id, initialStay }: { id: string, ini
                 }
 
                 if (paymentMethod === 'paypal') {
-                    console.log("💳 Starting PayPal Demo Simulation for Booking ID:", booking._id);
                     setIsDemoProcessing(true);
                     // Simulate PayPal Sandbox Processing
                     setTimeout(async () => {
                         try {
-                            console.log("🔍 Verifying Demo Payment for Booking:", booking._id);
                             const verifyRes = await api.post("/payments/paypal/demo-verify", { bookingId: booking._id });
-                            console.log("✅ Demo Verify Response:", verifyRes.data);
                             if (verifyRes.data.success) {
                                 toast({ title: "Payment Successful", description: "PayPal Sandbox demo payment verified." });
                                 router.push(`/booking/confirmation/${booking._id}`);
                             } else {
-                                console.log("❌ Demo Verify Failed:", verifyRes.data);
                                 toast({ title: "Payment Failed", variant: "destructive" });
                                 setIsDemoProcessing(false);
                             }
                         } catch (err) {
-                            console.error("🔥 Demo verification error:", err);
                             toast({ title: "Error in Payment Flow", variant: "destructive" });
                             setIsDemoProcessing(false);
                         }
@@ -419,7 +394,6 @@ export default function StayDetailsClient({ id, initialStay }: { id: string, ini
                     return;
                 }
 
-                console.log("💳 Proceeding to regular payment...");
                 toast({ title: "Booking Initiated", description: "Redirecting to payment..." });
                 await initiatePayment(booking);
             } else {
@@ -429,7 +403,6 @@ export default function StayDetailsClient({ id, initialStay }: { id: string, ini
                     bookingTime,
                     numberOfGuests: guests,
                 };
-                console.log("📤 Sending Restaurant Booking:", data);
                 await stayService.createRestaurantBooking(data);
                 toast({ title: "Request Sent!", description: "Your table reservation request is being processed." });
             }
@@ -495,7 +468,7 @@ export default function StayDetailsClient({ id, initialStay }: { id: string, ini
             <div className="relative h-[90vh] w-full overflow-hidden bg-gray-900">
                 <div className="absolute inset-0">
                     <img
-                        src={getFullImageUrl(stay.images[0], stay.name, stay.type)}
+                        src={getFullImageUrl(stay.images[0], stay.name, stay.type, undefined, (stay as any).updatedAt)}
                         alt={stay.name}
                         className="w-full h-full object-cover scale-105 animate-slow-zoom"
                     />
@@ -564,7 +537,7 @@ export default function StayDetailsClient({ id, initialStay }: { id: string, ini
                                 <h2 className="text-4xl font-black text-gray-900 tracking-tight">Property Gallery</h2>
                                 <p className="text-gray-400 font-medium mt-1 uppercase tracking-widest text-xs">Exquisite captures from around the property</p>
                             </div>
-                            <PlaceGallery images={stay.images} name={stay.name} />
+                            <PlaceGallery images={stay.images.map(img => getFullImageUrl(img, stay.name, stay.type, undefined, (stay as any).updatedAt))} name={stay.name} />
                         </section>
 
                         {/* About Section */}

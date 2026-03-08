@@ -118,7 +118,7 @@ export function CategoryGrid() {
             {/* Background Image */}
             <div className="absolute inset-0 overflow-hidden">
               <img
-                src={getFullImageUrl(category.image, category.name, "Kerala tourism")}
+                src={getFullImageUrl(category.image, category.name, "Kerala tourism", undefined, (category as any).updatedAt)}
                 alt={category.name}
                 loading="lazy"
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"

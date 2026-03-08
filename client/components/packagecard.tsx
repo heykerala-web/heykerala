@@ -5,6 +5,7 @@ type PackageType = {
   title: string;
   duration: string;
   price: number;
+  updatedAt?: string | Date;
 };
 
 interface PackageCardProps {
@@ -15,7 +16,7 @@ export default function PackageCard({ pkg }: PackageCardProps) {
   return (
     <div className="bg-white p-4 rounded-xl shadow">
       <img
-        src={getFullImageUrl(pkg.image, pkg.title, "kerala tour package")}
+        src={getFullImageUrl(pkg.image, pkg.title, "kerala tour package", undefined, pkg.updatedAt)}
         alt={pkg.title}
         className="w-full h-40 rounded-xl object-cover"
       />

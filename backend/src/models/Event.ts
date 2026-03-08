@@ -10,6 +10,7 @@ export interface IEvent extends Document {
     endDate: Date;
     time: string;
     images: string[];
+    image?: string;
     latitude?: number;
     longitude?: number;
     ratingAvg?: number;
@@ -39,6 +40,7 @@ const EventSchema: Schema = new Schema({
     endDate: { type: Date, required: true },
     time: { type: String }, // e.g., "10:00 AM" or "All Day"
     images: [{ type: String }],
+    image: { type: String },
     latitude: { type: Number },
     longitude: { type: Number },
     ratingAvg: { type: Number, default: 5.0 },
@@ -59,6 +61,14 @@ const EventSchema: Schema = new Schema({
     ticketUrl: { type: String },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
+
+// Pre-save hook to sync image with the first element of images array
+EventSchema.pre('save', function (this: IEvent, next) {
+    if ((!this.image || this.image === '') && this.images && this.images.length > 0) {
+        this.image = this.images[0];
+    }
+    next();
+});
 
 // Index for fast trending queries
 EventSchema.index({ viewCount: -1, reminderCount: -1 });

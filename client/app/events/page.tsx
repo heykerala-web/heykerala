@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { eventService, Event, EventParams } from "@/services/eventService";
 import { EventCard } from "@/components/event-card";
+import { SkeletonCard } from "@/components/shared/SkeletonCard";
 import { EventCalendar } from "@/components/events/EventCalendar";
 import { TrendingEventsSection } from "@/components/events/TrendingEventsSection";
 import { AIEventRecommendations } from "@/components/events/AIEventRecommendations";
@@ -117,14 +119,17 @@ export default function EventsPage() {
     <div className="min-h-screen bg-white pb-20 font-sans">
 
       {/* HERO */}
-      <div className="relative h-[60vh] md:h-[70vh] w-full overflow-hidden bg-gray-900">
+      <div className="relative h-[60vh] md:h-[70vh] w-full overflow-hidden bg-gray-950">
         <div className="absolute inset-0">
-          <img
-            src="https://images.unsplash.com/photo-1596401057633-565652ca65a0?q=80&w=2070&auto=format&fit=crop"
-            alt="Events & Festivals"
-            className="w-full h-full object-cover scale-105 animate-slow-zoom opacity-60"
+          <Image
+            src="https://images.unsplash.com/photo-1544027993-37dbfe43562a?q=80&w=1600&auto=format&fit=crop"
+            alt="Vibrant Kerala Events"
+            fill
+            priority
+            className="object-cover scale-105 animate-pulse-slow opacity-60"
+            sizes="100vw"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-black/20" />
+          <div className="absolute inset-0 bg-gradient-to-t from-white via-black/20 to-black/40" />
         </div>
 
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 z-10">
@@ -272,7 +277,7 @@ export default function EventsPage() {
                         <Link href={`/events/${e._id}`} key={e._id}>
                           <EventCard
                             id={e._id} name={e.title} location={e.district}
-                            image={e.images?.[0]} description={e.description}
+                            image={e.image} images={e.images} description={e.description}
                             category={e.category}
                             date={new Date(e.startDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
                             time={e.time}
@@ -326,9 +331,10 @@ export default function EventsPage() {
             </div>
 
             {loading ? (
-              <div className="flex flex-col items-center justify-center py-20 text-gray-400">
-                <Loader2 className="h-10 w-10 animate-spin mb-4 text-emerald-600" />
-                <p>Loading events…</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {[...Array(8)].map((_, i) => (
+                  <SkeletonCard key={i} variant="event" />
+                ))}
               </div>
             ) : error ? (
               <ErrorState error={error} onRetry={fetchEvents} />
@@ -346,7 +352,7 @@ export default function EventsPage() {
                     <Link href={`/events/${e._id}`} key={e._id} className="block group">
                       <EventCard
                         id={e._id} name={e.title} location={e.district}
-                        image={e.images?.[0]} description={e.description}
+                        image={e.image} images={e.images} description={e.description}
                         category={e.category}
                         date={new Date(e.startDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                         time={e.time}

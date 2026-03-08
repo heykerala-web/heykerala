@@ -12,6 +12,7 @@ export interface Event {
     endDate: string;
     time: string;
     images: string[];
+    image?: string;
     latitude?: number;
     longitude?: number;
     ratingAvg: number;
@@ -24,6 +25,7 @@ export interface Event {
     ticketUrl?: string;
     hasReminder?: boolean;
     createdAt: string;
+    updatedAt: string;
 }
 
 export interface EventParams {

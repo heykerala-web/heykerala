@@ -96,7 +96,7 @@ export function TopPicks() {
             >
               <div className="relative aspect-[4/5] overflow-hidden shrink-0">
                 <img
-                  src={getFullImageUrl(place.image || place.images?.[0], place.name, place.category)}
+                  src={getFullImageUrl(place.image || place.images?.[0], place.name, place.category, undefined, place.updatedAt)}
                   alt={place.name}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
                 />

@@ -175,7 +175,7 @@ export default function EventDetailsPage({ params }: { params: { id: string } })
       <div className="relative h-[90vh] w-full overflow-hidden bg-gray-900">
         <div className="absolute inset-0">
           <img
-            src={getFullImageUrl(event.images?.[0], event.title, event.category)}
+            src={getFullImageUrl(event.images?.[0], event.title, event.category, undefined, (event as any).updatedAt)}
             alt={event.title}
             className="w-full h-full object-cover scale-105 animate-slow-zoom"
           />
@@ -274,7 +274,7 @@ export default function EventDetailsPage({ params }: { params: { id: string } })
                 <p className="text-gray-400 font-medium mt-1 uppercase tracking-widest text-xs">Visual highlights from this cultural experience</p>
               </div>
               <PlaceGallery
-                images={[...(event.images || []), ...(userPhotos.map(p => p.image))].map(img => getFullImageUrl(img, event.title, event.category))}
+                images={[...(event.images || []), ...(userPhotos.map(p => p.image))].map(img => getFullImageUrl(img, event.title, event.category, undefined, (event as any).updatedAt))}
                 name={event.title}
               />
             </section>

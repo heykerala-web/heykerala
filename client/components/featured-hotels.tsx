@@ -1,45 +1,40 @@
-import { HotelCard } from "./hotel-card"
+"use client"
 
-const featuredHotels = [
-  {
-    id: "h1",
-    name: "Backwater Resort Kumarakom",
-    location: "Kumarakom, Kottayam",
-    image: "/stay/beach-safarihomestay.jpg",
-    rating: 4.8,
-    price: 8500,
-    amenities: ["WiFi", "Restaurant", "Parking"],
-  },
-  {
-    id: "h2",
-    name: "Hill View Resort Munnar",
-    location: "Munnar, Idukki",
-    image: "/stay/green-gates-hotel.jpg",
-    rating: 4.7,
-    price: 6200,
-    amenities: ["WiFi", "Restaurant", "Parking"],
-  },
-  {
-    id: "h3",
-    name: "Beach Resort Kovalam",
-    location: "Kovalam, Thiruvananthapuram",
-    image: "/stay/zostel-kochi.jpg",
-    rating: 4.6,
-    price: 7800,
-    amenities: ["WiFi", "Restaurant", "Parking"],
-  },
-  {
-    id: "h4",
-    name: "Heritage Hotel Kochi",
-    location: "Fort Kochi, Ernakulam",
-    image: "/stay/the-terracecafe.jpg",
-    rating: 4.9,
-    price: 9200,
-    amenities: ["WiFi", "Restaurant", "Parking"],
-  },
-]
+import { useState, useEffect } from "react"
+import { HotelCard } from "./hotel-card"
+import { stayService } from "@/services/stayService"
+import { Loader2 } from "lucide-react"
 
 export function FeaturedHotels() {
+  const [featuredHotels, setFeaturedHotels] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchFeaturedHotels = async () => {
+      try {
+        const response = await stayService.getAll({ limit: 4 })
+        if (response && response.success) {
+          setFeaturedHotels(response.data)
+        }
+      } catch (error) {
+        console.error("Failed to fetch featured hotels", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchFeaturedHotels()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-20">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  if (featuredHotels.length === 0) return null
+
   return (
     <section aria-labelledby="featured-hotels-heading">
       <div className="text-center mb-8">
@@ -51,7 +46,17 @@ export function FeaturedHotels() {
 
       <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
         {featuredHotels.map((h) => (
-          <HotelCard key={h.id} {...h} />
+          <HotelCard
+            key={h._id}
+            id={h._id}
+            name={h.name}
+            location={h.district}
+            image={h.image || h.images?.[0] || ""}
+            rating={h.ratingAvg || 0}
+            price={h.price || 0}
+            amenities={h.amenities || []}
+            updatedAt={h.updatedAt}
+          />
         ))}
       </div>
     </section>

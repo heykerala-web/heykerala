@@ -2,6 +2,11 @@ import { Request, Response } from "express";
 import mongoose from "mongoose";
 import Place from "../models/Place";
 import Review from "../models/Review";
+import cache from "../utils/cache";
+
+// Cache TTLs
+const PLACES_LIST_TTL = 5 * 60;   // 5 minutes
+const TRENDING_TTL = 10 * 60;  // 10 minutes
 
 // Helper to escape special characters for regex
 const escapeRegex = (string: string) => {
@@ -26,6 +31,9 @@ export const createPlace = async (req: Request, res: Response) => {
       priceLevel,
       status: 'approved' // Admin created is auto-approved
     });
+
+    // Invalidate list cache so fresh data shows
+    cache.del('places');
 
     res.status(201).json({
       success: true,
@@ -61,6 +69,7 @@ export const submitPlace = async (req: Request, res: Response) => {
       status: 'pending',
       createdBy: userId
     });
+    cache.del('places');
     res.status(201).json({
       success: true,
       message: "Place submitted successfully for review.",
@@ -98,9 +107,11 @@ export const getPlaceById = async (req: Request, res: Response) => {
     }
 
     const isApproved = place.status === 'approved' || !place.status;
-    const isAdmin = (req as any).user && (req as any).user.role === 'Admin';
+    const user = (req as any).user;
+    const isAdmin = user && user.role === 'Admin';
+    const isCreator = user && place.createdBy?.toString() === user?._id?.toString();
 
-    if (!isApproved && !isAdmin) {
+    if (!isApproved && !isAdmin && !isCreator) {
       return res.status(403).json({ success: false, message: "Place pending approval" });
     }
 
@@ -133,9 +144,11 @@ export const getPlaceBySlug = async (req: Request, res: Response) => {
     }
 
     const isApproved = place.status === 'approved' || !place.status;
-    const isAdmin = (req as any).user && (req as any).user.role === 'Admin';
+    const user = (req as any).user;
+    const isAdmin = user && user.role === 'Admin';
+    const isCreator = user && place.createdBy?.toString() === user?._id?.toString();
 
-    if (!isApproved && !isAdmin) {
+    if (!isApproved && !isAdmin && !isCreator) {
       return res.status(403).json({ success: false, message: "Place pending approval" });
     }
 
@@ -158,9 +171,22 @@ export const getAllPlaces = async (req: Request, res: Response) => {
   try {
     const { category, district, search, sort, page = 1, limit = 10, minRating, type, status, budget, untold } = req.query;
 
+    // Build cache key from query params (skip for admin status queries)
+    const user = (req as any).user;
+    const userId = user?._id;
+    const isAdmin = user && user.role === 'Admin';
+
     const query: any = {
-      $or: [{ status: 'approved' }, { status: { $exists: false } }]
+      $or: [
+        { status: 'approved' },
+        { status: { $exists: false } }
+      ]
     };
+
+    // If logged in, allow creator to see their own pending items
+    if (userId) {
+      query.$or.push({ createdBy: userId });
+    }
 
     // If admin and requesting other status, allow it
     if ((req as any).user && (req as any).user.role === 'Admin' && status) {
@@ -231,22 +257,33 @@ export const getAllPlaces = async (req: Request, res: Response) => {
     const limitNum = parseInt(limit as string);
     const skip = (pageNum - 1) * limitNum;
 
+    const total = await Place.countDocuments(query);
     const places = await Place.find(query)
       .sort(sortOptions)
       .skip(skip)
       .limit(limitNum);
 
-    const total = await Place.countDocuments(query);
-
-    res.json({
+    const responseData = {
       success: true,
       data: places,
       pagination: {
         total,
         page: pageNum,
+        limit: limitNum,
         pages: Math.ceil(total / limitNum)
       }
-    });
+    };
+
+    // Store in cache (only for non-admin queries)
+    const isAdminQuery = (req as any).user && (req as any).user.role === 'Admin';
+    if (!isAdminQuery || !status) {
+      const cacheKey = `places_${JSON.stringify(req.query)}`;
+      cache.set(cacheKey, responseData, PLACES_LIST_TTL);
+    }
+
+    res.setHeader('X-Cache', 'MISS');
+    res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=60');
+    res.json(responseData);
   } catch (error: any) {
     console.error("Error fetching places:", error);
     res.status(500).json({
@@ -348,6 +385,11 @@ export const updatePlace = async (req: Request, res: Response) => {
       }
     });
 
+    // Sync primary image if images provided but image is not
+    if ((!updateData.image || updateData.image === '') && updateData.images && updateData.images.length > 0) {
+      updateData.image = updateData.images[0];
+    }
+
     const place = await Place.findByIdAndUpdate(id, updateData, {
       new: true,
       runValidators: true,
@@ -359,6 +401,8 @@ export const updatePlace = async (req: Request, res: Response) => {
         message: "Place not found",
       });
     }
+
+    cache.del('places');
 
     res.json({
       success: true,
@@ -394,6 +438,7 @@ export const deletePlace = async (req: Request, res: Response) => {
 
     // Cascading delete reviews
     await Review.deleteMany({ targetId: id, targetType: "place" });
+    cache.del('places');
 
     res.json({ success: true, message: "Place deleted successfully" });
   } catch (error: any) {
@@ -409,6 +454,13 @@ export const deletePlace = async (req: Request, res: Response) => {
  */
 export const getTrendingPlaces = async (req: Request, res: Response) => {
   try {
+    // Check cache first (10 min TTL — trending rarely changes)
+    const cachedTrending = cache.get<any>('places_trending');
+    if (cachedTrending) {
+      res.setHeader('X-Cache', 'HIT');
+      return res.json(cachedTrending);
+    }
+
     // Optimization: Fetch only top 50 places by views as candidates for trending
     // This avoids loading thousands of documents into memory.
     const places = await Place.find({
@@ -435,10 +487,11 @@ export const getTrendingPlaces = async (req: Request, res: Response) => {
       .sort((a, b) => b.trendingScore - a.trendingScore)
       .slice(0, 5);
 
-    res.json({
-      success: true,
-      data: sortedPlaces
-    });
+    const trendingResponse = { success: true, data: sortedPlaces };
+    cache.set('places_trending', trendingResponse, TRENDING_TTL);
+    res.setHeader('X-Cache', 'MISS');
+    res.setHeader('Cache-Control', 'public, max-age=600, stale-while-revalidate=120');
+    res.json(trendingResponse);
   } catch (error: any) {
     console.error("Error fetching trending places:", error);
     res.status(500).json({

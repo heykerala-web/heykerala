@@ -1,8 +1,16 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { Star, MapPin, Heart, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import Link from "next/link"
+import Image from "next/image"
+import { getFullImageUrl } from "@/lib/images"
+import { useAuth } from "@/context/AuthContext"
+import api from "@/services/api"
+import { toast } from "react-hot-toast"
+import { useRouter } from "next/navigation"
+import { trackPlaceView } from "@/lib/interactionTracker"
 
 export interface PlaceCardProps {
   id: string
@@ -12,20 +20,15 @@ export interface PlaceCardProps {
   rating: number
   description: string
   category: string
+  images?: string[]
+  type?: string       // optional: 'place' or 'event'
   district?: string   // optional: used for interaction tracking
   tags?: string[]     // optional: used for interaction tracking
   isBookmarked?: boolean
+  updatedAt?: string | Date
 }
 
-import Link from "next/link"
-import { getFullImageUrl } from "@/lib/images"
-import { useAuth } from "@/context/AuthContext"
-import api from "@/services/api"
-import { toast } from "react-hot-toast"
-import { useRouter } from "next/navigation"
-import { trackPlaceView } from "@/lib/interactionTracker"
-
-export function PlaceCard({
+export const PlaceCard = React.memo(function PlaceCard({
   id,
   name,
   location,
@@ -33,9 +36,12 @@ export function PlaceCard({
   rating,
   description,
   category,
+  images = [],
+  type = 'place',
   district = "",
   tags = [],
   isBookmarked = false,
+  updatedAt,
 }: PlaceCardProps) {
   const { user, updateUser } = useAuth()
   const router = useRouter()
@@ -87,7 +93,7 @@ export function PlaceCard({
 
   return (
     <Link
-      href={`/places/${id}`}
+      href={type === 'event' ? `/events/${id}` : `/places/${id}`}
       className="block group h-full"
       // Track this place view for the recommendation engine (fire-and-forget)
       onClick={() => trackPlaceView(id, category, district, tags)}
@@ -96,10 +102,12 @@ export function PlaceCard({
 
         {/* Image Section */}
         <div className="relative h-56 w-full overflow-hidden">
-          <img
-            src={getFullImageUrl(image, name, category)}
+          <Image
+            src={getFullImageUrl(image, name, category, images, updatedAt)}
             alt={name}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="object-cover transition-transform duration-700 group-hover:scale-110"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-60" />
 
@@ -146,4 +154,4 @@ export function PlaceCard({
       </div>
     </Link>
   )
-}
+})

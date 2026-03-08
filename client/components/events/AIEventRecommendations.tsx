@@ -58,7 +58,7 @@ export function AIEventRecommendations() {
                         <Link key={ev._id} href={`/events/${ev._id}`} className="group block">
                             <div className="relative rounded-3xl overflow-hidden h-64 shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-1.5">
                                 <img
-                                    src={getFullImageUrl(ev.images?.[0], ev.title, ev.category)}
+                                    src={getFullImageUrl(ev.image, ev.title, ev.category, ev.images)}
                                     alt={ev.title}
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                 />

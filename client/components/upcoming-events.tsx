@@ -52,6 +52,7 @@ export function UpcomingEvents() {
                 image={e.images?.[0] || ""}
                 description={e.description}
                 category={e.category}
+                updatedAt={e.updatedAt}
               />
             </Link>
           ))}

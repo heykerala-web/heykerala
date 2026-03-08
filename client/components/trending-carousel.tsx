@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Star, MapPin, ArrowRight } from "lucide-react"
 import useEmblaCarousel from "embla-carousel-react"
 import { Button } from "@/components/ui/button"
+import { getFullImageUrl } from "@/lib/images"
 
 const trendingPlaces = [
     {
@@ -87,7 +88,7 @@ export function TrendingCarousel() {
                             >
                                 <div className="relative aspect-[4/3] rounded-[2rem] overflow-hidden shadow-lg transition-all duration-500 group-hover:shadow-2xl group-hover:-translate-y-2">
                                     <img
-                                        src={place.image || "/placeholder.svg"}
+                                        src={getFullImageUrl(place.image, place.title, place.category)}
                                         alt={place.title}
                                         className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
                                     />

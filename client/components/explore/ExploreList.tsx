@@ -65,7 +65,8 @@ export function ExploreList({ places, loading, onSelect, selectedId }: ExploreLi
                     >
                         <div className="w-28 h-28 flex-shrink-0 rounded-xl overflow-hidden bg-muted relative shadow-sm">
                             <SmartImage
-                                src={place.images?.[0] || place.image}
+                                src={place.image}
+                                images={place.images}
                                 alt={place.name}
                                 category={category as any}
                                 fallbackName={place.name}

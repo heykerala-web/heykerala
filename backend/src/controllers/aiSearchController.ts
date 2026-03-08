@@ -22,61 +22,57 @@ export const semanticSearch = async (req: Request, res: Response) => {
         let staysPromise: Promise<any[]> = Promise.resolve([]);
         let eventsPromise: Promise<any[]> = Promise.resolve([]);
 
-        const searchOptions = {
-            $or: [
-                { name: { $regex: q, $options: "i" } },
-                { title: { $regex: q, $options: "i" } }, // For Events
-                { description: { $regex: q, $options: "i" } },
-                { category: { $regex: q, $options: "i" } },
-                { district: { $regex: q, $options: "i" } },
-                { tags: { $in: [new RegExp(q, "i")] } }
-            ],
-            status: "approved"
-        };
+        const user = (req as any).user;
+        const userId = user?._id;
+        // const isAdmin = user && user.role === 'Admin'; // Admin check not strictly needed if creator check covers it
 
-        // Depending on type, initiate checks
-        if (type === 'all' || type === 'place') {
-            // @ts-ignore
-            placesPromise = Place.find({
-                ...searchOptions,
-                title: undefined // Place doesn't have title, remove it from query if strictly typed or use relaxed query
-            }).select('_id name description category district images score').lean().exec();
-            // Refine query for Place specifically to avoid invalid fields if needed, 
-            // but mongoose usually ignores undefined fields in $or if schema doesn't have them? 
-            // safest is to build specific queries.
-        }
+        // Approval filter: Only show approved items or items created by the user
+        const approvalFilter = userId
+            ? { $or: [{ status: 'approved' }, { status: { $exists: false } }, { createdBy: userId }] }
+            : { $or: [{ status: 'approved' }, { status: { $exists: false } }] };
 
-        // Re-defining queries to be model-specific to avoid schema errors
+        // Define model-specific queries to avoid schema mismatch
         const placeQuery = {
-            $or: [
-                { name: { $regex: q, $options: "i" } },
-                { description: { $regex: q, $options: "i" } },
-                { category: { $regex: q, $options: "i" } },
-                { district: { $regex: q, $options: "i" } }
-            ],
-            status: "approved"
+            $and: [
+                {
+                    $or: [
+                        { name: { $regex: q, $options: "i" } },
+                        { description: { $regex: q, $options: "i" } },
+                        { category: { $regex: q, $options: "i" } },
+                        { district: { $regex: q, $options: "i" } }
+                    ]
+                },
+                approvalFilter
+            ]
         };
 
         const stayQuery = {
-            $or: [
-                { name: { $regex: q, $options: "i" } },
-                { description: { $regex: q, $options: "i" } },
-                { type: { $regex: q, $options: "i" } }, // Stay uses 'type' as category-like
-                { district: { $regex: q, $options: "i" } }
-            ],
-            status: "approved"
+            $and: [
+                {
+                    $or: [
+                        { name: { $regex: q, $options: "i" } },
+                        { description: { $regex: q, $options: "i" } },
+                        { type: { $regex: q, $options: "i" } },
+                        { district: { $regex: q, $options: "i" } }
+                    ]
+                },
+                approvalFilter
+            ]
         };
 
         const eventQuery = {
-            $or: [
-                { title: { $regex: q, $options: "i" } },
-                { description: { $regex: q, $options: "i" } },
-                { category: { $regex: q, $options: "i" } },
-                { district: { $regex: q, $options: "i" } }
-            ],
-            status: "approved"
+            $and: [
+                {
+                    $or: [
+                        { title: { $regex: q, $options: "i" } },
+                        { description: { $regex: q, $options: "i" } },
+                        { category: { $regex: q, $options: "i" } },
+                        { district: { $regex: q, $options: "i" } }
+                    ]
+                },
+                approvalFilter
+            ]
         };
-
 
         if (type === 'all' || type === 'place') {
             placesPromise = Place.find(placeQuery).limit(5).lean().exec();

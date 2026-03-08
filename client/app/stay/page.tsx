@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { stayService, Stay, StayParams } from "@/services/stayService";
 import { StayCard } from "@/components/StayCard";
+import { SkeletonCard } from "@/components/shared/SkeletonCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
@@ -63,10 +65,13 @@ export default function StayPage() {
             {/* 🔹 CINEMATIC HERO BANNER */}
             <div className="relative h-[60vh] md:h-[70vh] w-full overflow-hidden bg-gray-900">
                 <div className="absolute inset-0">
-                    <img
+                    <Image
                         src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=75&w=1600&auto=format&fit=crop"
                         alt="Luxury Stays"
-                        className="w-full h-full object-cover scale-105 animate-slow-zoom opacity-60"
+                        fill
+                        priority
+                        className="object-cover scale-105 animate-slow-zoom opacity-60"
+                        sizes="100vw"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-black/20" />
                 </div>
@@ -158,9 +163,10 @@ export default function StayPage() {
 
             <div className="container mx-auto px-6 py-24 lg:py-32">
                 {loading ? (
-                    <div className="flex flex-col justify-center items-center h-96 gap-6">
-                        <Loader2 className="h-12 w-12 animate-spin text-emerald-600" />
-                        <p className="text-gray-400 font-bold uppercase tracking-[0.2em] text-xs">Curating your selection...</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 lg:gap-14">
+                        {[...Array(6)].map((_, i) => (
+                            <SkeletonCard key={i} variant="stay" />
+                        ))}
                     </div>
                 ) : error ? (
                     <div className="text-center py-20">
@@ -194,7 +200,8 @@ export default function StayPage() {
                                     name={stay.name}
                                     type={stay.type}
                                     district={stay.district}
-                                    image={stay.images[0]}
+                                    image={stay.image}
+                                    images={stay.images}
                                     rating={stay.ratingAvg}
                                     price={stay.price}
                                     amenities={stay.amenities}

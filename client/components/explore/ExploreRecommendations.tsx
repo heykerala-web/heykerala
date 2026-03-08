@@ -15,6 +15,7 @@ interface Recommendation {
     ratingAvg: number;
     category: string;
     district: string;
+    updatedAt?: string | Date;
 }
 
 interface ExploreRecommendationsProps {
@@ -72,7 +73,7 @@ export function ExploreRecommendations({ onSelect }: ExploreRecommendationsProps
                     >
                         <div className="relative aspect-[4/3] rounded-2xl overflow-hidden mb-2 shadow-sm border border-slate-100">
                             <img
-                                src={getFullImageUrl(item.image || (item.images && item.images[0]), item.name, item.category)}
+                                src={getFullImageUrl(item.image || (item.images && item.images[0]), item.name, item.category, undefined, item.updatedAt)}
                                 alt={item.name}
                                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                 onError={(e) => {

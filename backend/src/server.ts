@@ -5,6 +5,7 @@ import morgan from "morgan";
 import passport from "passport";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import compression from "compression";
 import { seedStays } from "./seed/seedStays";
 import { migrateStays } from "./seed/migrateStays";
 
@@ -44,6 +45,7 @@ const limiter = rateLimit({
 app.use("/api/", limiter);
 
 // Middleware
+app.use(compression()); // Enable gzip/Brotli compression for all responses
 app.use(express.json());
 app.use(
   cors({
@@ -54,15 +56,10 @@ app.use(
         "http://127.0.0.1:3000"
       ].filter(Boolean);
 
-      console.log("CORS Request from Origin:", origin);
-      console.log("Allowed Origins:", allowedOrigins);
-
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        console.log("CORS Blocked Origin:", origin);
-        // In production, we should probably stick to the allowed list,
-        // but for now keeping it permissive to avoid deployment blocks
+        // Permissive in dev to avoid deployment blocks
         callback(null, true);
       }
     },
