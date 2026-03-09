@@ -239,8 +239,8 @@ export default function PlacesPage() {
                 place={{
                   ...place,
                   ratingAvg: place.ratingAvg || place.rating,
-                  ratingCount: place.ratingCount || 0
-                }}
+                  totalReviews: place.ratingCount || place.totalReviews || 0
+                } as any}
                 viewMode="grid"
               />
             ))}
@@ -253,8 +253,8 @@ export default function PlacesPage() {
                 place={{
                   ...place,
                   ratingAvg: place.ratingAvg || place.rating,
-                  ratingCount: place.ratingCount || 0
-                }}
+                  totalReviews: place.ratingCount || place.totalReviews || 0
+                } as any}
                 viewMode="list"
               />
             ))}
